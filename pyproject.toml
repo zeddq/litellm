@@ -1,0 +1,28 @@
+[project]
+name = "cezarymarczak"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Cezary Marczak",email = "cezary@procyon.ai"}
+]
+readme = "README.md"
+requires-python = "~=3.13"
+
+[tool.poetry.dependencies]
+python = "~=3.13"
+pynvim = ">=0.6.0,<0.7.0"
+litellm = { version = ">=1.78.2,<2.0.0", extras = ["proxy"] }
+uvicorn = ">=0.29,<0.30"
+fastapi = "~0.115.14"
+opentelemetry-api = "^1.38.0"
+opentelemetry-sdk = "^1.38.0"
+opentelemetry-exporter-otlp = "^1.38.0"
+prisma = "^0.13.1"
+
+[tool.poetry.group.dev.dependencies]
+pyright = "^1.1.407"
+mypy = "^1.18.2"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
