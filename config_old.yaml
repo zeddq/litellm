@@ -1,0 +1,36 @@
+general_settings:
+  master_key: sk-1234
+
+# This section defines the models that your proxy will expose.
+model_list:
+  - model_name: gpt-5-pro
+    litellm_params:
+      model: openai/gpt-5-pro
+      api_key: os.environ/OPENAI_API_KEY
+
+  - model_name: gpt-5-codex
+    litellm_params:
+      model: openai/gpt-5-codex
+      api_key: os.environ/OPENAI_API_KEY
+
+  - model_name: claude-sonnet-4.5
+    litellm_params:
+      api_base: https://api.supermemory.ai/v3/api.anthropic.com
+      model: anthropic/claude-sonnet-4-5-20250929
+      api_key: os.environ/ANTHROPIC_API_KEY
+      custom_llm_provider: anthropic
+      extra_headers:
+        x-supermemory-api-key: sm_1234
+        x-sm-user-id: secretary-dev
+
+  - model_name: gemini-2.5-pro
+    litellm_params:
+      model: gemini/gemini-2.5-pro
+      api_key: os.environ/GEMINI_API_KEY
+
+# General settings for the proxy server
+litellm_settings:
+  set_verbose: true
+  json_logs: true
+  use_client_cache: true
+  drop_params: true

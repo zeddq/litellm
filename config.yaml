@@ -1,0 +1,70 @@
+general_settings:
+  master_key: sk-1234
+  forward_openai_org_id: true
+  # Forward all client headers globally (recommended for Supermemory)
+  forward_client_headers_to_llm_api: true
+
+# User ID mappings for Supermemory routing
+user_id_mappings:
+  # Custom header for explicit user ID specification
+  custom_header: "x-memory-user-id"
+
+  # Pattern-based detection from existing headers
+  header_patterns:
+    - header: "user-agent"
+      pattern: "^OpenAIClientImpl/Java"
+      user_id: "secretary-dev"
+
+    - header: "user-agent"
+      pattern: "^anthropic-sdk-python"
+      user_id: "claude-code"
+
+    - header: "user-agent"
+      pattern: "^Claude Code"
+      user_id: "claude-code-cli"
+
+  # Default user ID when no pattern matches
+  default_user_id: "default-dev"
+
+# This section defines the models that your proxy will expose.
+model_list:
+  - model_name: gpt-5-pro
+    litellm_params:
+      model: openai/gpt-5-pro
+      api_key: os.environ/OPENAI_API_KEY
+
+  - model_name: gpt-5-codex
+    litellm_params:
+      model: openai/gpt-5-codex
+      api_key: os.environ/OPENAI_API_KEY
+
+  - model_name: claude-sonnet-4.5
+    litellm_params:
+      api_base: https://api.supermemory.ai/v3/api.anthropic.com
+      model: anthropic/claude-sonnet-4-5-20250929
+      api_key: os.environ/ANTHROPIC_API_KEY
+      custom_llm_provider: anthropic
+      extra_headers:
+        x-supermemory-api-key: 
+
+  - model_name: claude-haiku-4.5
+    litellm_params:
+      api_base: https://api.supermemory.ai/v3/api.anthropic.com
+      model: anthropic/claude-haiku-4-5-20251001
+      api_key: os.environ/ANTHROPIC_API_KEY
+      custom_llm_provider: anthropic
+      extra_headers:
+        x-supermemory-api-key: sm_1234
+
+  - model_name: gemini-2.5-pro
+    litellm_params:
+      model: gemini/gemini-2.5-pro
+      api_key: os.environ/GEMINI_API_KEY
+
+# General settings for the proxy server
+litellm_settings:
+  set_verbose: true
+  json_logs: true
+  drop_params: true
+  # Forward traceparent for distributed tracing
+  forward_traceparent_to_llm_provider: true

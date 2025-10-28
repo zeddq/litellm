@@ -1,0 +1,107 @@
+[tool.poetry]
+package-mode = false
+
+[project]
+name = "litellm-memory"
+version = "0.1.0"
+description = "memory proxy"
+authors = [
+    {name = "zeddq",email = "zeddq1@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13,<4.0"
+dependencies = [
+    "fastapi>=0.119.1",
+    "httpx>=0.28.1",
+    "pyyaml>=6.0.3",
+    "uvicorn>=0.38.0"
+]
+
+# Note: LiteLLM is required as a CLI tool, not as a Python package dependency.
+# Install separately: pip install litellm
+# This project uses the 'litellm' binary via subprocess instead of SDK imports.
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "deptry>=0.23.1",
+    "pip-check>=3.2.1",
+    "debugpy (>=1.8.17,<2.0.0)",
+    "openai (>=2.6.0,<3.0.0)",
+    "anthropic (>=0.71.0,<0.72.0)",
+    "pydevd-pycharm (>=252.26830.99,<252.26831.0)"
+]
+test = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+    "pytest-timeout>=2.3.0",
+    "debugpy (>=1.8.17,<2.0.0)"
+]
+
+[tool.poetry.scripts]
+start-proxies = "start_proxies:main"
+
+[tool.pytest.ini_options]
+# Pytest configuration
+minversion = "8.0"
+testpaths = [".", "tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--strict-config",
+    "--tb=short",
+]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+# Markers for categorizing tests
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "unit: marks tests as unit tests",
+    "integration: marks tests as integration tests",
+    "e2e: marks tests as end-to-end tests",
+]
+
+# Timeout for tests (in seconds)
+#timeout = 30
+
+[tool.coverage.run]
+# Coverage configuration
+source = ["."]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/virtualenv/*",
+    ".venv/*",
+]
+branch = true
+
+[tool.coverage.report]
+# Coverage report configuration
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+    "@abc.abstractmethod",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"

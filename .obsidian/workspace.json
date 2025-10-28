@@ -1,0 +1,181 @@
+{
+  "main": {
+    "id": "3398b6a2a6d4495b",
+    "type": "split",
+    "children": [
+      {
+        "id": "abe852769c915031",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "620575ad5e12cb9b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "PYCHARM_ENV_LAUNCHER_README.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "PYCHARM_ENV_LAUNCHER_README"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "3046af6e0d58ea32",
+    "type": "split",
+    "children": [
+      {
+        "id": "c54133ba01d42c53",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4cf8e6fd51ab4fda",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "72588883367617cc",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "b03a7db2ea9fb8ef",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "e6641b1a17082839",
+    "type": "split",
+    "children": [
+      {
+        "id": "cc7a84d7c4639e2e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d80d065ca78d8f64",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "PYCHARM_ENV_LAUNCHER_README.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for PYCHARM_ENV_LAUNCHER_README"
+            }
+          },
+          {
+            "id": "514bd272069ac640",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "PYCHARM_ENV_LAUNCHER_README.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from PYCHARM_ENV_LAUNCHER_README"
+            }
+          },
+          {
+            "id": "54b7f6755e14f9e5",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "72dcbee21edbde79",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "PYCHARM_ENV_LAUNCHER_README.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of PYCHARM_ENV_LAUNCHER_README"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "4cf8e6fd51ab4fda",
+  "lastOpenFiles": [
+    "docs/reference/CONFIGURATION.md",
+    "docs/INDEX.md",
+    "SETUP_SUMMARY.md",
+    "QUICKSTART.md",
+    "README.md",
+    "PYCHARM_ENV_LAUNCHER_README.md"
+  ]
+}
