@@ -31,8 +31,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 # Import modules under test
-from .memory_router import MemoryRouter
-from .litellm_proxy_with_memory import (
+from proxy.memory_router import MemoryRouter
+from proxy.litellm_proxy_with_memory import (
     create_app,
     get_memory_router,
     get_litellm_base_url,
@@ -111,23 +111,35 @@ def config_file(sample_config_dict: Dict[str, Any]) -> str:
 
 
 @pytest.fixture
+def with_litellm_auth():
+    """Fixture providing LiteLLM auth token."""
+    return "Bearer test-key"
+
+
+@pytest.fixture
 def memory_router(config_file: str) -> MemoryRouter:
     """Fixture providing initialized MemoryRouter instance."""
     return MemoryRouter(config_file)
 
 
 @pytest.fixture
-def app_with_router(memory_router: MemoryRouter):
+def app_with_router(with_litellm_auth, memory_router: MemoryRouter):
     """Fixture providing FastAPI app with MemoryRouter."""
     return create_app(
-        memory_router=memory_router, litellm_base_url="http://localhost:4000"
+        litellm_auth_token=with_litellm_auth,
+        memory_router=memory_router,
+        litellm_base_url="http://localhost:4000"
     )
 
 
 @pytest.fixture
-def app_without_router():
+def app_without_router(with_litellm_auth):
     """Fixture providing FastAPI app without MemoryRouter."""
-    return create_app(memory_router=None, litellm_base_url="http://localhost:4000")
+    return create_app(
+        litellm_auth_token=with_litellm_auth,
+        memory_router=None,
+        litellm_base_url="http://localhost:4000"
+    )
 
 
 @pytest.fixture
@@ -431,18 +443,24 @@ class TestMemoryRouterRoutingInfo:
 class TestFastAPIAppCreation:
     """Tests for FastAPI app factory function."""
 
-    def test_create_app_with_router(self, memory_router: MemoryRouter):
+    def test_create_app_with_router(self, with_litellm_auth, memory_router: MemoryRouter):
         """Test app creation with MemoryRouter."""
         app = create_app(
-            memory_router=memory_router, litellm_base_url="http://localhost:4000"
+            litellm_auth_token=with_litellm_auth,
+            memory_router=memory_router,
+            litellm_base_url="http://localhost:4000"
         )
 
         assert app is not None
         assert hasattr(app, "state")
 
-    def test_create_app_without_router(self):
+    def test_create_app_without_router(self, with_litellm_auth):
         """Test app creation without MemoryRouter."""
-        app = create_app(memory_router=None, litellm_base_url="http://localhost:4000")
+        app = create_app(
+            litellm_auth_token=with_litellm_auth,
+            memory_router=None,
+            litellm_base_url="http://localhost:4000"
+        )
 
         assert app is not None
         assert hasattr(app, "state")
@@ -454,10 +472,12 @@ class TestFastAPIAppCreation:
         assert "/health" in routes
         assert "/memory-routing/info" in routes
 
-    def test_app_state_initialization(self, memory_router: MemoryRouter):
+    def test_app_state_initialization(self, with_litellm_auth, memory_router: MemoryRouter):
         """Test that app state is initialized correctly during lifespan."""
         app = create_app(
-            memory_router=memory_router, litellm_base_url="http://test:9999"
+            litellm_auth_token=with_litellm_auth,
+            memory_router=memory_router,
+            litellm_base_url="http://test:9999"
         )
 
         # Create test client to trigger lifespan
@@ -874,9 +894,9 @@ class TestErrorHandling:
 class TestDependencyInjection:
     """Tests for FastAPI dependency injection."""
 
-    def test_get_memory_router_dependency(self, memory_router: MemoryRouter):
+    def test_get_memory_router_dependency(self, with_litellm_auth, memory_router: MemoryRouter):
         """Test get_memory_router dependency function."""
-        app = create_app(memory_router=memory_router)
+        app = create_app(litellm_auth_token=with_litellm_auth, memory_router=memory_router)
 
         with TestClient(app) as client:
             # The dependency should provide the router
@@ -884,10 +904,14 @@ class TestDependencyInjection:
             assert response.status_code == 200
             # Should not error, meaning router was injected
 
-    def test_get_litellm_base_url_dependency(self):
+    def test_get_litellm_base_url_dependency(self, with_litellm_auth):
         """Test get_litellm_base_url dependency function."""
         custom_url = "http://custom-litellm:9999"
-        app = create_app(memory_router=None, litellm_base_url=custom_url)
+        app = create_app(
+            litellm_auth_token=with_litellm_auth,
+            memory_router=None,
+            litellm_base_url=custom_url
+        )
 
         with TestClient(app) as client:
             response = client.get("/health")
