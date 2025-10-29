@@ -34,12 +34,10 @@ import httpx
 import uvicorn
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.responses import StreamingResponse
+from litellm.types.llms.anthropic import AnthropicThinkingParam
 
 # Handle both package and direct execution imports
-try:
-    from .memory_router import MemoryRouter
-except ImportError:
-    from memory_router import MemoryRouter
+from proxy.memory_router import MemoryRouter
 
 # Configure logging
 logging.basicConfig(
@@ -55,6 +53,17 @@ def get_request_id() -> str:
     import secrets
 
     return secrets.token_hex(2)
+
+def round_thinking(th: int):
+    match th:
+        case n if n < 100:
+            return 0
+        case n if n < 1500:
+            return 1024
+        case n if n < 2400:
+            return 2048
+        case _:
+            return 4096
 
 
 async def proxy_request(
@@ -129,6 +138,35 @@ def is_valid_date(date_string: str) -> bool:
     except ValueError:
         return False
 
+
+def _adapt_llm_req_params(rid: str, body: bytes) -> Optional[dict]:
+    try:
+        body_data = json.loads(body.decode("utf-8"))
+        is_stream_request = body_data.get("stream", False)
+        logger.info(f"{rid} Stream request: {is_stream_request}")
+
+        # round thinking to the values that littlellm is able to translate to openai format
+        if "thinking" in body_data:
+            anthropic_thinking = AnthropicThinkingParam(body_data["thinking"])
+            anthropic_thinking["budget_tokens"] = round_thinking(
+                anthropic_thinking.get("budget_tokens", 0)
+            )
+            body_data["thinking"] = anthropic_thinking
+        # pop temperature (not supported)
+        if "temperature" in body_data:
+            del body_data["temperature"]
+
+        return body_data
+    except json.JSONDecodeError:
+        return None
+
+class MyFastMemoryLane:
+    def __init__(self, app: FastAPI, memory_router: MemoryRouter, litellm_auth_token: str, litellm_base_url: str) -> None:
+        self.app = app
+        self.memory_router = memory_router
+        self.litellm_auth_token = litellm_auth_token
+        self.litellm_base_url = litellm_base_url
+
 # noinspection D
 def create_app(
     litellm_auth_token: str,
@@ -150,6 +188,12 @@ def create_app(
 
     Returns:
         Configured FastAPI application instance
+        :param litellm_base_url:
+        :type litellm_base_url:
+        :param memory_router:
+        :type memory_router:
+        :param litellm_auth_token:
+        :type litellm_auth_token:
     """
 
     @asynccontextmanager
@@ -310,6 +354,7 @@ def create_app(
                             request_data["model"] = model_name
                             body = json.dumps(request_data).encode()
                     
+                    #? TODO: what's this for?
                     if len(model_name) >= 8:
                         if is_valid_date(model_name[-8:]):
                             model_name = model_name[:-8].rstrip("-")
@@ -398,7 +443,7 @@ def create_app(
                     headers={"content-type": "text/plain"},
                 )
     
-        return app
+    return app
 
 
 def main():
@@ -445,7 +490,7 @@ def main():
     # Create FastAPI app using factory function
     # This eliminates global state and makes the app testable
     app = create_app(
-        memory_router=memory_router, litellm_base_url=args.litellm_url, litellm_auth_token="Bearer sk-E-aQ2xeQ0aVGgsV12Zs7lg",
+        memory_router=memory_router, litellm_base_url=args.litellm_url, litellm_auth_token=f"Bearer {os.environ.get('LITELLM_VIRTUAL_KEY', 'sk-E-aQ2xeQ0aVGgsV12Zs7lg')}",
     )
 
     logger.info(f"Starting proxy on {args.host}:{args.port}")

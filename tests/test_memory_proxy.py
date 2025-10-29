@@ -31,8 +31,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 # Import modules under test
-from .memory_router import MemoryRouter
-from .litellm_proxy_with_memory import (
+from proxy.memory_router import MemoryRouter
+from proxy.litellm_proxy_with_memory import (
     create_app,
     get_memory_router,
     get_litellm_base_url,

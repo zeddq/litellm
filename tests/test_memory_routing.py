@@ -6,7 +6,7 @@ Run this to validate the routing logic before deploying.
 
 import sys
 import json
-from memory_router import MemoryRouter
+from proxy.memory_router import MemoryRouter
 
 # Test cases
 TEST_CASES = [

@@ -5,49 +5,39 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.obsidian/community-plugins.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/code-emitter/data.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/code-emitter/main.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/code-emitter/manifest.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/code-emitter/styles.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/editing-toolbar/data.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/editing-toolbar/main.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/editing-toolbar/manifest.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/editing-toolbar/styles.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/execute-code/data.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/execute-code/main.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/execute-code/manifest.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/execute-code/styles.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/obsidian-excalidraw-plugin/data.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/obsidian-excalidraw-plugin/manifest.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/obsidian-excalidraw-plugin/styles.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/omnisearch/data.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/omnisearch/main.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/omnisearch/manifest.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/omnisearch/styles.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/table-editor-obsidian/data.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/table-editor-obsidian/main.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/table-editor-obsidian/manifest.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/table-editor-obsidian/styles.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/templater-obsidian/data.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/templater-obsidian/main.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/templater-obsidian/manifest.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/templater-obsidian/styles.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/text-extractor/data.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/text-extractor/manifest.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Untitled.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/Poetry Debug.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/Poetry Note.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.envrc" beforeDir="false" afterPath="$PROJECT_DIR$/.envrc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitgnore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/watcherTasks.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/litellm.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/litellm.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.obsidian/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.obsidian/appearance.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/appearance.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.obsidian/core-plugins.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/core-plugins.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.obsidian/workspace.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/workspace.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MEMORY_ROUTING_README.md" beforeDir="false" afterPath="$PROJECT_DIR$/MEMORY_ROUTING_README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PYCHARM_ENV_LAUNCHER_README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/RUN_TESTS.sh" beforeDir="false" afterPath="$PROJECT_DIR$/RUN_TESTS.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SETUP_SUMMARY.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Untitled.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config_old.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config_old.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example_complete_workflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/example_complete_workflow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/litellm_proxy.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/litellm_proxy_with_memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_with_memory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/memory_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/memory_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/otel.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/otel.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pycharm-env-launcher.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pycharm-project-switcher.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_proxies.py" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/run_proxies.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/schema.prisma" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/schema.prisma.backup" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/schema.prisma.backup" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/start_proxies.py" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/start_proxies.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test-env-launcher.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_litellm_proxy_refactored.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_litellm_proxy_refactored.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_memory_proxy.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_memory_proxy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_memory_routing.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_memory_routing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_tutorial.py" beforeDir="false" afterPath="$PROJECT_DIR$/tutorial/test_tutorial.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tutorial_proxy_with_memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/tutorial/tutorial_proxy_with_memory.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,6 +54,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="OptimizeOnSaveOptions">
+    <option name="myRunOnSave" value="true" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
@@ -73,33 +66,42 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python Debug Server.Unnamed.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.litellm_proxy_with_memory.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHELLCHECK.PATH&quot;: &quot;/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;localmain&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/cezary/litellm&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.33448276&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Docker.deploy.otel-collector: Compose Deployment.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python Debug Server.Unnamed.executor": "Debug",
+    "Python.litellm_proxy_with_memory.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
+    "git-widget-placeholder": "c3e3e078",
+    "last_opened_file_path": "/Users/cezary/litellm",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.33448276",
+    "settings.editor.selected.configurable": "editor.preferences.tabs"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;JSON&quot;,
-      &quot;TEXT&quot;
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "TEXT",
+      "JSON"
     ]
   }
-}</component>
-  <component name="RunManager" selected="Python Debug Server.Unnamed">
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/deploy" />
+      <recent name="$PROJECT_DIR$/src/proxy" />
+      <recent name="$PROJECT_DIR$/src" />
+      <recent name="$PROJECT_DIR$/config" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Docker.deploy.otel-collector: Compose Deployment">
     <configuration name="Unnamed" type="PyRemoteDebugConfigurationType" factoryName="Python Remote Debug" nameIsGenerated="true">
       <module name="litellm" />
       <option name="PORT" value="4747" />
@@ -140,12 +142,43 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
+      <deployment type="docker-compose.yml">
+        <settings />
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="deploy.otel-collector: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="services">
+            <list>
+              <option value="otel-collector" />
+            </list>
+          </option>
+          <option name="sourceFilePath" value="deploy/docker-compose.yml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="lua.app" factoryName="Lua Application">
+      <option name="program" value="/opt/homebrew/bin/lua" />
+      <option name="file" value="" />
+      <option name="workingDir" value="$PROJECT_DIR$/src" />
+      <option name="debuggerType" value="2" />
+      <option name="params" value="" />
+      <option name="charset" value="UTF-8" />
+      <option name="showConsole" value="true" />
+      <method v="2" />
+    </configuration>
     <list>
+      <item itemvalue="Docker.deploy.otel-collector: Compose Deployment" />
       <item itemvalue="Python.litellm_proxy_with_memory" />
       <item itemvalue="Python Debug Server.Unnamed" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Docker.deploy.otel-collector: Compose Deployment" />
         <item itemvalue="Python.litellm_proxy_with_memory" />
       </list>
     </recent_temporary>
@@ -172,7 +205,8 @@
       <workItem from="1761353789935" duration="15721000" />
       <workItem from="1761439188033" duration="7140000" />
       <workItem from="1761641073698" duration="752000" />
-      <workItem from="1761719757252" duration="1904000" />
+      <workItem from="1761719757252" duration="6341000" />
+      <workItem from="1761775755654" duration="16087000" />
     </task>
     <servers />
   </component>
@@ -184,7 +218,19 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="HEAD" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>

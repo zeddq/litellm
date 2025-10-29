@@ -37,38 +37,38 @@ fi
 
 case "${1:-all}" in
     all)
-        run_tests "pytest test_memory_proxy.py -v" "All Tests"
+        run_tests "pytest tests/test_memory_proxy.py -v" "All Tests"
         ;;
     
     coverage)
-        run_tests "pytest test_memory_proxy.py --cov=. --cov-report=html --cov-report=term-missing" "Tests with Coverage"
+        run_tests "pytest tests/test_memory_proxy.py --cov=. --cov-report=html --cov-report=term-missing" "Tests with Coverage"
         echo -e "${GREEN}✅ Coverage report generated in htmlcov/index.html${NC}"
         ;;
     
     unit)
-        run_tests "pytest test_memory_proxy.py -v -k 'TestMemoryRouter'" "Unit Tests Only"
+        run_tests "pytest tests/test_memory_proxy.py -v -k 'TestMemoryRouter'" "Unit Tests Only"
         ;;
     
     integration)
-        run_tests "pytest test_memory_proxy.py -v -k 'TestFastAPI or TestHealth'" "Integration Tests Only"
+        run_tests "pytest tests/test_memory_proxy.py -v -k 'TestFastAPI or TestHealth'" "Integration Tests Only"
         ;;
     
     e2e)
-        run_tests "pytest test_memory_proxy.py -v -k 'TestEndToEnd'" "End-to-End Tests"
+        run_tests "pytest tests/test_memory_proxy.py -v -k 'TestEndToEnd'" "End-to-End Tests"
         ;;
     
     fast)
-        run_tests "pytest test_memory_proxy.py -v -m 'not slow'" "Fast Tests (Skip Slow)"
+        run_tests "pytest tests/test_memory_proxy.py -v -m 'not slow'" "Fast Tests (Skip Slow)"
         ;;
     
     debug)
-        run_tests "pytest test_memory_proxy.py -v -x --pdb" "Debug Mode (Stop on First Failure)"
+        run_tests "pytest tests/test_memory_proxy.py -v -x --pdb" "Debug Mode (Stop on First Failure)"
         ;;
     
     parallel)
         echo -e "${YELLOW}Installing pytest-xdist for parallel execution...${NC}"
         pip install pytest-xdist
-        run_tests "pytest test_memory_proxy.py -v -n auto" "Parallel Test Execution"
+        run_tests "pytest tests/test_memory_proxy.py -v -n auto" "Parallel Test Execution"
         ;;
     
     help|--help|-h)
