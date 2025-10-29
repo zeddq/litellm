@@ -39,6 +39,8 @@ test-results/
 pyvenv.cfg
 .venv
 pip-selfcheck.json
+.git/
+.jj/
 .envrc
 
 ### Diff template
