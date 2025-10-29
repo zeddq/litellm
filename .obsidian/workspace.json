@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "abe852769c915031",
+        "id": "70b1a62bbe4de790",
         "type": "tabs",
         "children": [
           {
-            "id": "620575ad5e12cb9b",
+            "id": "ae29c3a8bd4e38b3",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "PYCHARM_ENV_LAUNCHER_README.md",
+                "file": "MEMORY_ROUTING_README.md",
                 "mode": "source",
-                "source": false
+                "source": true
               },
               "icon": "lucide-file",
-              "title": "PYCHARM_ENV_LAUNCHER_README"
+              "title": "MEMORY_ROUTING_README"
             }
           }
         ]
@@ -41,7 +41,7 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false
+                "autoReveal": true
               },
               "icon": "lucide-folder-closed",
               "title": "Files"
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "PYCHARM_ENV_LAUNCHER_README.md",
+                "file": "MEMORY_ROUTING_README.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for PYCHARM_ENV_LAUNCHER_README"
+              "title": "Backlinks for MEMORY_ROUTING_README"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "PYCHARM_ENV_LAUNCHER_README.md",
+                "file": "MEMORY_ROUTING_README.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from PYCHARM_ENV_LAUNCHER_README"
+              "title": "Outgoing links from MEMORY_ROUTING_README"
             }
           },
           {
@@ -142,40 +142,76 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "PYCHARM_ENV_LAUNCHER_README.md",
+                "file": "MEMORY_ROUTING_README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of PYCHARM_ENV_LAUNCHER_README"
+              "title": "Outline of MEMORY_ROUTING_README"
+            }
+          },
+          {
+            "id": "2e34b3250b8bddcb",
+            "type": "leaf",
+            "state": {
+              "type": "footnotes",
+              "state": {
+                "file": "MEMORY_ROUTING_README.md"
+              },
+              "icon": "lucide-file-signature",
+              "title": "Footnotes"
+            }
+          },
+          {
+            "id": "1a76832e8cf276cc",
+            "type": "leaf",
+            "state": {
+              "type": "advanced-tables-toolbar",
+              "state": {},
+              "icon": "spreadsheet",
+              "title": "Advanced Tables"
             }
           }
-        ]
+        ],
+        "currentTab": 5
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
+      "table-editor-obsidian:Advanced Tables Toolbar": false,
+      "workspaces:Manage workspace layouts": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "canvas:Create new canvas": false,
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "bases:Create new base": false,
+      "markdown-importer:Open format converter": false,
+      "obsidian-excalidraw-plugin:New drawing": false,
+      "templater-obsidian:Templater": false,
+      "omnisearch:Omnisearch": false
     }
   },
   "active": "4cf8e6fd51ab4fda",
   "lastOpenFiles": [
+    "templates/Untitled.md",
+    "MEMORY_ROUTING_README.md",
+    "PYCHARM_ENV_LAUNCHER_README.md",
+    "templates/Poetry Debug.md",
+    "templates/Poetry Note.md",
+    "templates",
+    "Poetry Note.md",
+    "Poetry Debug.md",
+    "Untitled.md",
+    "SETUP_SUMMARY.md",
+    "README.md",
     "docs/reference/CONFIGURATION.md",
     "docs/INDEX.md",
-    "SETUP_SUMMARY.md",
-    "QUICKSTART.md",
-    "README.md",
-    "PYCHARM_ENV_LAUNCHER_README.md"
+    "QUICKSTART.md"
   ]
 }

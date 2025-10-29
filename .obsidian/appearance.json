@@ -1,1 +1,7 @@
-{}
+{
+  "theme": "obsidian",
+  "baseFontSize": 18,
+  "showRibbon": true,
+  "showViewHeader": false,
+  "translucency": true
+}

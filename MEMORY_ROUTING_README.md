@@ -71,7 +71,7 @@ cd ~/litellm
 
 # Install dependencies
 pip install fastapi uvicorn httpx pyyaml
-
+	
 # Or if using pipx for litellm
 pipx inject litellm fastapi uvicorn httpx pyyaml
 ```
@@ -83,7 +83,7 @@ pipx inject litellm fastapi uvicorn httpx pyyaml
 Run the memory-aware proxy on port 8765, which forwards to LiteLLM on port 4000:
 
 ```bash
-# Terminal 1: Start LiteLLM proxy
+# Terminal 1: Start LiteLLM `proxy`````````
 litellm --config config.yaml --port 4000
 
 # Terminal 2: Start memory routing proxy
@@ -175,7 +175,7 @@ curl http://localhost:8765/memory-routing/info \
 curl http://localhost:8765/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-1234" \
-  -H "User-Agent: OpenAIClientImpl/Java unknown" \
+  -H "User-Agent: OpenAIClientImpl/Java unknown" ``\
   -d '{
     "model": "claude-sonnet-4.5",
     "messages": [{"role": "user", "content": "Hello, remember this: Project X uses Python"}]

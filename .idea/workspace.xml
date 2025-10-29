@@ -5,27 +5,49 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/app.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/appearance.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/core-plugins.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/workspace.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PYCHARM_ENV_LAUNCHER_README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SETUP_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pycharm-env-launcher.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pycharm-project-switcher.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/setup-pycharm-env.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test-env-launcher.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/community-plugins.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/code-emitter/data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/code-emitter/main.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/code-emitter/manifest.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/code-emitter/styles.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/editing-toolbar/data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/editing-toolbar/main.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/editing-toolbar/manifest.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/editing-toolbar/styles.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/execute-code/data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/execute-code/main.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/execute-code/manifest.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/execute-code/styles.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/obsidian-excalidraw-plugin/data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/obsidian-excalidraw-plugin/manifest.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/obsidian-excalidraw-plugin/styles.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/omnisearch/data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/omnisearch/main.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/omnisearch/manifest.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/omnisearch/styles.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/table-editor-obsidian/data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/table-editor-obsidian/main.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/table-editor-obsidian/manifest.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/table-editor-obsidian/styles.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/templater-obsidian/data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/templater-obsidian/main.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/templater-obsidian/manifest.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/templater-obsidian/styles.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/text-extractor/data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/plugins/text-extractor/manifest.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Untitled.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/Poetry Debug.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/Poetry Note.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.envrc" beforeDir="false" afterPath="$PROJECT_DIR$/.envrc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitgnore" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/litellm_proxy_with_memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/litellm_proxy_with_memory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/memory_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.obsidian/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.obsidian/appearance.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/appearance.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.obsidian/core-plugins.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/core-plugins.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.obsidian/workspace.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/workspace.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MEMORY_ROUTING_README.md" beforeDir="false" afterPath="$PROJECT_DIR$/MEMORY_ROUTING_README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,7 +82,7 @@
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;SHELLCHECK.PATH&quot;: &quot;/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;6ef45bdb&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;localmain&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Users/cezary/litellm&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -150,6 +172,7 @@
       <workItem from="1761353789935" duration="15721000" />
       <workItem from="1761439188033" duration="7140000" />
       <workItem from="1761641073698" duration="752000" />
+      <workItem from="1761719757252" duration="1904000" />
     </task>
     <servers />
   </component>
