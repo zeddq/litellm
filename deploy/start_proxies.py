@@ -23,7 +23,7 @@ from pathlib import Path
 
 import uvicorn
 # Import memory proxy app here to avoid import-time issues
-from .litellm_proxy_with_memory import app
+from proxy.litellm_proxy_with_memory import create_app
 
 # Configure logging
 logging.basicConfig(
@@ -96,6 +96,7 @@ def start_memory_proxy(port: int, litellm_port: int, config_path: str):
     os.environ["LITELLM_CONFIG"] = str(config_path)
     os.environ["LITELLM_BASE_URL"] = f"http://localhost:{litellm_port}"
 
+    app = create_app()
     try:
         # Run the memory proxy
         uvicorn.run(

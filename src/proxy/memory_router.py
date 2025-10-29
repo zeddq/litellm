@@ -3,15 +3,20 @@ Memory Router Middleware for LiteLLM Proxy
 Dynamically routes requests to Supermemory with client-specific user IDs
 """
 
+import logging
 import re
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any, TypedDict
 
 import yaml
-import logging
-
 from starlette.datastructures import MutableHeaders, Headers
 
 logger = logging.getLogger(__name__)
+
+
+class _CompiledPattern(TypedDict):
+    header: str
+    pattern: re.Pattern
+    user_id: str
 
 
 class MemoryRouter:
@@ -25,16 +30,22 @@ class MemoryRouter:
     def __init__(self, config_path: str = "config.yaml"):
         """Initialize router with configuration."""
         self.config = self._load_config(config_path)
-        self.header_patterns = self._parse_header_patterns()
-        self.custom_header = self.config.get('user_id_mappings', {}).get('custom_header', 'x-memory-user-id')
-        self.default_user_id = self.config.get('user_id_mappings', {}).get('default_user_id', 'default-user')
-        logger.info(f"MemoryRouter initialized with {len(self.header_patterns)} patterns")
+        self.header_patterns = self._parse_header_patterns
+        self.custom_header: str = self.config.get("user_id_mappings", {}).get(
+            "custom_header", "x-memory-user-id"
+        )
+        self.default_user_id: str = self.config.get("user_id_mappings", {}).get(
+            "default_user_id", "default-user"
+        )
+        logger.info(
+            f"MemoryRouter initialized with {len(self.header_patterns)} patterns"
+        )
 
     @staticmethod
-    def _load_config( config_path: str) -> Dict:
+    def _load_config(config_path: str) -> Dict:
         """Load configuration from YAML file."""
         try:
-            with open(config_path, 'r') as f:
+            with open(config_path, "r") as f:
                 return yaml.safe_load(f) or {}
         except FileNotFoundError:
             logger.warning(f"Config file {config_path} not found, using defaults")
@@ -43,22 +54,28 @@ class MemoryRouter:
             logger.error(f"Error loading config: {e}")
             return {}
 
-    def _parse_header_patterns(self) -> List[Dict[str, str]]:
+    @property
+    def _parse_header_patterns(self) -> list[_CompiledPattern]:
         """Parse header patterns from config."""
-        mappings = self.config.get('user_id_mappings', {})
-        patterns = mappings.get('header_patterns', [])
+        mappings = self.config.get("user_id_mappings", {})
+        patterns_type = TypedDict(
+            "patterns_type", {"header": str, "pattern": str, "user_id": str}
+        )
+        patterns: list[patterns_type] = mappings.get("header_patterns", [])
 
         # Compile regex patterns
-        compiled_patterns = []
+        compiled_patterns: list[_CompiledPattern] = []
         for pattern in patterns:
             try:
-                compiled = {
-                    'header': pattern['header'].lower(),
-                    'pattern': re.compile(pattern['pattern'], re.IGNORECASE),
-                    'user_id': pattern['user_id']
+                compiled: _CompiledPattern = {
+                    "header": pattern["header"].lower(),
+                    "pattern": re.compile(pattern["pattern"], re.IGNORECASE),
+                    "user_id": pattern["user_id"],
                 }
                 compiled_patterns.append(compiled)
-                logger.debug(f"Loaded pattern: {pattern['header']} -> {pattern['user_id']}")
+                logger.debug(
+                    f"Loaded pattern: {pattern['header']} -> {pattern['user_id']}"
+                )
             except Exception as e:
                 logger.error(f"Error compiling pattern {pattern}: {e}")
 
@@ -79,28 +96,28 @@ class MemoryRouter:
         Returns:
             User ID string for Supermemory
         """
-        # Filter out None values to prevent AttributeError
-
-        # Priority 1: Check custom header
+        # Priority 1: Check custom header (case-insensitive)
         custom_header_lower = self.custom_header.lower()
         for orig_header, user_id in headers.items():
             # Check if header NAME matches custom header (case-insensitive)
             # and value is not None
-            if orig_header == custom_header_lower and user_id is not None:
+            if orig_header.lower() == custom_header_lower and user_id is not None:
                 logger.info(f"User ID from custom header '{orig_header}': {user_id}")
                 return user_id
-        
-        # Priority 2: Pattern matching
+
+        # Priority 2: Pattern matching (case-insensitive header names)
         header_list = headers.items()
         for pattern_config in self.header_patterns:
-            header_name = pattern_config['header'].lower()
-            pattern = re.compile(pattern_config['pattern'])
+            header_name = pattern_config["header"].lower()
+            pattern = pattern_config["pattern"]
 
             for h, v in header_list:
-                if header_name == h:
+                if h.lower() == header_name and v is not None:
                     if pattern.search(v):
-                        user_id = pattern_config['user_id']
-                        logger.info(f"User ID matched via {header_name}: {user_id} (pattern: {pattern.pattern})")
+                        user_id = pattern_config["user_id"]
+                        logger.info(
+                            f"User ID matched via {header_name}: {user_id} (pattern: {pattern.pattern})"
+                        )
                         return user_id
 
         # Priority 3: Default
@@ -108,9 +125,7 @@ class MemoryRouter:
         return self.default_user_id
 
     def inject_memory_headers(
-        self,
-        headers: MutableHeaders,
-        supermemory_api_key: Optional[str] = None
+        self, headers: MutableHeaders, supermemory_api_key: Optional[str] = None
     ) -> MutableHeaders:
         """
         Inject Supermemory headers into request.
@@ -122,16 +137,19 @@ class MemoryRouter:
         Returns:
             Updated headers with Supermemory routing
         """
-        if supermemory_api_key:
-            user_id = self.detect_user_id(headers)
-            
-            # Create new headers dict with Supermemory headers
-            headers['x-sm-user-id'] = user_id
-            headers['x-supermemory-api-key'] = supermemory_api_key
+        # Always inject user ID for routing and debugging
+        user_id = self.detect_user_id(headers)
+        headers["x-sm-user-id"] = user_id
 
-            logger.debug(f"Injected headers: x-sm-user-id={user_id}")
+        # Only inject API key if provided
+        if supermemory_api_key:
+            headers["x-supermemory-api-key"] = supermemory_api_key
+            logger.debug(
+                f"Injected headers: x-sm-user-id={user_id}, x-supermemory-api-key=***"
+            )
         else:
-            logger.info("Supermemory API key not provided")
+            logger.debug(f"Injected headers: x-sm-user-id={user_id} (no API key)")
+
         return headers
 
     def should_use_supermemory(self, model_name: str) -> bool:
@@ -145,12 +163,12 @@ class MemoryRouter:
             True if model should use Supermemory
         """
         # Check if model has supermemory enabled in config
-        for model in self.config.get('model_list', []):
-            if model.get('model_name') == model_name:
-                params = model.get('litellm_params', {})
+        for model in self.config.get("model_list", []):
+            if model.get("model_name") == model_name:
+                params = model.get("litellm_params", {})
                 # Check if api_base points to supermemory
-                api_base = params.get('api_base', '')
-                return 'supermemory.ai' in api_base
+                api_base = params.get("api_base", "")
+                return "supermemory.ai" in api_base
 
         return False
 
@@ -168,28 +186,34 @@ class MemoryRouter:
 
         # Detect which pattern matched (if any)
         matched_pattern = None
+        custom_header_lower = self.custom_header.lower()
+        custom_header_present = any(
+            h.lower() == custom_header_lower for h in headers.keys()
+        )
 
         header_list = headers.items()
         for pattern_config in self.header_patterns:
-            header_name = pattern_config['header']
-            pattern = re.compile(pattern_config['pattern'])
+            header_name = pattern_config["header"].lower()
+            pattern = pattern_config["pattern"]
 
             for h, v in header_list:
-                if h == header_name:
+                if h.lower() == header_name and v is not None:
                     if pattern.search(v):
                         matched_pattern = {
-                            'header': header_name,
-                            'value': v,
-                            'pattern': pattern.pattern,
-                            'user_id': pattern_config['user_id']
-                    }
-                    break
+                            "header": header_name,
+                            "value": v,
+                            "pattern": pattern.pattern,
+                            "user_id": pattern_config["user_id"],
+                        }
+                        break
+            if matched_pattern:
+                break
 
         return {
-            'user_id': user_id,
-            'matched_pattern': matched_pattern,
-            'custom_header_present': self.custom_header.lower() in headers,
-            'is_default': matched_pattern is None and self.custom_header.lower() not in headers
+            "user_id": user_id,
+            "matched_pattern": matched_pattern,
+            "custom_header_present": custom_header_present,
+            "is_default": matched_pattern is None and not custom_header_present,
         }
 
 
@@ -202,11 +226,13 @@ if __name__ == "__main__":
     router = MemoryRouter("config.yaml")
 
     # Example: PyCharm AI Chat request
-    pycharm_headers = Headers({
-        'user-agent': 'OpenAIClientImpl/Java unknown',
-        'x-stainless-lang': 'java',
-        'Authorization': 'Bearer sk-1234'
-    })
+    pycharm_headers = Headers(
+        {
+            "user-agent": "OpenAIClientImpl/Java unknown",
+            "x-stainless-lang": "java",
+            "Authorization": "Bearer sk-1234",
+        }
+    )
 
     print("\n=== PyCharm AI Chat Request ===")
     routing_info = router.get_routing_info(pycharm_headers)
@@ -214,11 +240,13 @@ if __name__ == "__main__":
     print(f"Matched Pattern: {routing_info['matched_pattern']}")
 
     # Example: Custom header request
-    custom_headers = Headers({
-        'user-agent': 'MyApp/1.0',
-        'x-memory-user-id': 'project-alpha',
-        'Authorization': 'Bearer sk-1234'
-    })
+    custom_headers = Headers(
+        {
+            "user-agent": "MyApp/1.0",
+            "x-memory-user-id": "project-alpha",
+            "Authorization": "Bearer sk-1234",
+        }
+    )
 
     print("\n=== Custom Header Request ===")
     routing_info = router.get_routing_info(custom_headers)
@@ -226,10 +254,9 @@ if __name__ == "__main__":
     print(f"Custom Header Present: {routing_info['custom_header_present']}")
 
     # Example: Default request
-    default_headers = Headers({
-        'user-agent': 'curl/7.68.0',
-        'Authorization': 'Bearer sk-1234'
-    })
+    default_headers = Headers(
+        {"user-agent": "curl/7.68.0", "Authorization": "Bearer sk-1234"}
+    )
 
     print("\n=== Default Request ===")
     routing_info = router.get_routing_info(default_headers)
