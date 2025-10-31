@@ -161,10 +161,10 @@ def _streaming_response(request_id: str, url: str, method: str, headers: dict, r
     )
 
 
-async def _standard_response(rid: str, url: str, method: str,  headers: dict, request_body: httpx._types.RequestContent) -> StreamingResponse:
+async def _standard_response(rid: str, url: str, method: str,  headers: dict, request_body: httpx._types.RequestContent) -> Response:
     logger.info(f"{rid} Handling as non-streaming response")
     
-    async with httpx.AsyncClient(timeout=300.0) as client:
+    async with httpx.AsyncClient() as client:
         try:
             response = await client.request(
                 method=method,

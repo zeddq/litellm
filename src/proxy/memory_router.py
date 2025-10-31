@@ -4,19 +4,17 @@ Dynamically routes requests to Supermemory with client-specific user IDs
 """
 
 import logging
-import re
-from typing import Dict, Optional, Any, TypedDict
+from typing import Dict, Optional, Any
 
-import yaml
 from starlette.datastructures import MutableHeaders, Headers
 
+from proxy.schema import (
+    LiteLLMProxyConfig,
+    UserIDMappings,
+    load_config_with_env_resolution,
+)
+
 logger = logging.getLogger(__name__)
-
-
-class _CompiledPattern(TypedDict):
-    header: str
-    pattern: re.Pattern
-    user_id: str
 
 
 class MemoryRouter:
@@ -27,59 +25,16 @@ class MemoryRouter:
     for memory isolation across different projects/clients.
     """
 
-    def __init__(self, config_path: str = "config.yaml"):
+    def __init__(self, config: LiteLLMProxyConfig):
         """Initialize router with configuration."""
-        self.config = self._load_config(config_path)
-        self.header_patterns = self._parse_header_patterns
-        self.custom_header: str = self.config.get("user_id_mappings", {}).get(
-            "custom_header", "x-memory-user-id"
-        )
-        self.default_user_id: str = self.config.get("user_id_mappings", {}).get(
-            "default_user_id", "default-user"
-        )
+        self.config = config
+        mappings = config.user_id_mappings or UserIDMappings()
+        self.header_patterns = mappings.header_patterns
+        self.custom_header: str = mappings.custom_header
+        self.default_user_id: str = mappings.default_user_id
         logger.info(
             f"MemoryRouter initialized with {len(self.header_patterns)} patterns"
         )
-
-    @staticmethod
-    def _load_config(config_path: str) -> Dict:
-        """Load configuration from YAML file."""
-        try:
-            with open(config_path, "r") as f:
-                return yaml.safe_load(f) or {}
-        except FileNotFoundError:
-            logger.warning(f"Config file {config_path} not found, using defaults")
-            return {}
-        except Exception as e:
-            logger.error(f"Error loading config: {e}")
-            return {}
-
-    @property
-    def _parse_header_patterns(self) -> list[_CompiledPattern]:
-        """Parse header patterns from config."""
-        mappings = self.config.get("user_id_mappings", {})
-        patterns_type = TypedDict(
-            "patterns_type", {"header": str, "pattern": str, "user_id": str}
-        )
-        patterns: list[patterns_type] = mappings.get("header_patterns", [])
-
-        # Compile regex patterns
-        compiled_patterns: list[_CompiledPattern] = []
-        for pattern in patterns:
-            try:
-                compiled: _CompiledPattern = {
-                    "header": pattern["header"].lower(),
-                    "pattern": re.compile(pattern["pattern"], re.IGNORECASE),
-                    "user_id": pattern["user_id"],
-                }
-                compiled_patterns.append(compiled)
-                logger.debug(
-                    f"Loaded pattern: {pattern['header']} -> {pattern['user_id']}"
-                )
-            except Exception as e:
-                logger.error(f"Error compiling pattern {pattern}: {e}")
-
-        return compiled_patterns
 
     def detect_user_id(self, headers: Headers) -> str:
         """
@@ -108,13 +63,16 @@ class MemoryRouter:
         # Priority 2: Pattern matching (case-insensitive header names)
         header_list = headers.items()
         for pattern_config in self.header_patterns:
-            header_name = pattern_config["header"].lower()
-            pattern = pattern_config["pattern"]
+            header_name = pattern_config.header.lower()
+            pattern = pattern_config.pattern_compiled
+            if not pattern:
+                logger.warning("No pattern compiled for header: '%s'", header_name)
+                continue
 
             for h, v in header_list:
                 if h.lower() == header_name and v is not None:
                     if pattern.search(v):
-                        user_id = pattern_config["user_id"]
+                        user_id = pattern_config.user_id
                         logger.info(
                             f"User ID matched via {header_name}: {user_id} (pattern: {pattern.pattern})"
                         )
@@ -163,11 +121,10 @@ class MemoryRouter:
             True if model should use Supermemory
         """
         # Check if model has supermemory enabled in config
-        for model in self.config.get("model_list", []):
-            if model.get("model_name") == model_name:
-                params = model.get("litellm_params", {})
+        for model in self.config.model_list:
+            if model.model_name == model_name:
                 # Check if api_base points to supermemory
-                api_base = params.get("api_base", "")
+                api_base = model.litellm_params.api_base or ""
                 return "supermemory.ai" in api_base
 
         return False
@@ -193,8 +150,11 @@ class MemoryRouter:
 
         header_list = headers.items()
         for pattern_config in self.header_patterns:
-            header_name = pattern_config["header"].lower()
-            pattern = pattern_config["pattern"]
+            header_name = pattern_config.header.lower()
+            pattern = pattern_config.pattern_compiled
+            if not pattern:
+                logger.warning("No pattern compiled for header: '%s'", header_name)
+                continue
 
             for h, v in header_list:
                 if h.lower() == header_name and v is not None:
@@ -203,7 +163,7 @@ class MemoryRouter:
                             "header": header_name,
                             "value": v,
                             "pattern": pattern.pattern,
-                            "user_id": pattern_config["user_id"],
+                            "user_id": pattern_config.user_id,
                         }
                         break
             if matched_pattern:
@@ -223,7 +183,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     # Initialize router
-    router = MemoryRouter("config.yaml")
+    router = MemoryRouter(load_config_with_env_resolution(config_path="config.yaml"))
 
     # Example: PyCharm AI Chat request
     pycharm_headers = Headers(

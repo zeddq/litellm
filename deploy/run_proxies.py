@@ -27,7 +27,7 @@ def run_proxies():
 
         print("Starting LiteLLM Proxy on port 4000...")
         litellm_process = subprocess.Popen(
-            ["litellm", "--config", "config.yaml"],
+            ["litellm", "--config", "config/config.yaml", "--detailed_debug", "--save"],
             env=os.environ.copy(),
         )
         processes.append(("LiteLLM Proxy", litellm_process))
@@ -43,7 +43,7 @@ def run_proxies():
 
         print("Starting Auth Passthrough Proxy on port 8764...")
         auth_proxy_process = subprocess.Popen(
-            [sys.executable, "litellm_proxy.py"],
+            [sys.executable, "src/proxy/litellm_proxy_with_memory.py"],
             env=os.environ.copy(),
         )
         processes.append(("Auth Proxy", auth_proxy_process))

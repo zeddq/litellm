@@ -3,10 +3,6 @@ general_settings:
   forward_openai_org_id: true
   # Forward all client headers globally (recommended for Supermemory)
   forward_client_headers_to_llm_api: true
-  database_url: os.environ/DATABASE_URL
-  database_connection_pool_limit: 100
-  store_model_in_db: true
-  store_prompts_in_spend_logs: true
 
 # User ID mappings for Supermemory routing
 user_id_mappings:
@@ -66,8 +62,12 @@ model_list:
   # Alias: sonnet -> claude-sonnet-4.5
   - model_name: sonnet
     litellm_params:
+      api_base: https://api.supermemory.ai/v3/api.anthropic.com
       model: anthropic/claude-sonnet-4-5-20250929
       api_key: os.environ/ANTHROPIC_API_KEY
+      custom_llm_provider: anthropic
+      extra_headers:
+        x-supermemory-api-key: os.environ/SUPERMEMORY_API_KEY
       thinking: {
         "type": "enabled",
         "budget_tokens": 4096
@@ -80,49 +80,12 @@ model_list:
       api_key: os.environ/ANTHROPIC_API_KEY
       custom_llm_provider: anthropic
       extra_headers:
-        x-supermemory-api-key: "sm_QcByjXoSBWceAnA8PB5sde_EddoiUyplQTGJjTksHjPkwrxnVVHYQUlEXGLQCbAnQDWyHNxtVMlKbQiszUznRfk"
-
-mcp_servers:
-  jetbrains_mcp:
-    transport: sse
-    url: "http://localhost:64342/sse"
-    auth_type: "none"
+        x-supermemory-api-key: os.environ/SUPERMEMORY_API_KEY
 
 # General settings for the proxy server
 litellm_settings:
-  # PostgreSQL Configuration
-  database_type: "prisma"
-  database_url: os.environ/DATABASE_URL
-  store_model_in_db: true
-
-  # CRITICAL: Enable callbacks for DB storage AND OTEL
-  success_callback: ["postgres", "otel"]
-  failure_callback: ["postgres", "otel"]
-
-  # OTEL Configuration
-  otel: true
-  otel_exporter: "otlp_http"
-  otel_endpoint: "http://localhost:4318/v1/traces"
-  otel_service_name: "litellm-proxy"
-  otel_headers: ""
-
-  # Redis Cache Configuration
-  cache: true
-  cache_params:
-    type: redis
-    ttl: 3600
-    host: localhost
-    port: 6379
-    password: sk-1234
-
-  # MCP Configuration
-  mcp_aliases:
-    "jetbrains": "jetbrains_mcp"
-
-  # Additional logging
+  # Basic logging (no database/OTEL/Redis required)
   set_verbose: true
   json_logs: true
   drop_params: true
-  # Forward traceparent for distributed tracing
   forward_traceparent_to_llm_provider: true
-

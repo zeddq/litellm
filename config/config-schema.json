@@ -1,0 +1,805 @@
+{
+  "$defs": {
+    "DatabaseType": {
+      "description": "Supported database types for LiteLLM proxy.",
+      "enum": [
+        "prisma",
+        "postgresql",
+        "postgres",
+        "sqlite"
+      ],
+      "title": "DatabaseType",
+      "type": "string"
+    },
+    "GeneralSettings": {
+      "additionalProperties": true,
+      "description": "General proxy settings including authentication, database, and forwarding rules.\n\nAttributes:\n    master_key: Master API key for proxy authentication\n    forward_openai_org_id: Whether to forward OpenAI organization ID headers\n    forward_client_headers_to_llm_api: Forward all client headers to LLM providers\n    database_url: Database connection URL (supports env vars)\n    database_connection_pool_limit: Maximum database connections in pool\n    store_model_in_db: Whether to store model information in database\n    store_prompts_in_spend_logs: Whether to log prompts in spending logs",
+      "properties": {
+        "master_key": {
+          "description": "Master API key for proxy authentication. Can be literal or 'os.environ/VAR_NAME'",
+          "title": "Master Key",
+          "type": "string"
+        },
+        "forward_openai_org_id": {
+          "default": false,
+          "description": "Forward OpenAI-Organization-Id header to LLM providers",
+          "title": "Forward Openai Org Id",
+          "type": "boolean"
+        },
+        "forward_client_headers_to_llm_api": {
+          "default": false,
+          "description": "Forward all client headers to LLM API (recommended for Supermemory)",
+          "title": "Forward Client Headers To Llm Api",
+          "type": "boolean"
+        },
+        "database_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Database connection URL. Format: postgresql://user:pass@host:port/db",
+          "title": "Database Url"
+        },
+        "database_connection_pool_limit": {
+          "default": 100,
+          "description": "Maximum number of database connections in pool",
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Database Connection Pool Limit",
+          "type": "integer"
+        },
+        "store_model_in_db": {
+          "default": true,
+          "description": "Store model information in database for analytics",
+          "title": "Store Model In Db",
+          "type": "boolean"
+        },
+        "store_prompts_in_spend_logs": {
+          "default": false,
+          "description": "Log full prompts in spending logs (warning: may contain sensitive data)",
+          "title": "Store Prompts In Spend Logs",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "master_key"
+      ],
+      "title": "GeneralSettings",
+      "type": "object"
+    },
+    "HeaderPattern": {
+      "additionalProperties": false,
+      "description": "Pattern-based user ID detection from HTTP headers.\n\nAttributes:\n    header: HTTP header name (case-insensitive)\n    pattern: Regex pattern to match against header value\n    user_id: User ID to assign when pattern matches",
+      "properties": {
+        "header": {
+          "description": "HTTP header name to match (e.g., 'user-agent', 'x-custom-id')",
+          "minLength": 1,
+          "title": "Header",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "Regex pattern to match header value (e.g., '^OpenAIClientImpl/Java')",
+          "minLength": 1,
+          "title": "Pattern",
+          "type": "string"
+        },
+        "user_id": {
+          "description": "User ID to assign when pattern matches",
+          "minLength": 1,
+          "title": "User Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "header",
+        "pattern",
+        "user_id"
+      ],
+      "title": "HeaderPattern",
+      "type": "object"
+    },
+    "LiteLLMParams": {
+      "additionalProperties": true,
+      "description": "LiteLLM model parameters for provider integration.\n\nAttributes:\n    model: Model identifier in format 'provider/model-name'\n    api_key: API key for provider (supports env vars)\n    api_base: Custom API base URL (e.g., for Supermemory)\n    custom_llm_provider: Explicit provider name override\n    extra_headers: Additional HTTP headers to send with requests\n    thinking: Extended thinking configuration (Claude models)\n    timeout: Request timeout in seconds\n    max_retries: Maximum retry attempts on failure\n    stream_timeout: Timeout for streaming responses",
+      "properties": {
+        "model": {
+          "description": "Model identifier (format: 'provider/model-name' e.g., 'openai/gpt-4')",
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "api_key": {
+          "description": "API key for provider. Use 'os.environ/VAR_NAME' for env vars",
+          "title": "Api Key",
+          "type": "string"
+        },
+        "api_base": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Custom API base URL (e.g., for Supermemory integration)",
+          "title": "Api Base"
+        },
+        "custom_llm_provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Explicit provider name (e.g., 'anthropic', 'openai')",
+          "title": "Custom Llm Provider"
+        },
+        "extra_headers": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Additional HTTP headers for API requests",
+          "title": "Extra Headers"
+        },
+        "thinking": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ThinkingConfig"
+            },
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Extended thinking configuration (Claude models)",
+          "title": "Thinking"
+        },
+        "timeout": {
+          "anyOf": [
+            {
+              "minimum": 0.1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Request timeout in seconds",
+          "title": "Timeout"
+        },
+        "max_retries": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum retry attempts on failure",
+          "title": "Max Retries"
+        },
+        "stream_timeout": {
+          "anyOf": [
+            {
+              "minimum": 0.1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Timeout for streaming responses",
+          "title": "Stream Timeout"
+        }
+      },
+      "required": [
+        "model",
+        "api_key"
+      ],
+      "title": "LiteLLMParams",
+      "type": "object"
+    },
+    "LiteLLMSettings": {
+      "additionalProperties": true,
+      "description": "General LiteLLM proxy settings including database, callbacks, OTEL, and cache.\n\nAttributes:\n    database_type: Database backend type\n    database_url: Database connection URL\n    store_model_in_db: Store model metadata in database\n    success_callback: Success event callbacks (e.g., ['postgres', 'otel'])\n    failure_callback: Failure event callbacks\n    otel: Enable OpenTelemetry tracing\n    otel_exporter: OTEL exporter type\n    otel_endpoint: OTEL collector endpoint URL\n    otel_service_name: Service name for OTEL traces\n    otel_headers: Additional OTEL headers\n    cache: Enable response caching\n    cache_params: Cache configuration parameters\n    mcp_aliases: MCP server name aliases\n    set_verbose: Enable verbose logging\n    json_logs: Output logs in JSON format\n    drop_params: Drop unsupported parameters from requests\n    forward_traceparent_to_llm_provider: Forward traceparent header for distributed tracing",
+      "properties": {
+        "database_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DatabaseType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Database backend type (prisma, postgresql, sqlite)"
+        },
+        "database_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Database connection URL",
+          "title": "Database Url"
+        },
+        "store_model_in_db": {
+          "default": true,
+          "description": "Store model metadata in database",
+          "title": "Store Model In Db",
+          "type": "boolean"
+        },
+        "success_callback": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Success callbacks (e.g., ['postgres', 'otel'])",
+          "title": "Success Callback"
+        },
+        "failure_callback": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Failure callbacks (e.g., ['postgres', 'otel'])",
+          "title": "Failure Callback"
+        },
+        "otel": {
+          "default": false,
+          "description": "Enable OpenTelemetry tracing",
+          "title": "Otel",
+          "type": "boolean"
+        },
+        "otel_exporter": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OTELExporter"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "OTEL exporter type (otlp_http, otlp_grpc, console)"
+        },
+        "otel_endpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "OTEL collector endpoint URL (e.g., http://localhost:4318/v1/traces)",
+          "title": "Otel Endpoint"
+        },
+        "otel_service_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "litellm-proxy",
+          "description": "Service name for OTEL traces",
+          "title": "Otel Service Name"
+        },
+        "otel_headers": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "",
+          "description": "Additional OTEL headers (comma-separated key=value pairs)",
+          "title": "Otel Headers"
+        },
+        "cache": {
+          "default": false,
+          "description": "Enable response caching",
+          "title": "Cache",
+          "type": "boolean"
+        },
+        "cache_params": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RedisCacheParams"
+            },
+            {
+              "$ref": "#/$defs/S3CacheParams"
+            },
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cache configuration (Redis or S3)",
+          "title": "Cache Params"
+        },
+        "mcp_aliases": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "MCP server name aliases (e.g., {'jetbrains': 'jetbrains_mcp'})",
+          "title": "Mcp Aliases"
+        },
+        "set_verbose": {
+          "default": false,
+          "description": "Enable verbose logging",
+          "title": "Set Verbose",
+          "type": "boolean"
+        },
+        "json_logs": {
+          "default": false,
+          "description": "Output logs in JSON format",
+          "title": "Json Logs",
+          "type": "boolean"
+        },
+        "drop_params": {
+          "default": false,
+          "description": "Drop unsupported parameters instead of erroring",
+          "title": "Drop Params",
+          "type": "boolean"
+        },
+        "forward_traceparent_to_llm_provider": {
+          "default": false,
+          "description": "Forward traceparent header to LLM providers for distributed tracing",
+          "title": "Forward Traceparent To Llm Provider",
+          "type": "boolean"
+        }
+      },
+      "title": "LiteLLMSettings",
+      "type": "object"
+    },
+    "MCPAuthType": {
+      "description": "MCP server authentication types.",
+      "enum": [
+        "none",
+        "bearer",
+        "basic"
+      ],
+      "title": "MCPAuthType",
+      "type": "string"
+    },
+    "MCPServerConfig": {
+      "additionalProperties": false,
+      "description": "MCP (Model Context Protocol) server configuration.\n\nAttributes:\n    transport: Transport protocol (sse or stdio)\n    url: Server URL (required for SSE transport)\n    auth_type: Authentication type\n    command: Command to start MCP server (required for stdio)\n    args: Command arguments (for stdio)\n    env: Environment variables for MCP server",
+      "properties": {
+        "transport": {
+          "$ref": "#/$defs/MCPTransport",
+          "description": "Transport protocol (sse for HTTP, stdio for local process)"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Server URL (required for SSE transport)",
+          "title": "Url"
+        },
+        "auth_type": {
+          "$ref": "#/$defs/MCPAuthType",
+          "default": "none",
+          "description": "Authentication type (none, bearer, basic)"
+        },
+        "command": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Command to start MCP server (required for stdio)",
+          "title": "Command"
+        },
+        "args": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Command line arguments (for stdio transport)",
+          "title": "Args"
+        },
+        "env": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Environment variables for MCP server process",
+          "title": "Env"
+        }
+      },
+      "required": [
+        "transport"
+      ],
+      "title": "MCPServerConfig",
+      "type": "object"
+    },
+    "MCPTransport": {
+      "description": "MCP server transport protocols.",
+      "enum": [
+        "sse",
+        "stdio"
+      ],
+      "title": "MCPTransport",
+      "type": "string"
+    },
+    "ModelConfig": {
+      "additionalProperties": false,
+      "description": "Model configuration entry.\n\nAttributes:\n    model_name: Public model name exposed by proxy\n    litellm_params: LiteLLM-specific configuration",
+      "properties": {
+        "model_name": {
+          "description": "Public model name exposed by proxy (e.g., 'claude-sonnet-4.5')",
+          "minLength": 1,
+          "title": "Model Name",
+          "type": "string"
+        },
+        "litellm_params": {
+          "$ref": "#/$defs/LiteLLMParams",
+          "description": "LiteLLM model parameters"
+        }
+      },
+      "required": [
+        "model_name",
+        "litellm_params"
+      ],
+      "title": "ModelConfig",
+      "type": "object"
+    },
+    "OTELExporter": {
+      "description": "OpenTelemetry exporter types.",
+      "enum": [
+        "otlp_http",
+        "otlp_grpc",
+        "console"
+      ],
+      "title": "OTELExporter",
+      "type": "string"
+    },
+    "RedisCacheParams": {
+      "additionalProperties": false,
+      "description": "Redis cache configuration parameters.\n\nAttributes:\n    type: Cache type (must be 'redis')\n    host: Redis server host\n    port: Redis server port\n    password: Redis password (supports env vars)\n    db: Redis database number\n    ttl: Cache TTL in seconds\n    ssl: Enable SSL/TLS",
+      "properties": {
+        "type": {
+          "const": "redis",
+          "default": "redis",
+          "description": "Cache backend type (must be 'redis')",
+          "title": "Type",
+          "type": "string"
+        },
+        "host": {
+          "default": "localhost",
+          "description": "Redis server hostname or IP",
+          "title": "Host",
+          "type": "string"
+        },
+        "port": {
+          "default": 6379,
+          "description": "Redis server port",
+          "maximum": 65535,
+          "minimum": 1,
+          "title": "Port",
+          "type": "integer"
+        },
+        "password": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Redis password (use 'os.environ/VAR' for env vars)",
+          "title": "Password"
+        },
+        "db": {
+          "default": 0,
+          "description": "Redis database number",
+          "minimum": 0,
+          "title": "Db",
+          "type": "integer"
+        },
+        "ttl": {
+          "default": 3600,
+          "description": "Cache TTL (time-to-live) in seconds",
+          "minimum": 0,
+          "title": "Ttl",
+          "type": "integer"
+        },
+        "ssl": {
+          "default": false,
+          "description": "Enable SSL/TLS connection to Redis",
+          "title": "Ssl",
+          "type": "boolean"
+        }
+      },
+      "title": "RedisCacheParams",
+      "type": "object"
+    },
+    "S3CacheParams": {
+      "additionalProperties": false,
+      "description": "S3 cache configuration parameters.\n\nAttributes:\n    type: Cache type (must be 's3')\n    s3_bucket_name: S3 bucket name\n    s3_region_name: AWS region\n    s3_api_key: AWS access key ID (supports env vars)\n    s3_api_secret: AWS secret access key (supports env vars)\n    ttl: Cache TTL in seconds",
+      "properties": {
+        "type": {
+          "const": "s3",
+          "default": "s3",
+          "description": "Cache backend type (must be 's3')",
+          "title": "Type",
+          "type": "string"
+        },
+        "s3_bucket_name": {
+          "description": "S3 bucket name for cache storage",
+          "minLength": 1,
+          "title": "S3 Bucket Name",
+          "type": "string"
+        },
+        "s3_region_name": {
+          "default": "us-east-1",
+          "description": "AWS region for S3 bucket",
+          "title": "S3 Region Name",
+          "type": "string"
+        },
+        "s3_api_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "AWS access key ID (use 'os.environ/VAR' for env vars)",
+          "title": "S3 Api Key"
+        },
+        "s3_api_secret": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "AWS secret access key (use 'os.environ/VAR' for env vars)",
+          "title": "S3 Api Secret"
+        },
+        "ttl": {
+          "default": 3600,
+          "description": "Cache TTL in seconds",
+          "minimum": 0,
+          "title": "Ttl",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "s3_bucket_name"
+      ],
+      "title": "S3CacheParams",
+      "type": "object"
+    },
+    "ThinkingConfig": {
+      "additionalProperties": false,
+      "description": "Extended thinking configuration for Claude models.\n\nAttributes:\n    type: Whether extended thinking is enabled\n    budget_tokens: Maximum tokens to allocate for thinking",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/ThinkingType",
+          "default": "enabled",
+          "description": "Enable or disable extended thinking mode"
+        },
+        "budget_tokens": {
+          "default": 4096,
+          "description": "Maximum tokens for thinking (default: 4096)",
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "Budget Tokens",
+          "type": "integer"
+        }
+      },
+      "title": "ThinkingConfig",
+      "type": "object"
+    },
+    "ThinkingType": {
+      "description": "Extended thinking configuration types.",
+      "enum": [
+        "enabled",
+        "disabled"
+      ],
+      "title": "ThinkingType",
+      "type": "string"
+    },
+    "UserIDMappings": {
+      "additionalProperties": false,
+      "description": "User ID detection and routing configuration for Supermemory integration.\n\nThis enables automatic user/project isolation by detecting clients\nvia HTTP headers and assigning unique user IDs for memory segregation.\n\nAttributes:\n    custom_header: Header name for explicit user ID specification\n    header_patterns: List of patterns for auto-detecting user IDs\n    default_user_id: Fallback user ID when no pattern matches",
+      "properties": {
+        "custom_header": {
+          "default": "x-memory-user-id",
+          "description": "Custom header for explicit user ID (takes precedence over patterns)",
+          "minLength": 1,
+          "title": "Custom Header",
+          "type": "string"
+        },
+        "header_patterns": {
+          "description": "Pattern-based user ID detection rules (evaluated in order)",
+          "items": {
+            "$ref": "#/$defs/HeaderPattern"
+          },
+          "title": "Header Patterns",
+          "type": "array"
+        },
+        "default_user_id": {
+          "default": "default-dev",
+          "description": "Default user ID when no pattern matches",
+          "minLength": 1,
+          "title": "Default User Id",
+          "type": "string"
+        }
+      },
+      "title": "UserIDMappings",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Root configuration model for LiteLLM Memory Proxy.\n\nThis is the top-level schema that validates the entire config.yaml file.\n\nAttributes:\n    general_settings: General proxy settings (authentication, database, etc.)\n    user_id_mappings: User ID detection and routing configuration\n    model_list: List of available models and their configurations\n    mcp_servers: MCP server configurations\n    litellm_settings: LiteLLM-specific settings (callbacks, OTEL, cache, etc.)",
+  "properties": {
+    "general_settings": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GeneralSettings"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "General proxy settings"
+    },
+    "user_id_mappings": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/UserIDMappings"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "User ID detection and routing configuration"
+    },
+    "model_list": {
+      "description": "List of available models",
+      "items": {
+        "$ref": "#/$defs/ModelConfig"
+      },
+      "title": "Model List",
+      "type": "array"
+    },
+    "mcp_servers": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/MCPServerConfig"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "MCP server configurations (key: server name)",
+      "title": "Mcp Servers"
+    },
+    "litellm_settings": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LiteLLMSettings"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "LiteLLM proxy settings"
+    }
+  },
+  "title": "LiteLLMProxyConfig",
+  "type": "object"
+}
