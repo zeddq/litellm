@@ -5,44 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/watcherTasks.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.serena/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.serena/memories/litellm_architecture_overview.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.serena/project.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ARCHITECTURE_CONSOLIDATED.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jsonSchemas.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RATE_LIMIT_FIX_README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/config-mvp.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/config-schema.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/architecture/ARCHITECTURE_ANALYSIS.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/reference/SCHEMA_README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/memlog" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/proxy/schema.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test_schema.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.envrc" beforeDir="false" afterPath="$PROJECT_DIR$/.envrc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/litellm.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/litellm.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PYCHARM_ENV_LAUNCHER_README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RUN_TESTS.sh" beforeDir="false" afterPath="$PROJECT_DIR$/RUN_TESTS.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SETUP_SUMMARY.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Untitled.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config_old.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config_old.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/example_complete_workflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/example_complete_workflow.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/litellm_proxy.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/litellm_proxy_with_memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_with_memory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/memory_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/memory_router.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/otel.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/otel.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deploy/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deploy/run_proxies.py" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/run_proxies.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pycharm-env-launcher.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pycharm-project-switcher.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_proxies.py" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/run_proxies.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/schema.prisma" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/schema.prisma.backup" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/schema.prisma.backup" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/start_proxies.py" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/start_proxies.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test-env-launcher.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_litellm_proxy_refactored.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_litellm_proxy_refactored.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_memory_proxy.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_memory_proxy.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_memory_routing.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_memory_routing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_tutorial.py" beforeDir="false" afterPath="$PROJECT_DIR$/tutorial/test_tutorial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tutorial_proxy_with_memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/tutorial/tutorial_proxy_with_memory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/litellm_proxy.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/litellm_proxy_with_memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_with_memory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/memory_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/memory_router.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,42 +54,48 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Docker.deploy.otel-collector: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python Debug Server.Unnamed.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.litellm_proxy_with_memory.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHELLCHECK.PATH&quot;: &quot;/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;c3e3e078&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/cezary/litellm&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.33448276&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;settings.sync&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Docker.deploy.otel-collector: Compose Deployment.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python Debug Server.Unnamed.executor": "Debug",
+    "Python.litellm_proxy_with_memory.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
+    "git-widget-placeholder": "aa5d7b1b",
+    "last_opened_file_path": "/Users/cezary/litellm",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.33448276",
+    "settings.editor.selected.configurable": "ml.llm.LLMThirdPartyAiProvidersConfigurable"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;TEXT&quot;,
-      &quot;JSON&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ],
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "HTML",
+      "TEXT",
+      "JSON"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/docs/reference" />
       <recent name="$PROJECT_DIR$/deploy" />
       <recent name="$PROJECT_DIR$/src/proxy" />
       <recent name="$PROJECT_DIR$/src" />
       <recent name="$PROJECT_DIR$/config" />
     </key>
   </component>
-  <component name="RunManager" selected="Docker.deploy.otel-collector: Compose Deployment">
+  <component name="RunManager" selected="Python Debug Server.Unnamed">
     <configuration name="Unnamed" type="PyRemoteDebugConfigurationType" factoryName="Python Remote Debug" nameIsGenerated="true">
       <module name="litellm" />
       <option name="PORT" value="4747" />
@@ -204,7 +193,8 @@
       <workItem from="1761775755654" duration="16087000" />
       <workItem from="1761928020135" duration="2595000" />
       <workItem from="1761930642527" duration="47000" />
-      <workItem from="1761930700823" duration="9222000" />
+      <workItem from="1761930700823" duration="30427000" />
+      <workItem from="1761972608147" duration="6158000" />
     </task>
     <servers />
   </component>

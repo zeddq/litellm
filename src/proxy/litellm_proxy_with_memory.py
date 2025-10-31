@@ -15,6 +15,7 @@ Usage:
 """
 
 import argparse
+import asyncio
 import json
 import logging
 import os
@@ -30,6 +31,7 @@ from fastapi.responses import StreamingResponse
 from litellm.types.llms.anthropic import AnthropicThinkingParam
 from starlette.datastructures import Headers
 
+from proxy import schema
 # Handle both package and direct execution imports
 from proxy.memory_router import MemoryRouter
 
@@ -49,6 +51,72 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+class ProxySessionManager:
+    """
+    Manages persistent HTTP sessions for upstream endpoints.
+
+    This class solves the Cloudflare cookie persistence problem by maintaining
+    a single httpx.AsyncClient instance per upstream endpoint. Cloudflare sets
+    cookies (like cf_clearance) after passing bot challenges, and these cookies
+    must be reused across requests to avoid repeated rate limiting.
+
+    Without session persistence:
+        Request 1 → 429 + cookie → client closed (cookie lost)
+        Request 2 → 429 + cookie → client closed (cookie lost) [FAIL]
+
+    With session persistence:
+        Request 1 → 429 + cookie → stored in session
+        Request 2 → 200 OK (cookie reused) [SUCCESS]
+
+    Thread Safety:
+        Uses asyncio.Lock to ensure thread-safe access to the session dictionary.
+    """
+
+    _sessions: dict[str, httpx.AsyncClient] = {}
+    _lock = asyncio.Lock()
+
+    @classmethod
+    async def get_session(cls, base_url: str) -> httpx.AsyncClient:
+        """
+        Get or create a persistent session for an endpoint.
+
+        Args:
+            base_url: Base URL of the upstream endpoint (e.g., "http://localhost:4000")
+
+        Returns:
+            Persistent httpx.AsyncClient instance with cookie jar
+        """
+        async with cls._lock:
+            if base_url not in cls._sessions:
+                cls._sessions[base_url] = httpx.AsyncClient(
+                    base_url=base_url,
+                    follow_redirects=True,
+                    timeout=httpx.Timeout(600.0),
+                    # Cookies are automatically handled by httpx.AsyncClient
+                    # The client maintains a cookie jar that persists across requests
+                )
+                logger.info(f"🍪 Created new persistent session for {base_url}")
+                logger.info(f"📊 Total active sessions: {len(cls._sessions)}")
+            return cls._sessions[base_url]
+
+    @classmethod
+    async def close_all(cls):
+        """
+        Close all sessions gracefully.
+
+        Should be called during application shutdown to release resources.
+        """
+        logger.info(f"🔒 Closing {len(cls._sessions)} persistent sessions...")
+        for base_url, session in cls._sessions.items():
+            try:
+                await session.aclose()
+                logger.info(f"✅ Closed session for {base_url}")
+            except Exception as e:
+                logger.error(f"❌ Error closing session for {base_url}: {e}")
+        cls._sessions.clear()
+        logger.info("🏁 All sessions closed")
+
+
 def get_request_id() -> str:
     """Generate a short request ID for logging."""
     import secrets
@@ -66,6 +134,138 @@ def round_thinking(th: int):
             return 2048
         case _:
             return 4096
+
+
+def is_rate_limit_error(status_code: int, response_body: bytes) -> bool:
+    """
+    Detect if response indicates rate limiting.
+    
+    Checks for:
+    - HTTP 429 (Too Many Requests)
+    - HTTP 503 (Service Unavailable) 
+    - Cloudflare 1200 error in response body
+    - Other rate limit indicators
+    
+    Args:
+        status_code: HTTP status code
+        response_body: Response body bytes
+        
+    Returns:
+        True if rate limiting detected
+    """
+    if status_code in (429, 503):
+        return True
+    
+    # Check for Cloudflare 1200 error in response body
+    if response_body:
+        body_str = response_body.decode('utf-8', errors='ignore').lower()
+        if 'error 1200' in body_str or 'rate limited' in body_str:
+            return True
+    
+    return False
+
+
+async def proxy_request_with_retry(
+    method: str,
+    path: str,
+    headers: Headers,
+    body: Optional[bytes],
+    litellm_base_url: str,
+    request_id: str,
+    max_retries: int = 3,
+    initial_delay: float = 1.0,
+) -> tuple[int, httpx.Headers, bytes]:
+    """
+    Forward request to LiteLLM proxy with exponential backoff retry logic.
+
+    Uses persistent HTTP session to maintain cookies across requests. This is
+    CRITICAL for Cloudflare compatibility - cookies like cf_clearance are set
+    after passing bot challenges and must be reused to avoid repeated rate limits.
+
+    Retries on rate limit errors (429, 503, Cloudflare 1200) with exponential backoff.
+
+    Args:
+        method: HTTP method
+        path: Request path
+        headers: Request headers
+        body: Request body
+        litellm_base_url: Base URL for LiteLLM proxy
+        request_id: Request ID for logging
+        max_retries: Maximum number of retry attempts
+        initial_delay: Initial delay in seconds before first retry
+
+    Returns:
+        Tuple of (status_code, headers, body)
+
+    Raises:
+        Exception: If all retries are exhausted
+    """
+    # Get persistent session for this endpoint - cookies will be automatically stored
+    session = await ProxySessionManager.get_session(litellm_base_url)
+
+    for attempt in range(max_retries + 1):
+        try:
+            # Use persistent session instead of creating new client
+            # Cookies from previous requests (including cf_clearance) are automatically included
+            response = await session.request(
+                method=method,
+                url=path,  # path is relative to base_url set in session
+                headers=headers,
+                content=body
+            )
+
+            # Log cookie information for debugging
+            if response.cookies:
+                cookie_names = list(response.cookies.keys())
+                logger.info(
+                    f"{request_id} 🍪 Received cookies: {cookie_names} "
+                    f"(session now has {len(session.cookies)} total cookies)"
+                )
+
+            # Check if we got a rate limit error
+            if is_rate_limit_error(response.status_code, response.content):
+                if attempt < max_retries:
+                    # Calculate exponential backoff delay
+                    delay = initial_delay * (2 ** attempt)
+                    logger.warning(
+                        f"{request_id} ⚠️ Rate limit detected (status={response.status_code}), "
+                        f"retrying in {delay:.1f}s (attempt {attempt + 1}/{max_retries}) "
+                        f"[Session cookies: {len(session.cookies)}]"
+                    )
+                    await asyncio.sleep(delay)
+                    continue
+                else:
+                    logger.error(
+                        f"{request_id} ❌ Rate limit error after {max_retries} retries, giving up"
+                    )
+
+            # Success - log if we recovered from rate limiting
+            if attempt > 0:
+                logger.info(
+                    f"{request_id} ✅ Request succeeded after {attempt} retries "
+                    f"(cookies helped!)"
+                )
+
+            return response.status_code, response.headers, response.content
+
+        except httpx.TimeoutException as e:
+            if attempt < max_retries:
+                delay = initial_delay * (2 ** attempt)
+                logger.warning(
+                    f"{request_id} ⏱️ Request timeout, retrying in {delay:.1f}s "
+                    f"(attempt {attempt + 1}/{max_retries})"
+                )
+                await asyncio.sleep(delay)
+                continue
+            else:
+                logger.error(f"{request_id} ❌ Request timeout after {max_retries} retries")
+                raise
+
+        except Exception as e:
+            logger.error(f"{request_id} ❌ Proxy request failed: {e}")
+            raise
+
+    raise Exception(f"All {max_retries} retry attempts exhausted")
 
 
 async def proxy_request(
@@ -212,8 +412,9 @@ class MyFastMemoryLane(FastAPI):
 
             yield  # Application runs here
 
-            # Shutdown: Cleanup if needed
+            # Shutdown: Close all persistent HTTP sessions
             logger.info("Application shutting down...")
+            await ProxySessionManager.close_all()
 
         super().__init__(*args, lifespan=lifespan, **kwargs)
 
@@ -341,6 +542,7 @@ def create_app(
         """
         request_id = get_request_id()
 
+
         # Read request details
         method = request.method
         full_path = request.url.path
@@ -352,6 +554,15 @@ def create_app(
         del headers["host"]
         # Replace Authorization with your API key
         headers["Authorization"] = litellm_auth_token
+        
+        # Add custom User-Agent to identify the proxy and avoid rate limiting
+        if "user-agent" not in headers:
+            headers["user-agent"] = "LiteLLM-Memory-Proxy/1.0"
+        
+        # Preserve important headers that Cloudflare/Supermemory might need
+        # These help with rate limiting and proper routing
+        if "x-forwarded-for" not in headers and "x-real-ip" in request.headers:
+            headers["x-forwarded-for"] = request.headers["x-real-ip"]
 
         body = await request.body()
 
@@ -368,7 +579,7 @@ def create_app(
                     request_data = json.loads(body)
             except json.JSONDecodeError:
                 logger.warning(f"{request_id} Failed to parse request body as JSON, forwarding as-is")
-            
+
             if request_data:
                 try:
                     model_name: str = request_data.get("model", "")
@@ -423,14 +634,17 @@ def create_app(
                 except Exception as e:
                     logger.error(f"{request_id} Error in memory routing: {e}")
                     # Don't fail the request, just log and continue
-        # Forward request to LiteLLM (outside the chat completions block)
+        # Forward request to LiteLLM with retry logic (outside the chat completions block)
         try:
-            status_code, response_headers, response_body = await proxy_request(
+            status_code, response_headers, response_body = await proxy_request_with_retry(
                 method=method,
                 path=full_path,
                 headers=headers,
                 body=body if body else None,
                 litellm_base_url=litellm_base_url,
+                request_id=request_id,
+                max_retries=3,
+                initial_delay=1.0,
             )
 
             # Check if streaming response
@@ -442,16 +656,18 @@ def create_app(
                 logger.info(f"{request_id} Handling as streaming response")
 
                 async def stream_response():
-                    async with httpx.AsyncClient(timeout=600.0) as client:
-                        async with client.stream(
-                            method=method,
-                            url=f"{litellm_base_url}{full_path}",
-                            headers=headers,
-                            content=body,
-                        ) as response:
-                            async for chunk in response.aiter_bytes():
-                                yield chunk
-                    logger.info(f"{request_id} Stream completed successfully")
+                    # Use persistent session for streaming too!
+                    # This ensures cookies are maintained for streaming requests
+                    session = await ProxySessionManager.get_session(litellm_base_url)
+                    async with session.stream(
+                        method=method,
+                        url=full_path,  # relative to base_url
+                        headers=headers,
+                        content=body,
+                    ) as response:
+                        async for chunk in response.aiter_bytes():
+                            yield chunk
+                    logger.info(f"{request_id} 🌊 Stream completed successfully")
 
                 return StreamingResponse(
                     stream_response(),
@@ -492,9 +708,9 @@ def main():
     """
     # pydevd_pycharm.settrace('localhost', port=4747, stdout_to_server=True, stderr_to_server=True, suspend=True)
     parser = argparse.ArgumentParser(description="LiteLLM Proxy with Memory Routing")
-    parser.add_argument("--config", default="config.yaml", help="Path to config.yaml")
+    parser.add_argument("--config", default="config/config.yaml", help="Path to config.yaml")
     parser.add_argument("--port", type=int, default=8764, help="Port to listen on")
-    parser.add_argument("--host", default="127.0.0.1", help="Host to bind to")
+    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
     parser.add_argument(
         "--litellm-url",
         default="http://localhost:4000",
@@ -505,7 +721,8 @@ def main():
 
     # Initialize MemoryRouter with config file
     try:
-        memory_router = MemoryRouter(args.config)
+        config_parsed = schema.load_config_with_env_resolution(args.config)
+        memory_router = MemoryRouter(config_parsed)
         logger.info(f"MemoryRouter initialized from config: {args.config}")
     except Exception as e:
         logger.error(f"Failed to initialize MemoryRouter: {e}")
@@ -517,12 +734,18 @@ def main():
     app = create_app(
         memory_router=memory_router,
         litellm_base_url=args.litellm_url,
-        litellm_auth_token=f"Bearer {os.environ.get('LITELLM_VIRTUAL_KEY', 'sk-E-aQ2xeQ0aVGgsV12Zs7lg')}",
+        litellm_auth_token=f"Bearer {os.environ.get('LITELLM_VIRTUAL_KEY', 'sk-1234')}",
     )
 
     logger.info(f"Starting proxy on {args.host}:{args.port}")
     logger.info(f"Forwarding to LiteLLM at {args.litellm_url}")
     logger.info(f"Config: {args.config}")
+    # 
+    # import pydevd_pycharm
+    # 
+    # pydevd_pycharm.settrace(
+    #     "localhost", port=4747, stdout_to_server=True, stderr_to_server=True
+    # )
 
     # Run server with the created app instance
     uvicorn.run(
