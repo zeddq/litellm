@@ -1,6 +1,32 @@
 # LiteLLM Memory Proxy
 
 **Last Updated**: 2025-10-24
+## Obligatory Memory Use
+
+## 🚨 🚨  Obligatory Action
+
+ - Before each action you must check if the topic you are about to investigate is already stored in the memory bank by using the openmemory MCP server.
+ - Depending on the result and the quality of the response you have 3 options and you have to choose one of them.
+
+### Decision Tree After Query
+
+**1. No Context At All**
+
+If the memory bank doesn't have any information about the topic in question then proceed with your standard work.
+
+Just before returning to the user or the orchestrating agent/mcp, store the information you've gathered in the memory bank using openmemory MCP.
+
+**2. Incomplete Information**
+
+If the information is incomplete then add what you've just obtained to your context and proceed.
+
+Just before returning to the user or the orchestrating agent/mcp, store the improved/completed information you've gathered and then reinforce the memory in the memory bank using openmemory MCP.
+
+**3. Complete Information**
+
+If the information you've obtained from the bank is complete for your task then reinforce that memory in the openmemory MCP and return immediately with the response containing this information.
+
+---
 
 ## Overview
 
@@ -17,6 +43,7 @@ LiteLLM Memory Proxy is a developer-focused proxy service that bridges various A
 **Architecture Pattern**: External binary proxy approach - memory routing proxy (FastAPI) forwards to standalone LiteLLM binary process for better separation of concerns and deployment flexibility.
 
 ---
+
 
 ## 🚨 CRITICAL: Version Control with Jujutsu (jj)
 

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "MEMORY_ROUTING_README.md",
-                "mode": "source",
+                "file": "MIGRATION_EXECUTION_GUIDE.md",
+                "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "MEMORY_ROUTING_README"
+              "title": "MIGRATION_EXECUTION_GUIDE"
             }
           }
         ]
@@ -53,7 +53,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "pytest",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -74,11 +74,12 @@
               "title": "Bookmarks"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "right": {
     "id": "e6641b1a17082839",
@@ -178,7 +179,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -197,14 +198,36 @@
       "omnisearch:Omnisearch": false
     }
   },
-  "active": "4cf8e6fd51ab4fda",
+  "active": "ae29c3a8bd4e38b3",
   "lastOpenFiles": [
-    "templates/Untitled.md",
+    "docs/guides/migration/MIGRATION_GUIDE.md",
+    "docs/architecture/SDK_MIGRATION_INDEX.md",
+    "docs/architecture/SDK_MIGRATION_VISUAL_SUMMARY.md",
+    "docs/architecture/SDK_MIGRATION_ROLLOUT_ARCHITECTURE.md",
+    "MIGRATION_EXECUTION_GUIDE.md",
+    "tests/__pycache__/test_sdk_integration.cpython-313-pytest-8.4.2.pyc",
+    "htmlcov/class_index.html",
+    "htmlcov/function_index.html",
+    "htmlcov/status.json",
+    "htmlcov/index.html",
+    "htmlcov/z_46d757a5aa8dd5f5_streaming_utils_py.html",
+    "htmlcov/z_46d757a5aa8dd5f5_session_manager_py.html",
+    "htmlcov/z_46d757a5aa8dd5f5_schema_py.html",
+    "htmlcov/z_46d757a5aa8dd5f5_memory_router_py.html",
+    "htmlcov/z_46d757a5aa8dd5f5_litellm_proxy_with_memory_py.html",
+    "htmlcov/keybd_closed_cb_ce680311.png",
+    "htmlcov/favicon_32_cb_58284776.png",
+    "TESTING_QUICK_REFERENCE.md",
+    "SDK_TESTING_SUMMARY.md",
+    "SDK_TESTING_GUIDE.md",
+    "docs/architecture/LITELLM_SDK_INTEGRATION_PATTERNS.md",
+    "SDK_MIGRATION_EXECUTIVE_SUMMARY.md",
+    "docs/architecture/BINARY_VS_SDK_ARCHITECTURE.md",
     "MEMORY_ROUTING_README.md",
+    "templates/Untitled.md",
     "PYCHARM_ENV_LAUNCHER_README.md",
     "templates/Poetry Debug.md",
     "templates/Poetry Note.md",
-    "templates",
     "Poetry Note.md",
     "Poetry Debug.md",
     "Untitled.md",

@@ -531,6 +531,7 @@ Developer Machine
 
 ## Related Documentation
 
+- **[Binary vs SDK Architecture Analysis](BINARY_VS_SDK_ARCHITECTURE.md)** - Comprehensive comparison and migration guide
 - [Quick Start Guide](../getting-started/QUICKSTART.md)
 - [Tutorial Guide](../getting-started/TUTORIAL.md)
 - [Migration Guide](../guides/migration/MIGRATION_GUIDE.md)
@@ -541,4 +542,4 @@ Developer Machine
 
 **Sources**: README.md, BEFORE_AFTER_COMPARISON.md, MIGRATION_GUIDE.md
 **Created**: 2025-10-24
-**Updated**: 2025-10-24
+**Updated**: 2025-11-01
