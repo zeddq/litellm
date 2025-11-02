@@ -7,6 +7,7 @@ import logging
 from typing import Dict, Optional, Any
 
 from starlette.datastructures import MutableHeaders, Headers
+from starlette.requests import Request
 
 from proxy.schema import (
     LiteLLMProxyConfig,
@@ -30,8 +31,8 @@ class MemoryRouter:
         self.config = config
         mappings = config.user_id_mappings or UserIDMappings()
         self.header_patterns = mappings.header_patterns
-        self.custom_header: str = mappings.custom_header
-        self.default_user_id: str = mappings.default_user_id
+        self.custom_header = mappings.custom_header
+        self.default_user_id = mappings.default_user_id
         logger.info(
             f"MemoryRouter initialized with {len(self.header_patterns)} patterns"
         )
@@ -97,7 +98,8 @@ class MemoryRouter:
         """
         # Always inject user ID for routing and debugging
         user_id = self.detect_user_id(headers)
-        headers["x-sm-user-id"] = user_id
+        # headers["x-sm-user-id"] = user_id
+        headers["x-sm-user-id"] = "litellm-memory"
 
         # Only inject API key if provided
         if supermemory_api_key:

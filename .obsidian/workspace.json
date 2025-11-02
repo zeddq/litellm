@@ -13,15 +13,30 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "MIGRATION_EXECUTION_GUIDE.md",
-                "mode": "preview",
+                "file": "IMPLEMENTATION_SUMMARY.md",
+                "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "MIGRATION_EXECUTION_GUIDE"
+              "title": "IMPLEMENTATION_SUMMARY"
+            }
+          },
+          {
+            "id": "cc6beed66672481c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "imperative.md",
+                "mode": "source",
+                "source": true
+              },
+              "icon": "lucide-file",
+              "title": "imperative"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -53,8 +68,8 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "pytest",
-                "matchingCase": false,
+                "query": "",
+                "matchingCase": true,
                 "explainSearch": false,
                 "collapseAll": false,
                 "extraContext": false,
@@ -74,12 +89,11 @@
               "title": "Bookmarks"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 309.5086555480957
   },
   "right": {
     "id": "e6641b1a17082839",
@@ -143,13 +157,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "MEMORY_ROUTING_README.md",
+                "file": "imperative.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of MEMORY_ROUTING_README"
+              "title": "Outline of imperative"
             }
           },
           {
@@ -175,7 +189,7 @@
             }
           }
         ],
-        "currentTab": 5
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
@@ -198,43 +212,45 @@
       "omnisearch:Omnisearch": false
     }
   },
-  "active": "ae29c3a8bd4e38b3",
+  "active": "cc6beed66672481c",
   "lastOpenFiles": [
-    "docs/guides/migration/MIGRATION_GUIDE.md",
-    "docs/architecture/SDK_MIGRATION_INDEX.md",
-    "docs/architecture/SDK_MIGRATION_VISUAL_SUMMARY.md",
-    "docs/architecture/SDK_MIGRATION_ROLLOUT_ARCHITECTURE.md",
-    "MIGRATION_EXECUTION_GUIDE.md",
-    "tests/__pycache__/test_sdk_integration.cpython-313-pytest-8.4.2.pyc",
-    "htmlcov/class_index.html",
-    "htmlcov/function_index.html",
-    "htmlcov/status.json",
-    "htmlcov/index.html",
-    "htmlcov/z_46d757a5aa8dd5f5_streaming_utils_py.html",
-    "htmlcov/z_46d757a5aa8dd5f5_session_manager_py.html",
-    "htmlcov/z_46d757a5aa8dd5f5_schema_py.html",
-    "htmlcov/z_46d757a5aa8dd5f5_memory_router_py.html",
-    "htmlcov/z_46d757a5aa8dd5f5_litellm_proxy_with_memory_py.html",
+    "src/interceptor/__pycache__/intercepting_contexter.cpython-313.pyc",
+    "src/interceptor/INSTALLATION.md",
+    "src/interceptor/__pycache__/port_manager.cpython-313.pyc",
+    "src/interceptor/__pycache__/cli.cpython-313.pyc",
+    "src/interceptor/__pycache__/__init__.cpython-313.pyc",
+    "src/interceptor/__init__.py",
+    "src/interceptor/cli.py",
+    "src/interceptor/PORT_COORDINATION_SUMMARY.md",
+    "src/interceptor/__pycache__/port_registry.cpython-313.pyc",
+    "src/interceptor/__pycache__",
+    "src/interceptor/test_port_registry.py",
+    "src/interceptor/README.md",
+    "src/interceptor/port_manager.py",
+    "src/interceptor/port_registry.py",
+    "IMPLEMENTATION_SUMMARY.md",
+    "imperative.md",
+    "docs/architecture/PRISMA_CALLBACK_DESIGN.md",
+    "docs/architecture/QUEUE_BASED_PERSISTENCE.md",
+    "docs/guides/testing/TESTING_GUIDE.md",
+    "redis_investigation_report.md",
+    "litellm_investigation_report.md",
+    "litellm_code_references.md",
+    "docs/guides/refactoring/REFACTORING_GUIDE.md",
     "htmlcov/keybd_closed_cb_ce680311.png",
     "htmlcov/favicon_32_cb_58284776.png",
+    "docs/architecture/SDK_MIGRATION_INDEX.md",
+    "docs/architecture/SDK_MIGRATION_ROLLOUT_ARCHITECTURE.md",
+    "docs/architecture/SDK_MIGRATION_VISUAL_SUMMARY.md",
+    "CLAUDE.md",
+    "docs/getting-started/TUTORIAL.md",
+    "docs/architecture/BINARY_VS_SDK_ARCHITECTURE.md",
+    "MIGRATION_EXECUTION_GUIDE.md",
+    "docs/guides/migration/MIGRATION_GUIDE.md",
     "TESTING_QUICK_REFERENCE.md",
     "SDK_TESTING_SUMMARY.md",
     "SDK_TESTING_GUIDE.md",
     "docs/architecture/LITELLM_SDK_INTEGRATION_PATTERNS.md",
-    "SDK_MIGRATION_EXECUTIVE_SUMMARY.md",
-    "docs/architecture/BINARY_VS_SDK_ARCHITECTURE.md",
-    "MEMORY_ROUTING_README.md",
-    "templates/Untitled.md",
-    "PYCHARM_ENV_LAUNCHER_README.md",
-    "templates/Poetry Debug.md",
-    "templates/Poetry Note.md",
-    "Poetry Note.md",
-    "Poetry Debug.md",
-    "Untitled.md",
-    "SETUP_SUMMARY.md",
-    "README.md",
-    "docs/reference/CONFIGURATION.md",
-    "docs/INDEX.md",
-    "QUICKSTART.md"
+    "SDK_MIGRATION_EXECUTIVE_SUMMARY.md"
   ]
 }

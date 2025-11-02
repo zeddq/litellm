@@ -367,6 +367,7 @@ class LiteLLMParams(BaseModel):
         ge=0.1,
         description="Timeout for streaming responses",
     )
+    web_search_options: Optional[dict] = Field(default=None)
 
     @field_validator("model")
     @classmethod
@@ -414,6 +415,7 @@ class ModelConfig(BaseModel):
         ...,
         description="LiteLLM model parameters",
     )
+    model_info: Optional[dict] = Field(default=None, description="Additional model info")
 
 
 # =============================================================================

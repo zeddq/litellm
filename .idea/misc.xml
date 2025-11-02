@@ -3,6 +3,7 @@
   <component name="Black">
     <option name="enabledOnReformat" value="true" />
     <option name="enabledOnSave" value="true" />
+    <option name="executionMode" value="BINARY" />
     <option name="pathToExecutable" value="$PROJECT_DIR$/../.local/bin/black" />
     <option name="sdkName" value="Poetry (litellm)" />
   </component>

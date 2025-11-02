@@ -36,11 +36,12 @@ References:
     - SDK_MIGRATION_ROLLOUT_ARCHITECTURE.md: Architecture design
     - poc_litellm_sdk_proxy.py: Working proof of concept
 """
-
+import json
 import logging
 import os
 import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any, AsyncIterator, Dict
 
 import litellm
@@ -57,7 +58,7 @@ from proxy.streaming_utils import stream_litellm_completion
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -114,7 +115,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         config_path = os.getenv("LITELLM_CONFIG_PATH", "config/config.yaml")
         config = LiteLLMConfig(config_path=config_path)
         app.state.config = config
-        logger.info(f"  Loaded {len(config.get_all_models())} model configurations")
+        logger.info(f"  Loaded {len(config.get_all_models())} model configurations:")
+        logger.info(Path(config_path).read_text())
         logger.info(f"  Master key configured: {bool(config.get_master_key())}")
 
         # 4. Initialize memory router
@@ -178,6 +180,7 @@ app = FastAPI(
     description="OpenAI-compatible proxy using LiteLLM SDK with persistent sessions and memory isolation",
     version="1.0.0",
     lifespan=lifespan,
+    debug=True,
 )
 
 # Register error handlers
@@ -354,6 +357,9 @@ async def chat_completions(request: Request) -> Response:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid JSON in request body: {e}",
         )
+    
+    logger.info(f"Request headers: {request.headers.items()}")
+    logger.info(f"Request body: {body}")
 
     # Extract parameters
     model_name = body.get("model")
@@ -471,7 +477,7 @@ async def handle_non_streaming_completion(
 
         # Return OpenAI-compatible response
         # Convert response to dict (litellm.ModelResponse has dict() method)
-        response_dict = response.dict() if hasattr(response, 'dict') else dict(response)
+        response_dict = response.model_dump() if hasattr(response, 'model_dump') else dict(response)
         return JSONResponse(content=response_dict)
 
     except Exception as e:
@@ -584,5 +590,5 @@ if __name__ == "__main__":
         app,
         host="0.0.0.0",
         port=8764,
-        log_level="info",
+        log_level="debug",
     )

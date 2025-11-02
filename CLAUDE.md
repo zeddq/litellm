@@ -152,7 +152,7 @@ edit("memory_router.py", old_string="old_function_name", new_string="new_functio
   uvx install 'litellm[proxy]'
 
   # Or with pipx
-  pipx install 'litellm[proxy'
+  pipx install 'litellm[proxy]'
 
   # Verify installation
   litellm --version
@@ -170,7 +170,7 @@ export SUPERMEMORY_API_KEY="sm_..."  # Optional
 ### Python Dependencies
 All managed via Poetry:
 ```bash
-poetry install
+poetry install --all-groups
 ```
 
 Key dependencies: FastAPI, Uvicorn, httpx, PyYAML, pytest
