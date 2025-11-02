@@ -5,47 +5,40 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.clinerules/general-guidelines.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.coverage" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.mcp.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.obsidian/graph.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DIAGNOSTIC_REPORT_503.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/MIGRATION_EXECUTION_GUIDE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SDK_MIGRATION_EXECUTIVE_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SDK_MIGRATION_PLAN.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SDK_TESTING_GUIDE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SDK_TESTING_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/TESTING_QUICK_REFERENCE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/deploy/run_unified_proxy.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/diagnose_503.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/architecture/BINARY_VS_SDK_ARCHITECTURE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/architecture/LITELLM_SDK_INTEGRATION_PATTERNS.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/architecture/SDK_MIGRATION_INDEX.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/architecture/SDK_MIGRATION_ROLLOUT_ARCHITECTURE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/architecture/SDK_MIGRATION_VISUAL_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/poc_litellm_sdk_proxy.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/proxy/config_parser.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/proxy/error_handlers.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/proxy/session_manager.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/proxy/streaming_utils.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_supermemory_architecture.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_supermemory_correct_auth.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_supermemory_with_userid.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/fixtures/mock_responses.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/fixtures/test_config.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/fixtures/test_data.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_binary_vs_sdk.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_sdk_components.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_sdk_e2e.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_sdk_integration.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/validate_sdk_migration.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/IMPLEMENTATION_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Proxy_Batch_Users.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/architecture/PRISMA_CALLBACK_DESIGN.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/architecture/QUEUE_BASED_PERSISTENCE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/imperative.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/investigation.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/litellm_code_references.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/litellm_investigation_report.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/o" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/out" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/redis_investigation_report.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/integrations/prisma_proxy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/interceptor/INSTALLATION.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/interceptor/PORT_COORDINATION_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/interceptor/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/interceptor/cli.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/interceptor/intercepting_contexter.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/interceptor/port_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/interceptor/port_registry.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/interceptor/test_port_registry.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/start_litellm_ui.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/u" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.envrc" beforeDir="false" afterPath="$PROJECT_DIR$/.envrc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.obsidian/graph.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/graph.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.obsidian/workspace.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/workspace.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/architecture/OVERVIEW.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/architecture/OVERVIEW.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/log" beforeDir="false" afterPath="$PROJECT_DIR$/log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deploy/run_unified_proxy.py" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/run_unified_proxy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/config_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/config_parser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/memory_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/memory_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/schema.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/schema.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,6 +55,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="MaliciousPackageCheckinHandlerState">
+    <option name="packageCheck" value="true" />
+  </component>
   <component name="OptimizeOnSaveOptions">
     <option name="myRunOnSave" value="true" />
   </component>
@@ -77,41 +73,44 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Docker.deploy.otel-collector: Compose Deployment.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python Debug Server.Unnamed.executor": "Debug",
-    "Python.litellm_proxy_with_memory.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
-    "git-widget-placeholder": "ecfa4fc4",
-    "last_opened_file_path": "/Users/cezary/litellm",
-    "llm.McpServerEditPanel.switcher": "1",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.33448276",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "ml.llm.LLMThirdPartyAiProvidersConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Docker.deploy.otel-collector: Compose Deployment.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python Debug Server.Unnamed.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.litellm_proxy_with_memory.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;SHELLCHECK.PATH&quot;: &quot;/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;f270878f&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/cezary/litellm&quot;,
+    &quot;llm.McpServerEditPanel.switcher&quot;: &quot;1&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.33448276&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;ml.llm.LLMThirdPartyAiProvidersConfigurable&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "postgresql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;postgresql&quot;
     ],
-    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
-      "TEXT",
-      "HTML",
-      "JSON"
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;TEXT&quot;,
+      &quot;HTML&quot;,
+      &quot;JSON&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/docs/reference" />
       <recent name="$PROJECT_DIR$/deploy" />
@@ -220,7 +219,10 @@
       <workItem from="1761930642527" duration="47000" />
       <workItem from="1761930700823" duration="30427000" />
       <workItem from="1761972608147" duration="12777000" />
-      <workItem from="1761988257012" duration="30366000" />
+      <workItem from="1761988257012" duration="33981000" />
+      <workItem from="1762104170884" duration="9997000" />
+      <workItem from="1762116413663" duration="1398000" />
+      <workItem from="1762122703039" duration="22484000" />
     </task>
     <servers />
   </component>
@@ -249,6 +251,11 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
+    <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
+    <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>

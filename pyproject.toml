@@ -50,10 +50,14 @@ test = [
 ]
 
 [tool.poetry]
-packages = [{include = "proxy", from = "src"}]
+packages = [
+    {include = "proxy", from = "src"},
+    {include = "interceptor", from = "src"}
+]
 
 [tool.poetry.scripts]
 start-proxies = "start_proxies:main"
+interceptor = "interceptor.cli:main"
 
 [tool.pytest.ini_options]
 # Pytest configuration

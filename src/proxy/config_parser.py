@@ -266,7 +266,7 @@ class LiteLLMConfig:
                     f"Required by configuration value: {value}"
                 )
 
-            logger.debug(f"Resolved env var: {env_var} -> <hidden>")
+            logger.debug(f"Resolved env var: {env_var} -> {resolved[:3]}...")
             return resolved
 
         return value

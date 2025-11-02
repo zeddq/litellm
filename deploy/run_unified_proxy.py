@@ -82,8 +82,8 @@ class ProxyLauncher:
         self,
         mode: str,
         litellm_port: int = 4000,
-        proxy_port: int = 8764,
-        sdk_port: int = 8765,
+        proxy_port: int = 8765,
+        sdk_port: int = 8764,
         config_path: str = "config/config.yaml",
     ):
         """
@@ -248,7 +248,7 @@ class ProxyLauncher:
                 app,
                 host="0.0.0.0",
                 port=self.sdk_port,
-                log_level="info",
+                log_level="debug",
             )
             server = uvicorn.Server(config)
 
@@ -438,14 +438,14 @@ Examples:
     parser.add_argument(
         "--proxy-port",
         type=int,
-        default=8764,
+        default=8765,
         help="Port for binary memory proxy (default: 8764)",
     )
 
     parser.add_argument(
         "--sdk-port",
         type=int,
-        default=8765,
+        default=8764,
         help="Port for SDK proxy (default: 8765)",
     )
 
