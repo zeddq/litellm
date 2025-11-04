@@ -1,0 +1,1191 @@
+#         "x-supermemory-api-key": "sm_..."  # Resolved from env
+#     "api_base": "https://api.supermemory.ai/v3/api.anthropic.com",
+#     "api_key": "sk-ant-...",  # Resolved from env
+#     "extra_headers": {
+#     "model": "anthropic/claude-sonnet-4-5-20250929",
+#     }
+# ✅ "cf_clearance", "__cf_bm" cookies present
+# ✅ "Cookie count: X" (should be >0 after first request)
+# ✅ All dependencies present
+# ✅ All endpoints accessible
+# ❌ BAD: Hardcoded secret
+# → Binary on 8764, SDK on 8765
+# ✅ Binary proxy health check
+# ✅ Both execute independently
+# ✅ Configuration valid
+# ✅ Cookie persistence verified
+# ✅ CORRECT: Find all test files
+# ✅ CORRECT: Refactor/rename
+# ✅ CORRECT: Search for a function
+# ✅ Data written to PostgreSQL automatically
+# → Exports to OpenTelemetry
+# ✅ Exports to OpenTelemetry
+# ✅ Feature parity confirmed
+# ✅ GOOD: Environment variable reference
+# ✅ LiteLLM binary accessible
+# → Logs to Langfuse
+# ✅ Memory routing works
+# ✅ NEW CODE - Uses persistent session
+# ❌ No 503 errors (Cloudflare Error 1200)
+# ❌ OLD CODE - Creates new client, loses cookies
+# ✅ Performance acceptable
+# ✅ Proxy UI will display SDK-persisted data
+# ✅ SDK proxy health check
+# → SDK proxy on custom port
+# → Starts binary proxy on 8764
+# → Starts SDK proxy on 8765
+# → Writes to Prisma database
+# ✅ Writes to Prisma database
+# ❌ WRONG: Text replacement
+# ❌ WRONG: Using bash
+# ❌ WRONG: Using grep
+# - API Key: sk-1234
+# - Average latency
+# - Both proxies show healthy status
+# - LiteLLM starts on port 8765
+# - Memory Proxy starts on port 8764
+# - Memory usage
+# - Model: claude-sonnet-4.5
+# - p95 latency
+# - Requests per second
+# - Test async_log_success_event
+# - Test initialization
+# - Test multi-callback compatibility
+# - URL: http://localhost:8765/v1
+# .env.development
+# .env.production
+# (If not, restart: python deploy/run_unified_proxy.py --mode sdk)
+# (in Memory Proxy terminal output)
+# (In the IDE where Claude Code is running)
+# (set User-Agent in your HTTP client)
+# {
+# }
+# 1. Ask AI Assistant a question
+# 1. Make SDK completion call
+# 1. Unit tests (fast)
+# 2. Check streaming works
+# 2. Integration tests
+# 2. Wait for async write (5s)
+# 3. Check memory routing (should auto-detect as "pycharm-ai")
+# 3. Comparison tests
+# 3. Query database, verify write
+# 4. Cleanup test data
+# 4. E2E tests (with API keys)
+# 5. Validation script
+# 503 Error Diagnostic Report
+# 6. Generate coverage report
+# Access configuration
+# Access via dependency injection (never directly)
+# Add correlation ID to requests
+# Add to SDK proxy for automatic failover
+# All authentication tests
+# All E2E tests
+# All error handling tests
+# All memory routing tests
+# All streaming tests
+# All tests
+# All three work together perfectly
+# Anthropic API Key (for Claude models)
+# Anthropic-compatible endpoint
+# Automatic cookie management
+# AVOID: God object
+# AVOID: Mixing sync and async
+# AVOID: Sequential when concurrent is possible
+# Bad
+# Bad
+# Bad
+# Benchmark (using apache bench or similar)
+# Binary files (should be unchanged)
+# Binary parses config independently
+# Binary proxy on 8764
+# Binary proxy usage
+# Binary vs SDK Architecture: Comprehensive Analysis
+# Body is async method returning bytes
+# Both Proxies (Testing)
+# Both proxies running simultaneously
+# Both proxies use same schema validation
+# Build httpx-compatible request
+# Change default from binary to SDK
+# Change default mode from BINARY to SDK
+# Chat completion (non-streaming)
+# Check active connections
+# Check config.yaml patterns
+# Check cookie persistence
+# Check error rate
+# Check health
+# Check if litellm binary is available
+# Check if LiteLLM is running
+# Check latency
+# Check LiteLLM
+# Check LiteLLM is running
+# Check logs
+# Check logs
+# Check logs
+# Check logs for user_id detection
+# Check logs for:
+# Check memory
+# Check Memory Proxy
+# Check ports in use
+# Check routing info
+# Check specific packages
+# Check specific pattern matching
+# Check status
+# Check test dependencies
+# Check what user ID would be assigned
+# Cleanup
+# Cleanup
+# Clear cache
+# Client 1: PyCharm → SDK proxy (8765)
+# Client 2: Claude Code → Binary proxy (8764)
+# Client A (PyCharm)
+# Client B (Custom app with explicit user ID)
+# Cloudflare Rate Limit Fix for Supermemory Proxy
+# Cloudflare sets cookies: cf_clearance, __cfruid
+# Compare (should be nearly identical, except minor differences like timing)
+# Compare responses
+# Compare routing
+# Compare to binary proxy
+# Comparison tests
+# Comparison tests
+# Comparison tests
+# Comparison tests only
+# Complete validation suite
+# config.yaml
+# Configuration file path
+# Configuration Reference
+# Configuration schema (YAML)
+# Configuration schemas used by both
+# Configure
+# Configure patterns
+# Configure PyCharm:
+# Confirms feature parity
+# Consumer
+# Consumer
+# Consumer metrics
+# Conversion function
+# Conversion function
+# Conversion function
+# Convert to FastAPI StreamingResponse
+# Convert to standard dict for processing
+# Cookie persistence tests
+# Cookies from first request automatically included!
+# Cookies from response1 stored in client.cookies
+# Cookies persist automatically in AsyncClient
+# Correct import path for mocking
+# Coverage for specific module
+# Create .env or export directly
+# Create app with explicit dependencies
+# Create app with lifespan
+# Create archive directory
+# Create FastAPI app with lifespan
+# Create integration test
+# Create persistent client
+# Create test file
+# Create your own app instance
+# Critical: Consumer not processing
+# Critical: High consumer lag
+# Custom config
+# Custom Port
+# Custom ports
+# Database metrics
+# Debug mode
+# Debug routing
+# Debug routing
+# Debug specific failures
+# Debug with pdb
+# Default: Binary Proxy (Current)
+# Delete session
+# Delete session
+# deploy/start_proxies.py
+# Detect clients
+# Detect Supermemory models from config
+# Development settings
+# DIFFICULT: Testing binary approach requires running process
+# Direct pytest (if you must)
+# DO NOT DELETE - keep for emergency rollback
+# docker-compose.yml
+# Don't do this anymore
+# Drop into debugger on failure
+# Dry-run to test configuration
+# E2E benchmarks
+# E2E tests
+# E2E tests (requires API keys)
+# E2E tests (requires API keys)
+# E2E tests only
+# Each callback executes independently
+# Edit config.yaml to add provider
+# Edit deploy/run_unified_proxy.py
+# Enable callbacks
+# Enable client-side caching
+# Enable JSON logging
+# Enable multiple callbacks
+# Enable multiple callbacks (they work together!)
+# Enable print statements in tests
+# Enable Prisma callback
+# Enable Prisma callback
+# Enable/disable rate limiting
+# Ensure in project root
+# Ensure in venv
+# Ensure pattern matches your User-Agent
+# Ensure pytest-asyncio is installed
+# Ensure you're in project root
+# Ensure you're in the project directory
+# Example 1: Claude Code client
+# Example 2: Custom header override
+# Example load test
+# Exclude slow tests
+# Exclude slow tests
+# Execution time: <30 seconds
+# Execution time: <5 seconds
+# Execution time: Variable (depends on API response times)
+# Exit code: 0 (success)
+# Expected output:
+# Expected output:
+# Expected output:
+# Expected output: LiteLLM CLI help text
+# Expected: {"status":"healthy", ...}
+# Expected: {"user_id": "claude-cli", ...}
+# Expected: {"user_id": "default-dev", ...}
+# Expected: {"user_id": "my-project", ...}
+# Expected: {"user_id": "pycharm-ai-chat", ...}
+# Expected: {"user_id": "pycharm-ai", ...}
+# Expected: >80% coverage for all SDK files
+# Expected: 13+ tests, all passing
+# Expected: 14+ tests, all passing (if API keys are valid)
+# Expected: 42+ tests, all passing
+# Expected: 50+ tests, all passing
+# Expected: All checks pass
+# Expected: Client B should not know about Client A's preference
+# Expected: SSE format chunks, ending with "data: [DONE]\n\n"
+# Export real API keys
+# Fast tests only
+# File: /Users/cezary/litellm/config/config.yaml
+# File: /Users/cezary/litellm/config/config.yaml
+# File: /Users/cezary/litellm/memory_router.py
+# File: /Users/cezary/litellm/memory_router.py
+# File: /Users/cezary/litellm/memory_router.py
+# File: /Users/cezary/litellm/memory_router.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/src/proxy/litellm_proxy.py
+# File: /Users/cezary/litellm/start_proxies.py
+# File: /Users/cezary/litellm/start_proxies.py
+# File: /Users/cezary/litellm/start_proxies.py
+# File: /Users/cezary/litellm/test_memory_proxy.py
+# First message
+# First request
+# First request: May receive Cloudflare challenge
+# Fix port mismatch
+# Format: os.environ/VAR_NAME
+# From venv: Run all tests
+# Full traceback
+# Full traceback
+# Full validation
+# Full validation
+# Function signature
+# General Settings
+# Generate coverage report
+# Generate HTML coverage report
+# Generate terminal coverage report
+# Get all models
+# Get master key
+# Get model params
+# Get scenario
+# Get session details
+# Get session details
+# Global rate limiter
+# Good
+# Good
+# Good - use different names or aliases
+# GOOD: Async context manager
+# GOOD: Clear separation (SDK approach)
+# GOOD: Concurrent async operations
+# GOOD: Proper async/await
+# GOOD: Structured logging with context
+# GOOD: Testable components (SDK approach)
+# Health check
+# Health check
+# httpx internally validates and converts to HTTP/1.1 or HTTP/2
+# httpx request construction
+# httpx response
+# httpx response provides async iterator
+# httpx sends this to LiteLLM binary
+# If SDK proxy has critical issues
+# Ignore these files (temporary/deprecated)
+# IMPERATIVE RULE
+# In another terminal, run comparison tests
+# In async_log_success_event:
+# In config.yaml (optional)
+# In config.yaml:
+# In the memory proxy terminal
+# In your application code
+# In your request handler
+# In your shell config
+# In your shell config (.zshrc or .bashrc)
+# Incoming request object structure
+# Initialize router
+# Initialize router
+# Initialize with Redis buffer
+# Initialize with Redis buffer
+# Inject into forwarded request
+# Inject into litellm.acompletion() extra_headers
+# Inject persistent client
+# Input to determine_user_id()
+# Input type
+# Install dependencies
+# Install dependencies
+# Install dependencies
+# Install dependencies
+# Install dependencies
+# Install fresh dependencies
+# Install in development mode
+# Install LiteLLM as CLI tool
+# Install pytest-asyncio
+# Install separately: pip install litellm
+# Install test dependencies
+# Install test dependencies
+# Install with uvx
+# Integration tests
+# Integration tests
+# Integration tests
+# Integration tests
+# Integration tests only
+# Just mark as archived in documentation
+# k8s-deployment.yaml
+# Keep these
+# Keep these correct:
+# Kubernetes HPA (Horizontal Pod Autoscaler)
+# Launcher (should exist)
+# Lines: 1-250 (approximate)
+# Lines: 100-110
+# Lines: 140-160
+# Lines: 140-170
+# Lines: 180-210
+# Lines: 180-210
+# Lines: 20-60 (approximate)
+# Lines: 30-50 (approximate)
+# Lines: 40-80 (approximate)
+# Lines: 80-120 (approximate)
+# List all sessions
+# List all sessions
+# List user's sessions
+# LiteLLM base URL
+# LiteLLM Binary → SDK Migration Plan
+# LiteLLM Binary: Full config parsing
+# LiteLLM Database Persistence - Code Reference Guide
+# LiteLLM Database Persistence Investigation Report
+# LiteLLM default configuration
+# LiteLLM Memory Proxy
+# LiteLLM Memory Proxy - Architecture Overview
+# LiteLLM Memory Proxy - Complete Architecture Analysis
+# LiteLLM Memory Proxy - Comprehensive Testing Guide
+# LiteLLM Memory Proxy - Consolidated Architecture Documentation
+# LiteLLM Memory Proxy - Documentation Index
+# LiteLLM Proxy Configuration Schema
+# LiteLLM Proxy Migration to SDK Approach
+# LiteLLM Proxy Refactoring Guide
+# LiteLLM Proxy with Dynamic Supermemory Routing
+# LiteLLM Proxy with Memory - Complete Tutorial
+# LiteLLM SDK Database Persistence - Implementation Summary
+# LiteLLM SDK Integration Patterns and Best Practices
+# LiteLLM SDK Migration: Incremental Rollout Architecture
+# LiteLLM Settings
+# litellm/integrations/prisma_proxy.py
+# Load and validate configuration
+# Load config
+# Load test
+# Load with env vars resolved
+# Load/performance tests
+# Log level (DEBUG, INFO, WARNING, ERROR)
+# Make another request - should have memory of first conversation
+# Make calls
+# Make completion call
+# Make completion calls
+# Make completion calls
+# Make multiple requests to Supermemory (look for cookie persistence in logs)
+# Manual inspection
+# Mark binary proxy as "legacy" but keep available
+# Master API key for proxy
+# Maximum context messages to retain
+# Maximum requests per minute
+# Maximum verbosity
+# Memory
+# Memory Proxy: Minimal config parsing
+# Memory routing configuration
+# Memory routing info
+# Merge into main (prefer merges over rebases)
+# Metrics
+# Migration Guide: SDK to Binary Architecture
+# Mock completion
+# Mock error
+# Mock streaming
+# Model List
+# Models list
+# Module-level initialization
+# Monitor deadlock errors
+# Monitor logs
+# monitor_sdk_proxy.sh
+# Move binary files (keep for rollback)
+# NEW - Testing is straightforward
+# New SDK files (should exist)
+# No challenge needed - cookies reused
+# No Pydantic models for request body
+# Non-streaming
+# Note the colon before password: redis://:password@host:port
+# Note: LiteLLM is required as a CLI tool, not as a Python package dependency.
+# Now multiple SDK instances can write safely
+# OLD - Testing was difficult
+# OLD CODE
+# OLD CODE - Lines 36, 43-46
+# OLD CODE - Route handlers accessing global
+# On each completion
+# On error
+# On successful write
+# Only for Memory Proxy's own endpoints
+# Open HTML report
+# Open report
+# OpenAI API Key
+# OpenAI-compatible endpoint
+# Option 1: Auto-detection via User-Agent
+# Option 1: Env var         # Route specific clients   # Restore archived
+# Option 1: Environment variable
+# Option 1: Environment variable
+# Option 1: Use start script
+# Option 1: Via environment variable
+# Option 2: Command line
+# Option 2: Explicit user ID
+# Option 2: Manual start
+# Option 2: Rollback script
+# Option 2: Script          # PyCharm → SDK (8765)
+# Option 2: Via rollback script
+# Option 3: Existing launcher
+# Option 3: Manual
+# Option 3: Manual
+# Option 3: Manual          # Validate individually     memory.py
+# Optional
+# Optional
+# Optional (for multi-instance)
+# Optional (logging)
+# Or
+# OR
+# Or create alias
+# Or if using pip
+# Or if using pipx for litellm
+# Or in config.yaml
+# or just watch the console output
+# Or manual load test:
+# Or patch full path
+# Or patch where it's used
+# Or pipx
+# Or using pip
+# or with custom config
+# or with custom ports
+# Output from determine_user_id()
+# Output type
+# Output: "Your favorite color is blue"
+# Override in config.yaml
+# Patch where used, not where defined
+# Phase 1: Dual write (both Option 1 and 3)
+# Phase 2: Validate consistency (2-4 weeks)
+# Phase 3: Cut over to Option 3
+# Point to your proxy
+# Post-migration check
+# Post-migration check
+# Pre-migration check
+# Pre-migration check
+# Press Ctrl+C
+# Priority order (highest to lowest):
+# Prisma Callback Integration Design (Option 1)
+# Producer
+# Producer
+# Producer metrics
+# Production configuration
+# Production settings
+# Profile tests
+# Proxy
+# Proxy Configuration
+# Proxy host
+# Proxy port
+# Pseudocode representation
+# Push to remote (when configured)
+# Python 3.13+
+# Python with OpenAI SDK
+# Queue-Based Persistence Architecture (Option 3 - Future Reference)
+# Quick Start Guide
+# Quick Start Guide - LiteLLM Memory Proxy
+# Re-run last failed tests
+# Re-run last failed tests
+# Real API calls only
+# Real API tests
+# Recommended: Start both proxies together
+# Record:
+# Redis Integration Investigation Report
+# Redis URL for persistent storage
+# Register callback
+# Register callback
+# Reinstall
+# Reinstall dependencies
+# Remove old dependencies (if needed)
+# Remove or fix REDIS_URL
+# Remove REDIS_URL entirely to let config.yaml take precedence
+# Required
+# Required
+# Required
+# Requires PostgreSQL running
+# Response will include: "Your name is Alice" (from memory!)
+# Response: {"user_id": "my-project", ...}
+# Response: {"user_id": "pycharm-ai", ...}
+# Restart services
+# Restore files (discard changes)
+# Restore old dependencies
+# Restore old start script
+# Returns:
+# Review logs
+# Rollback to binary
+# Rollback verification
+# rollback_to_binary.sh
+# Route only specific clients to binary proxy temporarily
+# Run all comparison tests
+# Run all E2E tests (requires API keys)
+# Run all integration tests
+# Run all integration tests
+# Run all tests
+# Run all tests (except E2E)
+# Run all tests (except E2E)
+# Run all tests (excluding E2E)
+# Run all unit tests
+# Run all unit tests
+# Run by type
+# Run cookie persistence tests
+# Run E2E tests
+# Run E2E tests (requires API keys)
+# Run endpoint-specific tests
+# Run from correct location
+# Run integration tests
+# Run load tests
+# Run load tests
+# Run memory routing parity tests
+# Run migration validation
+# Run only Anthropic tests
+# Run performance comparison
+# Run same tests against both versions
+# Run specific test
+# Run specific test
+# Run specific test class
+# Run specific test file
+# Run specific test with debugging
+# Run tests
+# Run tests
+# Run tests with coverage
+# Run tutorial examples
+# Run validation to identify issues
+# Run with coverage
+# Run with coverage
+# Run with coverage
+# Run with HTML coverage report
+# Run with timing
+# Run with verbose output
+# Run with verbose output
+# Run your app
+# Same benchmark
+# SDK Migration Documentation Index
+# SDK Migration Execution Guide
+# SDK Migration Rollout: Visual Summary
+# SDK Migration Testing Guide
+# SDK Migration Testing Suite - Summary
+# SDK Migration: Executive Summary
+# SDK Proxy (New)
+# SDK proxy on 8765
+# SDK proxy usage (identical)
+# Second message - memory works!
+# Second request
+# Second request should remember first conversation
+# Second request: Cookies automatically sent
+# Section: user_id_mappings
+# Security
+# See what user ID would be assigned
+# SELECT * FROM litellm_usertable WHERE user_id = 'local-test-user';
+# Send chat completion request through memory proxy
+# Send chat request
+# Session stays open, cookies persist!
+# Session TTL in seconds
+# Set API keys
+# Set database URL
+# Set database URL (or via environment variable)
+# Set environment variable
+# Set environment variables
+# Set environment variables
+# Set log level to DEBUG
+# Settings → AI Assistant → OpenAI Service
+# SHARED COMPONENT - NO MODIFICATIONS NEEDED
+# SHARED COMPONENT - NO MODIFICATIONS NEEDED
+# Show captured output even for passing tests
+# Show local variables on failure
+# Show local variables on failure
+# Show print statements
+# Single machine, both processes
+# Slow tests only
+# Specific test category
+# Specific test file
+# Specific test suites
+# Stage and commit changes
+# Starlette Request headers are MutableHeaders (case-insensitive)
+# Start binary proxy
+# Start binary proxy
+# Start binary proxy (current default)
+# Start binary proxy (existing method)
+# Start binary proxy on 8764
+# Start both for testing
+# Start both proxies
+# Start both proxies
+# Start both proxies
+# Start new work - create bookmark before making changes
+# Start proxy
+# Start SDK proxy
+# Start SDK proxy
+# Start SDK proxy
+# Start SDK proxy on 8765
+# Start SDK proxy with debug logging
+# Start server on custom port
+# start_proxies.py
+# Started via: litellm --config config.yaml --port 4000
+# Stop
+# Stop SDK proxy
+# Stop: Press Ctrl+C in Terminal 1
+# Store in app.state during lifespan startup
+# Streaming
+# Structured logging
+# Supermemory API Key (for memory features)
+# Terminal 1: LiteLLM binary
+# Terminal 1: SDK proxy should still be running
+# Terminal 1: Start LiteLLM `proxy`````````
+# Terminal 1: Start SDK proxy
+# Terminal 2: Memory proxy
+# Terminal 2: Start memory routing proxy
+# Terminal 2: Test endpoints
+# Terminal 2: Test streaming
+# Test
+# Test 1: Non-streaming chat
+# Test 2: Streaming chat
+# Test 3: Memory routing
+# Test binary proxy
+# Test binary proxy
+# Test binary proxy
+# Test chat completions
+# Test Claude Code
+# Test completion
+# Test completion
+# Test custom header
+# Test default
+# Test endpoint
+# Test error handlers
+# Test error handling
+# Test files (should exist)
+# Test health (in another terminal)
+# Test in PyCharm:
+# Test litellm binary
+# Test memory routing parity
+# Test PyCharm AI Chat detection
+# Test SDK proxy
+# Test SDK proxy
+# Test session manager
+# Test with custom header
+# test_direct_client.py
+# Test: Chat Completions
+# Test: Concurrent Requests
+# Test: Config Parser
+# Test: Session Manager
+# Testing Quick Reference Card
+# tests/validate_feature_parity.sh
+# This won't work - no global app anymore
+# Track via OpenTelemetry or custom metrics
+# Type aliases for cleaner signatures
+# Type checking works
+# Undo last jj operation
+# Unit tests
+# Unit tests
+# Unit tests
+# Unit tests only
+# Unit tests only (fast)
+# Update .envrc or shell environment
+# Update CLAUDE.md to reference SDK proxy
+# Update client configurations back to port 8764
+# Update docs/getting-started/QUICKSTART.md
+# Update README.md
+# UPDATE USER TABLE
+# Usage in endpoint
+# Usage in endpoint
+# Usage in endpoint
+# Use @pytest.mark.asyncio decorator
+# Use appropriate scope
+# Use decorator
+# Use in tests
+# Use scenarios
+# Use SDK
+# Use with acompletion
+# Used by both binary and SDK proxies identically
+# User ID Mappings for Client Detection
+# Validate binary proxy is healthy
+# Validate config file from command line
+# Validate SDK proxy is healthy
+# validate_configs.sh
+# Validation script (should exist)
+# Verbose output
+# Verify
+# Verify in PostgreSQL:
+# Verify installation
+# Verify response
+# Verify rollback
+# Verify routing:
+# Verify routing:
+# Verify: Check database for 100 requests across 10 users
+# View HTML report
+# View tutorial documentation
+# Wait for startup
+# Wait for startup
+# Warning: Growing queue depth
+# With coverage
+# Wrap in Starlette StreamingResponse
+# Write end-to-end test:
+# Write tests (mock PrismaClient, DBSpendUpdateWriter)
+## 🚨 🚨  Obligatory Action
+## 🎯 Architecture Highlights
+## 🎯 Common Commands
+## 🔧 CRITICAL: Use JetBrains MCP Server
+## 🚨 CRITICAL: Version Control with Jujutsu (jj)
+## 📦 Deliverables Checklist
+## 📚 Documentation
+## 🧪 E2E Test Setup
+## 📊 Key Questions Answered
+## 🆘 Need Help?
+## 🧪 Next Steps (Testing & Deployment)
+## 📈 Performance Characteristics
+## 🚀 Quick Start
+## 🚀 Quick Start (How to Use)
+## 📚 References
+## ✅ Success Criteria
+## 🎊 Summary
+## 📁 Test Files
+## 📝 Test Files Location
+## 📦 Test Fixtures
+## 🎨 Test Patterns
+## 📊 Test Statistics
+## 💡 Tips & Best Practices
+## 🐛 Troubleshooting
+## 🔧 Troubleshooting
+## 🔍 Validation Script
+## 🎉 What Was Delivered
+## 1. Directory Structure Strategy
+## 1. Environment Setup
+## 1. How the Proxy Writes Spend Logs to Database (DBSpendUpdateWriter)
+## 1. LiteLLM SDK Session Management
+## 2. Configuration
+## 2. FastAPI + LiteLLM Integration
+## 2. Parallel Coexistence Strategy
+## 2. SDK Database Persistence Examples
+## 3. Configuration Patterns
+## 3. Integration Points
+## 3. Model Loading from Database in Proxy
+## 3. Start the Proxies
+## 4. Database Initialization and Connection Management
+## 4. Error Handling
+## 4. Rollout Phases
+## 4. Test with cURL
+## 5. Multi-Instance and Read-Only Configuration Options
+## 5. Risk Mitigation
+## 5. Streaming Patterns
+## 5. Test with Python SDK
+## 6. Component Architecture
+## 6. Security Considerations
+## 6. View Session History
+## 7. Performance Optimization
+## 7. Testing Strategy
+## 8. Monitoring and Observability
+## 8. Testing Strategies
+## Adding New Client Patterns
+## Additional Recommendations
+## Additional Resources
+## Advanced Usage
+## Advantages Over Option 1
+## API Documentation
+## API Endpoints
+## API Reference
+## Appendix
+## Appendix A: Complete Example
+## Appendix B: Migration Checklist
+## Appendix: Diagnostic Script Output
+## Appendix: Diagram Summary
+## Approval Checklist
+## Architectural Decisions
+## Architecture
+## Architecture
+## Architecture
+## Architecture
+## Architecture
+## Architecture & Design
+## Architecture Comparison
+## Architecture Comparison
+## Architecture Comparison
+## Architecture Evolution: SDK to Binary
+## Architecture Improvements
+## Architecture Overview
+## Architecture Overview
+## Backward Compatibility
+## Backward Compatibility
+## Benefits of New Architecture
+## Best Practices
+## Best Practices
+## Best Practices Followed
+## Breaking Changes
+## CI/CD Integration
+## Class and Module Structure
+## Client Configuration
+## Client Configuration Examples
+## Code Coverage
+## Code Organization
+## Command Cheat Sheet
+## Common Commands
+## Common Issues
+## Common Issues and Solutions
+## Comparative Analysis
+## Component Architecture
+## Component Architecture
+## Component Design
+## Component Overview
+## Conclusion
+## Conclusion
+## Conclusion
+## Conclusion
+## Conclusion
+## Conclusion
+## Conclusion
+## config.yaml Structure
+## Configuration
+## Configuration
+## Configuration
+## Configuration
+## Configuration
+## Configuration
+## Configuration Architecture
+## Configuration Architecture
+## Configuration Compatibility
+## Configuration Examples
+## Configuration Priority
+## Configuration Sections
+## Configuration Sections
+## Contact & Support
+## Contacts & Resources
+## Continuous Integration
+## Contributing
+## Contributing to Documentation
+## Contributing Workflow
+## Cost Analysis
+## Coverage Reports
+## Critical Code Snippets
+## Data Flow
+## Data Flow & Timing
+## Data Flow Sequence
+## Database Schema
+## Debugging
+## Debugging Failed Tests
+## Debugging Tests
+## Decision Framework
+## Decision Matrix
+## Decision Rationale
+## Decision Summary
+## Dependencies
+## Dependency Analysis
+## Deployment Architecture
+## Deployment Patterns
+## Design Patterns
+## Design Patterns
+## Detailed Component Architecture
+## Detailed Component Architecture
+## Detailed Findings
+## Development Workflow
+## Diagnostic Test Results
+## Directory Structure: Before → During → After
+## Disadvantages vs Option 1
+## Document Hierarchy
+## Document Overview
+## Document Status
+## Document Summaries
+## Documentation
+## Documentation Hub
+## Documentation Organization
+## Documentation Standards
+## Documentation Statistics
+## Entity Types and Database Tables
+## Environment Variables
+## Environment Variables
+## Environment Variables and Configuration
+## Environment-Specific Configurations
+## Example Workflows
+## Executive Summary
+## Executive Summary
+## Executive Summary
+## Executive Summary
+## Executive Summary
+## Executive Summary
+## Executive Summary
+## Executive Summary
+## Executive Summary
+## Export JSON Schema
+## Extension Points
+## Extension Points
+## External Resources
+## FastAPI Application Architecture
+## Features
+## File Locations
+## File Locations
+## File Structure Summary
+## Files
+## Further Reading
+## Future Enhancements
+## Future Enhancements
+## Future Enhancements (Post-Migration)
+## Future Enhancements (Post-Phase 1)
+## Getting Help
+## Getting Started
+## Guides
+## High-Level Architecture
+## High-Level Architecture
+## High-Level Architecture
+## How It Works
+## HTTP Message Flow
+## Implementation Checklist (If Migrating)
+## Implementation Details
+## Implementation Strategy
+## Implementation Timeline
+## Implementation Timeline Reference
+## Important Notes
+## Installation
+## Interface Specifications
+## Key Benefits
+## Key Benefits of Binary Approach
+## Key Components
+## Key Components
+## Key Decisions Reference
+## Key Features
+## Key Features
+## Key Files Modified
+## Key Patterns for SDK Database Persistence Implementation
+## Known Limitations
+## Launcher Strategy
+## Learning Path
+## License
+## License
+## Logging
+## Migration Checklist
+## Migration Guide
+## Migration Path (Option 1 → Option 3)
+## Migration Steps
+## Migration Steps
+## Migration Strategy
+## Migration Strategy
+## Migration Strategy
+## Migration Timeline
+## Migration Validation Script
+## Module Overview
+## Monitoring & Alerting
+## Monitoring & Observability
+## Monitoring and Debugging
+## Monitoring Architecture
+## Next Actions
+## Next Steps
+## Next Steps
+## Next Steps
+## Next Steps
+## Next Steps
+## Next Steps
+## Next Steps
+## Next Steps
+## Next Steps
+## Next Steps
+## Obligatory Memory Use
+## Operational Considerations
+## Overview
+## Overview
+## Overview
+## Overview
+## Overview
+## Overview
+## Overview
+## Parallel Test Execution
+## Performance
+## Performance
+## Performance Architecture
+## Performance Baseline
+## Performance Benchmarking
+## Performance Characteristics
+## Performance Characteristics
+## Performance Considerations
+## Performance Targets
+## Performance Testing
+## Phase 1: Verification (15 minutes)
+## Phase 10: Cutover (30 minutes)
+## Phase 11: Monitoring (Ongoing)
+## Phase 2: Unit Testing (30 minutes)
+## Phase 3: Integration Testing (1 hour)
+## Phase 4: Feature Parity Testing (1 hour)
+## Phase 5: End-to-End Testing (2 hours)
+## Phase 6: Client Testing (2 hours)
+## Phase 7: Validation Script (30 minutes)
+## Phase 8: Performance Comparison (1 hour)
+## Phase 9: Cutover Decision (1 hour)
+## Port Allocation Strategy
+## Prerequisites
+## Prerequisites
+## Problem
+## Problem Statement
+## Problems with Original Implementation
+## Production Deployment
+## Project Overview
+## Project Structure
+## Project Structure
+## Project Structure
+## Proposed Solution
+## Purpose
+## Python 3.13+ Features
+## Quality Metrics
+## Questions?
+## Quick Access by Task
+## Quick Command Reference
+## Quick Links
+## Quick Navigation
+## Quick Reference
+## Quick Reference
+## Quick Reference
+## Quick Reference Commands
+## Quick Start
+## Quick Start
+## Quick Start
+## Reading Paths
+## Recent Changes (Last 2 Days)
+## Recent Updates
+## Recommended Reading Order
+## Recommended Solution: Option A (Direct Supermemory Calls)
+## Refactored Solution
+## Reference
+## References
+## References
+## References
+## References
+## Related Documentation
+## Related Documentation
+## Related Documentation
+## Requirements
+## Resources
+## Risk Assessment
+## Risk Assessment
+## Risk Mitigation
+## Risk Mitigation Matrix
+## Rollback Plan
+## Rollback Plan
+## Rollback Procedure
+## Rollback Strategy
+## Rollback Strategy
+## Rollout Plan
+## Root Cause Analysis
+## Root Cause Analysis
+## Root Cause Analysis
+## Running Specific Test Scenarios
+## Running Tests
+## Scalability Architecture
+## Search Guide
+## Security
+## Security Architecture
+## Security Considerations
+## Shared vs New Components
+## Solution Implemented
+## Solution Options
+## Solutions & Recommendations
+## Step 1: Verify Configuration
+## Step 2: Test Routing Logic
+## Step 3: Start Proxies
+## Step 4: Test It Works
+## Step 5: Configure PyCharm
+## Success Criteria
+## Success Criteria
+## Success Criteria Reference
+## Success Criteria Summary
+## Success Metrics
+## Success Metrics
+## Summary
+## Summary
+## Summary
+## Summary of Changes
+## Summary of Key Recommendations
+## Support
+## Support
+## Support
+## Support
+## System Overview
+## Table of Contents
+## Table of Contents
+## Table of Contents
+## Table of Contents
+## Table of Contents
+## Technical Details
+## Technology Choices
+## Test Coverage
+## Test Coverage Goals
+## Test Coverage Statistics
+## Test Coverage Summary
+## Test Development Best Practices
+## Test Execution
+## Test Fixtures
+## Test Markers
+## Test Output Options
+## Test Structure
+## Test Structure
+## Test Suites
+## Testing
+## Testing
+## Testing
+## Testing
+## Testing and Integration Examples
+## Testing Benefits
+## Testing Checklist
+## Testing Checklist
+## Testing Strategy
+## Testing Strategy
+## Testing Strategy
+## Timeline Summary
+## Troubleshooting
+## Troubleshooting
+## Troubleshooting
+## Troubleshooting
+## Troubleshooting
+## Troubleshooting
+## Troubleshooting
+## Type Hints
+## Usage
+## Usage
+## Usage Examples
+## Validation
+## Validation Features
+## Version Information
+## What Changed
+## What Has Been Created
+## What's Next?
+## When to Consider Migration
+## Why Previous Solution (ProxySessionManager) Didn't Work
+## Writing New Tests
