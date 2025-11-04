@@ -540,6 +540,7 @@ Developer Machine
 
 ---
 
-**Sources**: README.md, BEFORE_AFTER_COMPARISON.md, MIGRATION_GUIDE.md
-**Created**: 2025-10-24
-**Updated**: 2025-11-01
+---
+
+**Last Updated**: 2025-11-04  
+**Status**: Consolidated architecture documentation including memory routing patterns

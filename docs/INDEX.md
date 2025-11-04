@@ -7,7 +7,7 @@ Welcome to the LiteLLM Memory Proxy documentation. This index provides quick acc
 ## Getting Started
 
 ### Quick Start
-**[QUICKSTART.md](getting-started/QUICKSTART.md)**
+**[Quick Start Guide](getting-started/QUICKSTART.md)**
 - 5-minute setup guide
 - Essential commands
 - Quick examples
@@ -15,85 +15,95 @@ Welcome to the LiteLLM Memory Proxy documentation. This index provides quick acc
 
 **Perfect for**: First-time users, quick setup
 
----
-
 ### Complete Tutorial
-**[TUTORIAL.md](getting-started/TUTORIAL.md)**
+**[Tutorial](getting-started/TUTORIAL.md)**
 - Comprehensive learning path
 - Module-by-module walkthrough
 - Example workflows
 - API endpoints reference
-- Performance characteristics
 
 **Perfect for**: Learning the system in depth, understanding all features
 
 ---
 
-## Architecture & Design
+## Architecture
 
 ### Architecture Overview
-**[OVERVIEW.md](architecture/OVERVIEW.md)**
+**[Architecture Overview](architecture/OVERVIEW.md)**
 - High-level system architecture
 - Component breakdown
 - Data flow diagrams
-- Architecture evolution (SDK to Binary)
-- Scalability and deployment patterns
+- Binary and SDK approaches
+- Scalability patterns
 
 **Perfect for**: Understanding system design, planning deployments
+
+### Design Decisions
+**[Design Decisions](architecture/DESIGN_DECISIONS.md)**
+- Binary to SDK migration rationale
+- Cookie persistence strategy
+- Database persistence design
+- Memory routing architecture
+
+**Perfect for**: Understanding architectural choices and trade-offs
+
+### Technical Designs
+- **[Prisma Callback Design](architecture/PRISMA_CALLBACK_DESIGN.md)** - Database persistence implementation (comprehensive)
+- **[Queue-Based Persistence](architecture/QUEUE_BASED_PERSISTENCE.md)** - Alternative persistence architecture (future reference)
 
 ---
 
 ## Guides
 
+### Configuration Guide
+**[Configuration Guide](guides/CONFIGURATION.md)**
+- Environment variables
+- config.yaml structure
+- Configuration sections (model_list, user_id_mappings, litellm_settings)
+- Schema validation
+- Examples for different scenarios
+- Multi-provider setup
+- Troubleshooting configuration issues
+
+**Perfect for**: System configuration, environment setup, customizing behavior
+
 ### Testing Guide
-**[guides/testing/TESTING_GUIDE.md](guides/testing/TESTING_GUIDE.md)**
+**[Testing Guide](guides/TESTING.md)**
 - Complete test suite documentation
 - Running tests (unit, integration, e2e)
+- SDK testing strategies
 - Code coverage reporting
 - Writing new tests
 - CI/CD integration
 - Test coverage: 98+ scenarios, 80-95% code coverage
 
-**Perfect for**: Developers, QA engineers, CI/CD setup
+**Perfect for**: Developers, QA engineers, CI/CD setup, test-driven development
 
 ---
 
-### Migration Guide
-**[guides/migration/MIGRATION_GUIDE.md](guides/migration/MIGRATION_GUIDE.md)**
-- SDK to Binary architecture migration
-- Breaking changes
-- Migration steps
-- Rollback procedures
-- Troubleshooting
+## Troubleshooting
 
-**Perfect for**: Upgrading from SDK-based implementation
+### Common Issues
+**[Common Issues](troubleshooting/COMMON_ISSUES.md)**
+- 503 Service Unavailable errors (Cloudflare Error 1200)
+- Rate limiting issues
+- Redis connection problems
+- Cookie persistence failures
+- LiteLLM binary issues
+- Configuration errors
+- Memory routing problems
+- Performance optimization
 
----
-
-### Refactoring Guide
-**[guides/refactoring/REFACTORING_GUIDE.md](guides/refactoring/REFACTORING_GUIDE.md)**
-- Global variables elimination
-- Factory function pattern
-- Dependency injection implementation
-- Modern lifespan management
-- Before/after comparisons
-- Testing improvements
-
-**Perfect for**: Understanding code improvements, best practices
+**Perfect for**: Debugging production issues, understanding error messages, quick fixes
 
 ---
 
-## Reference
+## Project Information
 
-### Configuration Reference
-**[reference/CONFIGURATION.md](reference/CONFIGURATION.md)**
-- Environment variables
-- config.yaml structure
-- Configuration sections
-- Validation rules
-- Examples for different scenarios
-
-**Perfect for**: System configuration, environment setup
+### Main Documentation
+- **[README.md](../README.md)** - Project overview and quick reference
+- **[CHANGELOG.md](../CHANGELOG.md)** - Project history and evolution (9 phases documented)
+- **[CLAUDE.md](../CLAUDE.md)** - Development instructions and codebase guide
 
 ---
 
@@ -104,17 +114,17 @@ Welcome to the LiteLLM Memory Proxy documentation. This index provides quick acc
 #### First-Time Users
 1. [Quick Start Guide](getting-started/QUICKSTART.md) - Get up and running in 5 minutes
 2. [Tutorial](getting-started/TUTORIAL.md) - Learn the system
-3. [Configuration Reference](reference/CONFIGURATION.md) - Customize your setup
+3. [Configuration Guide](guides/CONFIGURATION.md) - Customize your setup
 
 #### Developers
 1. [Architecture Overview](architecture/OVERVIEW.md) - Understand the system
-2. [Testing Guide](guides/testing/TESTING_GUIDE.md) - Run and write tests
-3. [Refactoring Guide](guides/refactoring/REFACTORING_GUIDE.md) - Code best practices
+2. [Design Decisions](architecture/DESIGN_DECISIONS.md) - Architectural choices
+3. [Testing Guide](guides/TESTING.md) - Run and write tests
 
 #### DevOps/SRE
 1. [Architecture Overview](architecture/OVERVIEW.md) - Deployment patterns
-2. [Configuration Reference](reference/CONFIGURATION.md) - Environment setup
-3. [Migration Guide](guides/migration/MIGRATION_GUIDE.md) - Upgrade procedures
+2. [Configuration Guide](guides/CONFIGURATION.md) - Environment setup
+3. [Common Issues](troubleshooting/COMMON_ISSUES.md) - Troubleshooting guide
 
 ---
 
@@ -125,11 +135,12 @@ Welcome to the LiteLLM Memory Proxy documentation. This index provides quick acc
 | Task | Documentation |
 |------|---------------|
 | **Install and run** | [Quick Start](getting-started/QUICKSTART.md#3-start-the-proxies) |
-| **Configure models** | [Configuration Reference](reference/CONFIGURATION.md#model_list) |
-| **Set up client detection** | [Configuration Reference](reference/CONFIGURATION.md#user_id_mappings) |
-| **Run tests** | [Testing Guide](guides/testing/TESTING_GUIDE.md#running-tests) |
+| **Configure models** | [Configuration Guide](guides/CONFIGURATION.md#model_list) |
+| **Set up client detection** | [Configuration Guide](guides/CONFIGURATION.md#user_id_mappings) |
+| **Run tests** | [Testing Guide](guides/TESTING.md#running-tests) |
 | **Deploy to production** | [Architecture Overview](architecture/OVERVIEW.md#deployment-architecture) |
-| **Troubleshoot issues** | [Quick Start](getting-started/QUICKSTART.md#troubleshooting) |
+| **Troubleshoot 503 errors** | [Common Issues](troubleshooting/COMMON_ISSUES.md#1-503-service-unavailable-errors) |
+| **Fix rate limiting** | [Common Issues](troubleshooting/COMMON_ISSUES.md#2-rate-limiting-issues) |
 
 ---
 
@@ -138,10 +149,11 @@ Welcome to the LiteLLM Memory Proxy documentation. This index provides quick acc
 | Feature | Documentation |
 |---------|---------------|
 | **Memory Routing** | [Tutorial](getting-started/TUTORIAL.md#key-features) |
-| **Multi-Provider Support** | [Configuration](reference/CONFIGURATION.md#multi-provider-setup) |
-| **Client Detection** | [Architecture](architecture/OVERVIEW.md#key-components) |
-| **Rate Limiting** | [Tutorial](getting-started/TUTORIAL.md#key-features) |
-| **Testing Suite** | [Testing Guide](guides/testing/TESTING_GUIDE.md) |
+| **Multi-Provider Support** | [Configuration Guide](guides/CONFIGURATION.md#multi-provider-setup) |
+| **Client Detection** | [Architecture Overview](architecture/OVERVIEW.md#key-components) |
+| **Cookie Persistence** | [Design Decisions](architecture/DESIGN_DECISIONS.md#2-cloudflare-cookie-persistence) |
+| **Database Persistence** | [Prisma Callback Design](architecture/PRISMA_CALLBACK_DESIGN.md) |
+| **Testing Suite** | [Testing Guide](guides/TESTING.md) |
 
 ---
 
@@ -156,18 +168,17 @@ docs/
 │   └── TUTORIAL.md            # Complete learning path
 │
 ├── architecture/
-│   └── OVERVIEW.md            # System design & architecture
+│   ├── OVERVIEW.md            # System design & architecture
+│   ├── DESIGN_DECISIONS.md    # Architectural choices & migration plans
+│   ├── PRISMA_CALLBACK_DESIGN.md  # Database persistence
+│   └── QUEUE_BASED_PERSISTENCE.md # Alternative persistence (future)
 │
 ├── guides/
-│   ├── testing/
-│   │   └── TESTING_GUIDE.md   # Comprehensive testing docs
-│   ├── migration/
-│   │   └── MIGRATION_GUIDE.md # SDK to Binary migration
-│   └── refactoring/
-│       └── REFACTORING_GUIDE.md # Code improvements
+│   ├── CONFIGURATION.md       # Complete config reference
+│   └── TESTING.md             # Comprehensive testing docs
 │
-└── reference/
-    └── CONFIGURATION.md       # Complete config reference
+└── troubleshooting/
+    └── COMMON_ISSUES.md       # Troubleshooting guide
 ```
 
 ---
@@ -175,16 +186,18 @@ docs/
 ## Documentation Statistics
 
 ### Coverage
-- **Total Files**: 7 major documentation files
-- **Total Pages**: ~100+ pages of content
-- **Lines of Documentation**: 2,500+ lines
-- **Code Examples**: 50+ working examples
-- **Diagrams**: 10+ architectural diagrams
+- **Total Files**: 11 documentation files
+- **Total Pages**: ~150+ pages of content
+- **Lines of Documentation**: ~4,000 lines
+- **Code Examples**: 80+ working examples
+- **Diagrams**: 15+ architectural diagrams
 
-### Consolidation
-- **Sources Merged**: 18 original files
-- **Files Created**: 7 consolidated files
-- **Redundancy Eliminated**: ~40%
+### Consolidation (2025-11-04)
+- **Original Files**: 30+ scattered documentation files
+- **Root .md Files Consolidated**: 18 files → 3 files (README, CLAUDE, CHANGELOG)
+- **Nested Directories Flattened**: 4 nested dirs → 2 level max
+- **Files Consolidated**: DESIGN_DECISIONS.md (from 8 sources), CONFIGURATION.md (from 2 sources), TESTING.md (from 4 sources), COMMON_ISSUES.md (from 3 sources)
+- **Redundancy Eliminated**: ~60%
 - **Information Loss**: 0%
 
 ---
@@ -195,15 +208,17 @@ All documentation in this project follows these standards:
 
 ### Metadata
 Every file includes:
-- **Sources**: Original files consolidated
+- **Sources**: Original files consolidated (where applicable)
 - **Created**: Creation date
 - **Updated**: Last update date
+- **Version**: Version number
+- **Status**: Current status
 
 ### Structure
-- Clear hierarchical organization
+- Clear hierarchical organization (max 2 levels)
 - Table of contents for longer docs
 - Cross-references between related docs
-- Consistent formatting
+- Consistent formatting (Markdown)
 
 ### Code Examples
 - Working, copy-paste-ready code
@@ -212,7 +227,7 @@ Every file includes:
 - Comments explaining key parts
 
 ### Maintenance
-- Versioned with code
+- Versioned with code (Jujutsu VCS)
 - Updated with feature changes
 - Reviewed for accuracy
 - Tested examples
@@ -247,6 +262,7 @@ Every file includes:
 3. Add cross-references to related docs
 4. Update metadata (sources, dates)
 5. Test all commands and examples
+6. Maintain flat structure (max 2 levels)
 
 ### Documentation Workflow
 1. Identify documentation need
@@ -255,29 +271,30 @@ Every file includes:
 4. Add examples and diagrams
 5. Review for accuracy
 6. Update INDEX.md if needed
+7. Commit with jj: `jj commit -m "docs: describe changes"`
 
 ---
 
 ## Getting Help
 
 ### Documentation Issues
-- Unclear instructions? Open an issue
-- Missing information? Submit a PR
+- Unclear instructions? Check [Common Issues](troubleshooting/COMMON_ISSUES.md)
+- Missing information? Review [CHANGELOG.md](../CHANGELOG.md) for recent changes
 - Found an error? Report it
 
 ### Support Channels
 1. Check relevant documentation section
-2. Review examples in tutorial
-3. Search for similar issues
-4. Open a new issue with details
+2. Review examples in [Tutorial](getting-started/TUTORIAL.md)
+3. Search [Common Issues](troubleshooting/COMMON_ISSUES.md)
+4. Consult [Design Decisions](architecture/DESIGN_DECISIONS.md) for architectural context
 
 ---
 
 ## Version Information
 
-**Documentation Version**: 1.0.0
-**Last Major Update**: 2025-10-24
-**Status**: Complete ✅
+**Documentation Version**: 2.0.0
+**Last Major Update**: 2025-11-04
+**Status**: Consolidated ✅
 **Coverage**: Comprehensive
 
 ---
@@ -287,7 +304,7 @@ Every file includes:
 ### Installation
 ```bash
 poetry install
-pip install litellm
+uvx install 'litellm[proxy]'
 ```
 
 ### Start Services
@@ -297,12 +314,21 @@ poetry run start-proxies
 
 ### Run Tests
 ```bash
-pytest test_memory_proxy.py -v
+./RUN_TESTS.sh                # All tests
+./RUN_TESTS.sh unit          # Unit tests only
+./RUN_TESTS.sh coverage      # With coverage
 ```
 
 ### Health Check
 ```bash
 curl http://localhost:8764/health
+```
+
+### Version Control
+```bash
+jj status                     # Check status
+jj commit -m "message"       # Commit changes
+jj log                        # View history
 ```
 
 ---
@@ -316,10 +342,12 @@ Looking for specific information?
 | Setup instructions | [QUICKSTART.md](getting-started/QUICKSTART.md) |
 | API usage | [TUTORIAL.md](getting-started/TUTORIAL.md) |
 | System design | [OVERVIEW.md](architecture/OVERVIEW.md) |
-| Testing | [TESTING_GUIDE.md](guides/testing/TESTING_GUIDE.md) |
-| Configuration | [CONFIGURATION.md](reference/CONFIGURATION.md) |
-| Troubleshooting | [QUICKSTART.md](getting-started/QUICKSTART.md#troubleshooting) |
+| Architectural decisions | [DESIGN_DECISIONS.md](architecture/DESIGN_DECISIONS.md) |
+| Testing | [TESTING.md](guides/TESTING.md) |
+| Configuration | [CONFIGURATION.md](guides/CONFIGURATION.md) |
+| Troubleshooting | [COMMON_ISSUES.md](troubleshooting/COMMON_ISSUES.md) |
 | Examples | [TUTORIAL.md](getting-started/TUTORIAL.md#example-workflows) |
+| Project history | [CHANGELOG.md](../CHANGELOG.md) |
 
 ---
 
@@ -328,5 +356,5 @@ Looking for specific information?
 ---
 
 **Created**: 2025-10-24
-**Updated**: 2025-10-24
-**Sources**: Consolidated from 18 documentation files
+**Updated**: 2025-11-04
+**Sources**: Consolidated from 30+ documentation files
