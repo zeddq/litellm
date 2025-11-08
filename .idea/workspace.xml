@@ -5,40 +5,30 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/IMPLEMENTATION_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Proxy_Batch_Users.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/architecture/PRISMA_CALLBACK_DESIGN.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/architecture/QUEUE_BASED_PERSISTENCE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/imperative.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/investigation.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/litellm_code_references.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/litellm_investigation_report.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/o" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.clinerules/workflows/general-wf.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CLAUDE_NEW_FEATURES.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DOCUMENTATION_UPDATE_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/add_context_config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/add_context_retrieval_docs.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/finalsum" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/out" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/redis_investigation_report.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/integrations/prisma_proxy.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/interceptor/INSTALLATION.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/interceptor/PORT_COORDINATION_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/interceptor/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/interceptor/cli.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/interceptor/intercepting_contexter.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/interceptor/port_manager.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/interceptor/port_registry.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/interceptor/test_port_registry.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/start_litellm_ui.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/u" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/proxy/context_retriever.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_context_retrieval.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_error_handlers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.envrc" beforeDir="false" afterPath="$PROJECT_DIR$/.envrc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.obsidian/graph.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/graph.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.obsidian/workspace.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/workspace.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deploy/run_unified_proxy.py" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/run_unified_proxy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/guides/CONFIGURATION.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/guides/CONFIGURATION.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/troubleshooting/COMMON_ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/troubleshooting/COMMON_ISSUES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/proxy/config_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/config_parser.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/proxy/memory_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/memory_router.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/proxy/schema.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/schema.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_binary_vs_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_binary_vs_sdk.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_sdk_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_sdk_e2e.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,6 +58,9 @@
   &quot;associatedIndex&quot;: 0
 }</component>
   <component name="ProjectId" id="34Rz37qDtg6oivFRAislt1uUOLH" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="autoscrollFromSource" value="true" />
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -76,15 +69,17 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Docker.deploy.otel-collector: Compose Deployment.executor": "Run",
+    "Docker.deploy: Compose Deployment.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python Debug Server.Unnamed.executor": "Debug",
     "Python.litellm_proxy_with_memory.executor": "Run",
+    "Python.upsert_supermemory_doc.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
-    "git-widget-placeholder": "f270878f",
+    "git-widget-placeholder": "8f0e4dde",
     "last_opened_file_path": "/Users/cezary/litellm",
     "llm.McpServerEditPanel.switcher": "1",
     "node.js.detected.package.eslint": "true",
@@ -94,7 +89,7 @@
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.33448276",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "ml.llm.LLMThirdPartyAiProvidersConfigurable"
+    "settings.editor.selected.configurable": "com.intellij.mcpserver.settings"
   },
   "keyToStringList": {
     "DatabaseDriversLRU": [
@@ -112,14 +107,14 @@
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/docs/reference" />
       <recent name="$PROJECT_DIR$/deploy" />
       <recent name="$PROJECT_DIR$/src/proxy" />
       <recent name="$PROJECT_DIR$/src" />
-      <recent name="$PROJECT_DIR$/config" />
     </key>
   </component>
-  <component name="RunManager" selected="Python Debug Server.Unnamed">
+  <component name="RunManager" selected="Docker.deploy: Compose Deployment">
     <configuration name="Unnamed" type="PyRemoteDebugConfigurationType" factoryName="Python Remote Debug" nameIsGenerated="true">
       <module name="litellm" />
       <option name="PORT" value="4747" />
@@ -160,9 +155,40 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="upsert_supermemory_doc" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="litellm" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scripts" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/upsert_supermemory_doc.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
       <deployment type="docker-compose.yml">
         <settings />
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="deploy: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="sourceFilePath" value="deploy/docker-compose.yml" />
+        </settings>
       </deployment>
       <method v="2" />
     </configuration>
@@ -180,12 +206,16 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Docker.deploy: Compose Deployment" />
       <item itemvalue="Docker.deploy.otel-collector: Compose Deployment" />
+      <item itemvalue="Python.upsert_supermemory_doc" />
       <item itemvalue="Python.litellm_proxy_with_memory" />
       <item itemvalue="Python Debug Server.Unnamed" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Docker.deploy: Compose Deployment" />
+        <item itemvalue="Python.upsert_supermemory_doc" />
         <item itemvalue="Docker.deploy.otel-collector: Compose Deployment" />
         <item itemvalue="Python.litellm_proxy_with_memory" />
       </list>
@@ -223,6 +253,13 @@
       <workItem from="1762104170884" duration="9997000" />
       <workItem from="1762116413663" duration="1398000" />
       <workItem from="1762122703039" duration="22484000" />
+      <workItem from="1762284921681" duration="433000" />
+      <workItem from="1762361476471" duration="3988000" />
+      <workItem from="1762498042819" duration="55000" />
+      <workItem from="1762567779971" duration="33000" />
+      <workItem from="1762567821419" duration="3977000" />
+      <workItem from="1762572613404" duration="11000" />
+      <workItem from="1762572634638" duration="9480000" />
     </task>
     <servers />
   </component>
@@ -268,5 +305,6 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/litellm$litellm_proxy_with_memory.coverage" NAME="litellm_proxy_with_memory Coverage Results" MODIFIED="1761350153212" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/litellm$.coverage" NAME=" Coverage Results" MODIFIED="1761349693941" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/litellm$upsert_supermemory_doc.coverage" NAME="upsert_supermemory_doc Coverage Results" MODIFIED="1762244564756" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/scripts" />
   </component>
 </project>

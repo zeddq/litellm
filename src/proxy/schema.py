@@ -586,6 +586,131 @@ CacheParams = Union[RedisCacheParams, S3CacheParams]
 
 
 # =============================================================================
+# Context Retrieval Models
+# =============================================================================
+
+
+class QueryStrategy(str, Enum):
+    """Strategy for extracting query from messages for context retrieval."""
+
+    LAST_USER = "last_user"
+    FIRST_USER = "first_user"
+    ALL_USER = "all_user"
+    LAST_ASSISTANT = "last_assistant"
+
+
+class InjectionStrategy(str, Enum):
+    """Strategy for injecting retrieved context into messages."""
+
+    SYSTEM = "system"
+    USER_PREFIX = "user_prefix"
+    USER_SUFFIX = "user_suffix"
+
+
+class ContextRetrievalConfig(BaseModel):
+    """
+    Configuration for Supermemory context retrieval.
+
+    Enables automatic enhancement of prompts with relevant user memories/documents
+    retrieved from Supermemory's /v4/profile endpoint.
+
+    Attributes:
+        enabled: Enable context retrieval globally
+        api_key: Supermemory API key (supports env vars)
+        base_url: Supermemory API base URL
+        query_strategy: How to extract query from messages
+        injection_strategy: Where to inject context in messages
+        container_tag: Default container tag for queries
+        max_context_length: Maximum context length in characters
+        max_results: Maximum number of results to retrieve
+        timeout: Request timeout in seconds
+        enabled_for_models: List of model names to enable context retrieval for
+        disabled_for_models: List of model names to disable context retrieval for
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable context retrieval feature globally",
+    )
+    api_key: Optional[EnvVarStr] = Field(
+        default=None,
+        description="Supermemory API key (use 'os.environ/VAR' for env vars)",
+    )
+    base_url: str = Field(
+        default="https://api.supermemory.ai",
+        description="Supermemory API base URL",
+    )
+    query_strategy: QueryStrategy = Field(
+        default=QueryStrategy.LAST_USER,
+        description="Strategy for extracting query from messages",
+    )
+    injection_strategy: InjectionStrategy = Field(
+        default=InjectionStrategy.SYSTEM,
+        description="Strategy for injecting context into messages",
+    )
+    container_tag: str = Field(
+        default="supermemory",
+        description="Default container tag for Supermemory queries",
+    )
+    max_context_length: int = Field(
+        default=4000,
+        ge=100,
+        le=100000,
+        description="Maximum context length in characters",
+    )
+    max_results: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Maximum number of results to retrieve from Supermemory",
+    )
+    timeout: float = Field(
+        default=10.0,
+        ge=1.0,
+        le=60.0,
+        description="Request timeout in seconds",
+    )
+    enabled_for_models: Optional[List[str]] = Field(
+        default=None,
+        description="Model names to enable context retrieval for (whitelist)",
+    )
+    disabled_for_models: Optional[List[str]] = Field(
+        default=None,
+        description="Model names to disable context retrieval for (blacklist)",
+    )
+
+    @field_validator("base_url")
+    @classmethod
+    def validate_base_url(cls, v: str) -> str:
+        """Validate base URL format."""
+        if not v.startswith(("http://", "https://")):
+            raise ValueError(f"base_url must start with http:// or https://, got: {v}")
+        return v.rstrip("/")
+
+    @model_validator(mode="after")
+    def validate_api_key_if_enabled(self) -> "ContextRetrievalConfig":
+        """Ensure API key is provided when context retrieval is enabled."""
+        if self.enabled and not self.api_key:
+            raise ValueError(
+                "api_key is required when context_retrieval.enabled=true"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_model_filters(self) -> "ContextRetrievalConfig":
+        """Ensure enabled_for_models and disabled_for_models are not both set."""
+        if self.enabled_for_models and self.disabled_for_models:
+            raise ValueError(
+                "Cannot specify both enabled_for_models and disabled_for_models. "
+                "Use one or the other."
+            )
+        return self
+
+
+
+# =============================================================================
 # LiteLLM Settings Models
 # =============================================================================
 
@@ -747,6 +872,7 @@ class LiteLLMProxyConfig(BaseModel):
         model_list: List of available models and their configurations
         mcp_servers: MCP server configurations
         litellm_settings: LiteLLM-specific settings (callbacks, OTEL, cache, etc.)
+        context_retrieval: Context retrieval configuration for Supermemory integration
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -770,6 +896,10 @@ class LiteLLMProxyConfig(BaseModel):
     litellm_settings: Optional[LiteLLMSettings] = Field(
         default=None,
         description="LiteLLM proxy settings",
+    )
+    context_retrieval: Optional[ContextRetrievalConfig] = Field(
+        default=None,
+        description="Context retrieval configuration for Supermemory integration",
     )
 
     @model_validator(mode="after")

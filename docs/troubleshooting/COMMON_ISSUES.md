@@ -14,6 +14,8 @@ Solutions to common problems encountered when running LiteLLM Memory Proxy.
 6. [Configuration Issues](#6-configuration-issues)
 7. [Memory Routing Issues](#7-memory-routing-issues)
 8. [Performance Issues](#8-performance-issues)
+9. [Interceptor Issues](#9-interceptor-issues) 🔥 NEW
+10. [Context Retrieval Issues](#10-context-retrieval-issues) 🔥 NEW
 
 ---
 
@@ -747,6 +749,346 @@ general_settings:
 
 ---
 
+## 9. Interceptor Issues
+
+### Symptoms
+
+- Interceptor crashes when making requests
+- Connection reset by peer
+- "Address already in use" errors
+- Wrong port assigned to project
+
+### 🚨 CRITICAL KNOWN ISSUE: Crash with Supermemory Endpoints
+
+**Symptoms**:
+- Interceptor crashes immediately when forwarding requests
+- "Connection reset by peer" errors
+- Works fine without interceptor
+
+**Root Cause**:
+Interceptors are not yet hardened and crash when used together with supermemory-proxied model endpoints (`api_base: https://api.supermemory.ai/...`).
+
+**Affected Configuration**:
+```yaml
+model_list:
+  - model_name: claude-sonnet-4.5
+    litellm_params:
+      api_base: https://api.supermemory.ai/v3/api.anthropic.com  # ❌ CRASHES WITH INTERCEPTOR
+      model: anthropic/claude-sonnet-4-5-20250929
+```
+
+**Workarounds**:
+1. **Use direct endpoints** (no supermemory proxy):
+   ```yaml
+   model_list:
+     - model_name: claude-sonnet-4.5
+       litellm_params:
+         model: anthropic/claude-sonnet-4-5-20250929  # ✅ Works with interceptor
+         api_key: os.environ/ANTHROPIC_API_KEY
+   ```
+
+2. **Skip interceptor**: Connect PyCharm directly to Memory Proxy:
+   ```
+   PyCharm → http://localhost:8764 (Memory Proxy directly)
+   ```
+
+3. **Use LiteLLM binary directly**: Bypass both proxies:
+   ```
+   PyCharm → http://localhost:8765 (LiteLLM binary)
+   ```
+
+**Status**: Under active investigation. Track progress in `src/interceptor/README.md`.
+
+### Common Interceptor Issues
+
+#### Issue: Port Already in Use
+
+**Symptoms**:
+- "Address already in use" error when starting interceptor
+- Interceptor fails to bind to port
+
+**Diagnosis**:
+```bash
+# Check what's using the port
+lsof -i :8888
+
+# Check port registry
+python -m src.interceptor.cli list
+```
+
+**Solution**:
+```bash
+# Option 1: Kill the process using the port
+lsof -i :8888 | grep LISTEN | awk '{print $2}' | xargs kill
+
+# Option 2: Get a new port assignment
+python -m src.interceptor.cli remove
+python -m src.interceptor.cli show  # Will assign new port
+
+# Option 3: Use explicit port override
+INTERCEPTOR_PORT=9000 python -m src.interceptor.cli run
+```
+
+#### Issue: Wrong Port Assigned
+
+**Symptoms**:
+- PyCharm connects but requests fail
+- Port doesn't match what's in registry
+
+**Diagnosis**:
+```bash
+# Check current port assignment
+python -m src.interceptor.cli show
+
+# Verify interceptor is actually running on that port
+lsof -i :8888 | grep Python
+```
+
+**Solution**:
+```bash
+# Remove stale mapping
+python -m src.interceptor.cli remove /path/to/old/project
+
+# Allocate new port
+python -m src.interceptor.cli allocate
+```
+
+#### Issue: Registry File Corrupted
+
+**Symptoms**:
+- "JSON decode error" when accessing registry
+- Interceptor can't start
+
+**Solution**:
+```bash
+# Backup exists automatically at:
+# ~/.config/litellm/port_registry.json.backup
+
+# Option 1: Restore from backup
+cp ~/.config/litellm/port_registry.json.backup \
+   ~/.config/litellm/port_registry.json
+
+# Option 2: Reset registry (loses all mappings)
+python -m src.interceptor.cli reset
+```
+
+#### Issue: Headers Not Being Injected
+
+**Symptoms**:
+- Requests work but user ID not detected
+- Memory not isolated per project
+
+**Diagnosis**:
+```bash
+# Check if headers are being added
+curl -v http://localhost:8888/v1/chat/completions \
+  -H "Authorization: Bearer sk-1234" \
+  -d '{"model": "gpt-4", "messages": [...]}'
+
+# Look for x-memory-user-id and x-pycharm-instance headers in output
+```
+
+**Solution**:
+- Verify interceptor is actually running (not bypassed)
+- Check interceptor logs for header injection
+- Ensure TARGET_LLM_URL points to Memory Proxy (not LiteLLM binary)
+
+---
+
+## 10. Context Retrieval Issues
+
+### Symptoms
+
+- No context being retrieved from Supermemory
+- Context retrieval errors in logs
+- Empty context being injected
+
+### Common Issues
+
+#### Issue: Context Retrieval Disabled
+
+**Symptoms**:
+- No context in requests
+- No Supermemory API calls in logs
+
+**Diagnosis**:
+```bash
+# Check configuration
+grep -A 10 "context_retrieval:" config/config.yaml
+
+# Verify enabled
+python -c "import yaml; print(yaml.safe_load(open('config/config.yaml'))['context_retrieval']['enabled'])"
+```
+
+**Solution**:
+```yaml
+context_retrieval:
+  enabled: true  # Must be true
+  api_key: os.environ/SUPERMEMORY_API_KEY
+```
+
+#### Issue: Model Not in Whitelist
+
+**Symptoms**:
+- Context retrieval works for some models but not others
+
+**Cause**: Model filtering excludes the model you're using.
+
+**Diagnosis**:
+```python
+# Check if model is enabled
+import yaml
+config = yaml.safe_load(open('config/config.yaml'))
+cr = config.get('context_retrieval', {})
+enabled_models = cr.get('enabled_for_models')
+disabled_models = cr.get('disabled_for_models')
+
+print(f"Enabled: {enabled_models}")
+print(f"Disabled: {disabled_models}")
+print(f"Your model: claude-sonnet-4.5")
+```
+
+**Solution**:
+```yaml
+context_retrieval:
+  enabled: true
+  enabled_for_models:
+    - claude-sonnet-4.5  # Add your model
+    - claude-haiku-4.5
+  
+  # Don't use both enabled_for_models AND disabled_for_models
+```
+
+#### Issue: API Key Missing or Invalid
+
+**Symptoms**:
+- "api_key is required when context_retrieval.enabled=true" error
+- 401 Unauthorized from Supermemory API
+
+**Diagnosis**:
+```bash
+# Check if API key is set
+echo $SUPERMEMORY_API_KEY
+
+# Should start with "sm_"
+```
+
+**Solution**:
+```bash
+# Set API key
+export SUPERMEMORY_API_KEY="sm_..."
+
+# Or use .env file
+echo "SUPERMEMORY_API_KEY=sm_..." >> .env
+source .env
+
+# Restart proxy
+poetry run start-proxies
+```
+
+#### Issue: Supermemory API Timeout
+
+**Symptoms**:
+- Requests timeout
+- "Request timeout" errors
+- Slow response times
+
+**Solution**:
+```yaml
+context_retrieval:
+  enabled: true
+  timeout: 30.0  # Increase from default 10.0
+```
+
+#### Issue: Context Too Large
+
+**Symptoms**:
+- Requests rejected by LLM provider
+- "Token limit exceeded" errors
+- Response truncation
+
+**Solution**:
+```yaml
+context_retrieval:
+  enabled: true
+  max_context_length: 2000  # Reduce from default 4000
+  max_results: 3  # Reduce from default 5
+```
+
+#### Issue: Wrong Query Strategy
+
+**Symptoms**:
+- Irrelevant context being retrieved
+- Context doesn't match user's question
+
+**Cause**: Query strategy doesn't fit your use case.
+
+**Solution - Try different strategies**:
+```yaml
+context_retrieval:
+  enabled: true
+  
+  # For single-turn questions
+  query_strategy: last_user  # Use latest user message
+  
+  # For maintaining topic context
+  query_strategy: first_user  # Use initial user message
+  
+  # For complex multi-turn conversations
+  query_strategy: all_user  # Use all user messages
+  
+  # For context-aware follow-ups
+  query_strategy: last_assistant  # Use last AI response
+```
+
+#### Issue: Wrong Injection Strategy
+
+**Symptoms**:
+- Context not being used by model
+- Model ignores retrieved context
+
+**Solution - Try different injection strategies**:
+```yaml
+context_retrieval:
+  enabled: true
+  
+  # Best for Claude, GPT-4 (recommended)
+  injection_strategy: system
+  
+  # For models without system message support
+  injection_strategy: user_prefix
+  
+  # To emphasize recent context
+  injection_strategy: user_suffix
+```
+
+#### Issue: Empty Context Retrieved
+
+**Symptoms**:
+- Context retrieval succeeds but returns no results
+- "No relevant context found" in logs
+
+**Cause**: Supermemory container is empty or query doesn't match any documents.
+
+**Diagnosis**:
+```bash
+# Test Supermemory API directly
+curl -X POST https://api.supermemory.ai/v4/profile \
+  -H "Authorization: Bearer $SUPERMEMORY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "test query",
+    "container_tag": "supermemory"
+  }'
+```
+
+**Solution**:
+1. Verify documents are uploaded to Supermemory
+2. Check container_tag matches your data
+3. Try broader search queries
+
+---
+
 ## Getting Help
 
 If you're still experiencing issues after trying these solutions:
@@ -785,5 +1127,5 @@ If you're still experiencing issues after trying these solutions:
 
 ---
 
-**Last Updated**: 2025-11-04  
-**Status**: Consolidated from diagnostic reports and investigation documents
+**Last Updated**: 2025-11-08  
+**Status**: Added interceptor and context retrieval troubleshooting sections
