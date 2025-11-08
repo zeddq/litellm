@@ -5,30 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.clinerules/workflows/general-wf.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/CLAUDE_NEW_FEATURES.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DOCUMENTATION_UPDATE_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/add_context_config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/add_context_retrieval_docs.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/finalsum" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/out" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/proxy/context_retriever.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_context_retrieval.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_error_handlers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.envrc" beforeDir="false" afterPath="$PROJECT_DIR$/.envrc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/E2E_TESTS_IMPLEMENTATION_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/fixtures/interceptor_fixtures.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/helpers/pipeline_helpers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_interceptor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_interceptor_integration.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_interceptor_known_issues.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_memory_proxy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_memory_routing.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_pipeline_e2e.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_sdk_components.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_sdk_e2e.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_sdk_integration.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.obsidian/workspace.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/workspace.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/guides/CONFIGURATION.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/guides/CONFIGURATION.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/troubleshooting/COMMON_ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/troubleshooting/COMMON_ISSUES.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/proxy/schema.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/schema.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_binary_vs_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_binary_vs_sdk.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_sdk_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_sdk_e2e.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.sugar/sugar.db" beforeDir="false" afterPath="$PROJECT_DIR$/.sugar/sugar.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RUN_TESTS.sh" beforeDir="false" afterPath="$PROJECT_DIR$/RUN_TESTS.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,7 +70,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
-    "git-widget-placeholder": "8f0e4dde",
+    "git-widget-placeholder": "184da77d",
     "last_opened_file_path": "/Users/cezary/litellm",
     "llm.McpServerEditPanel.switcher": "1",
     "node.js.detected.package.eslint": "true",
@@ -89,7 +80,7 @@
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.33448276",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "com.intellij.mcpserver.settings"
+    "settings.editor.selected.configurable": "ml.llm.LLMConfigurable"
   },
   "keyToStringList": {
     "DatabaseDriversLRU": [
@@ -259,7 +250,7 @@
       <workItem from="1762567779971" duration="33000" />
       <workItem from="1762567821419" duration="3977000" />
       <workItem from="1762572613404" duration="11000" />
-      <workItem from="1762572634638" duration="9480000" />
+      <workItem from="1762572634638" duration="13312000" />
     </task>
     <servers />
   </component>
