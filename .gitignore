@@ -817,3 +817,8 @@ secring.*
 !*.env.example
 .obsidian/plugins/**
 .obsidian/plugins
+scripts/sup_project_doc.md
+**/logs
+out
+.sugar/sugar.db
+.sugar/backups

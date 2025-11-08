@@ -25,14 +25,10 @@
             "id": "cc6beed66672481c",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "imperative.md",
-                "mode": "source",
-                "source": true
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "imperative"
+              "title": "New tab"
             }
           }
         ],
@@ -157,13 +153,12 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "imperative.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of imperative"
+              "title": "Outline"
             }
           },
           {

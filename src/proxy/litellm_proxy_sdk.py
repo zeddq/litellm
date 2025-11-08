@@ -51,6 +51,7 @@ from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
 from litellm.proxy.proxy_server import master_key
 
 from proxy.config_parser import LiteLLMConfig
+from proxy.context_retriever import ContextRetriever, retrieve_and_inject_context
 from proxy.error_handlers import LiteLLMErrorHandler, register_exception_handlers
 from proxy.memory_router import MemoryRouter
 from proxy.session_manager import LiteLLMSessionManager
@@ -205,6 +206,129 @@ def get_memory_router() -> MemoryRouter:
 def get_error_handler() -> LiteLLMErrorHandler:
     """Dependency: Get error handler."""
     return app.state.error_handler
+
+
+def should_use_context_retrieval(model_name: str, config: LiteLLMConfig) -> bool:
+    """
+    Check if context retrieval should be used for the given model.
+
+    Args:
+        model_name: The model name to check
+        config: LiteLLM configuration
+
+    Returns:
+        True if context retrieval is enabled and model is allowed, False otherwise
+    """
+    try:
+        # Get context retrieval config from the parsed config
+        context_config = config.config.get("context_retrieval")
+        
+        if not context_config or not context_config.get("enabled", False):
+            logger.debug("Context retrieval is disabled globally")
+            return False
+
+        # Check model-specific filters
+        enabled_for_models = context_config.get("enabled_for_models")
+        disabled_for_models = context_config.get("disabled_for_models")
+
+        # If enabled_for_models is specified, only those models are allowed
+        if enabled_for_models is not None:
+            if model_name in enabled_for_models:
+                logger.debug(f"Context retrieval enabled for model: {model_name}")
+                return True
+            else:
+                logger.debug(f"Context retrieval not enabled for model: {model_name}")
+                return False
+
+        # If disabled_for_models is specified, those models are disallowed
+        if disabled_for_models is not None:
+            if model_name in disabled_for_models:
+                logger.debug(f"Context retrieval disabled for model: {model_name}")
+                return False
+            else:
+                logger.debug(f"Context retrieval enabled for model: {model_name}")
+                return True
+
+        # If neither filter is specified, enable for all models
+        logger.debug(f"Context retrieval enabled for all models (no filters)")
+        return True
+
+    except Exception as e:
+        logger.error(f"Error checking context retrieval config: {e}")
+        return False
+
+
+async def apply_context_retrieval(
+    messages: list,
+    model_name: str,
+    user_id: str,
+    config: LiteLLMConfig,
+) -> list:
+    """
+    Apply context retrieval to messages if enabled.
+
+    Args:
+        messages: Original chat messages
+        model_name: Model name for filtering
+        user_id: User ID for memory isolation
+        config: LiteLLM configuration
+
+    Returns:
+        Enhanced messages with context, or original messages if retrieval fails/disabled
+    """
+    if not should_use_context_retrieval(model_name, config):
+        return messages
+
+    try:
+        # Get context retrieval configuration
+        context_config = config.config.get("context_retrieval", {})
+        
+        # Get API key (resolve environment variable if needed)
+        api_key = context_config.get("api_key")
+        if isinstance(api_key, str) and api_key.startswith("os.environ/"):
+            env_var = api_key.split("/", 1)[1]
+            api_key = os.getenv(env_var)
+            
+        if not api_key:
+            logger.warning("Context retrieval enabled but SUPERMEMORY_API_KEY not set")
+            return messages
+
+        # Get persistent HTTP client from session manager
+        http_client = await LiteLLMSessionManager.get_client()
+
+        # Initialize ContextRetriever with config values
+        retriever = ContextRetriever(
+            api_key=api_key,
+            base_url=context_config.get("base_url", "https://api.supermemory.ai"),
+            http_client=http_client,
+            default_container_tag=context_config.get("container_tag", "supermemory"),
+            max_context_length=context_config.get("max_context_length", 4000),
+            timeout=context_config.get("timeout", 10.0),
+        )
+
+        # Retrieve and inject context
+        enhanced_messages, metadata = await retrieve_and_inject_context(
+            retriever=retriever,
+            messages=messages,
+            user_id=user_id,
+            query_strategy=context_config.get("query_strategy", "last_user"),
+            injection_strategy=context_config.get("injection_strategy", "system"),
+            container_tag=context_config.get("container_tag"),
+        )
+
+        if metadata:
+            logger.info(
+                f"Context retrieval successful: {metadata.get('results_count', 0)} results, "
+                f"query='{metadata.get('query', 'N/A')}'"
+            )
+        else:
+            logger.info("Context retrieval returned no results")
+
+        return enhanced_messages
+
+    except Exception as e:
+        logger.error(f"Context retrieval failed, using original messages: {e}", exc_info=True)
+        return messages
 
 
 # ============================================================================
@@ -394,7 +518,8 @@ async def chat_completions(request: Request) -> Response:
         )
 
     # Inject memory routing headers
-    user_id = memory_router.detect_user_id(request.headers)
+    # user_id = memory_router.detect_user_id(request.headers)
+    user_id = "supermemory"
     logger.info(f"Request for model '{model_name}' routed to user_id: {user_id}")
 
     # Merge extra headers (memory routing + any from config)
@@ -422,6 +547,14 @@ async def chat_completions(request: Request) -> Response:
         f"[{request_id}] Starting {'streaming' if stream else 'non-streaming'} request"
     )
     logger.info(f"[{request_id}] Model: {model_name}, User ID: {user_id}")
+
+    # Apply context retrieval if enabled
+    messages = await apply_context_retrieval(
+        messages=messages,
+        model_name=model_name,
+        user_id=user_id,
+        config=config,
+    )
 
     # Handle streaming vs non-streaming
     if stream:

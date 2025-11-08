@@ -1,6 +1,6 @@
 # LiteLLM Memory Proxy
 
-**Last Updated**: 2025-11-08
+**Last Updated**: 2025-11-04
 
 ## Overview
 
@@ -90,9 +90,7 @@ Ask Claude: "Get me jj documentation about [topic]"
 
 ### Example Workflows
 
-**Note**: These are pseudocode examples showing JetBrains MCP tool usage patterns.
-
-```text
+```python
 # ✅ CORRECT: Find all test files
 find_files_by_glob(globPattern="test_*.py")
 

@@ -28,9 +28,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 # Import both proxies
-from src.proxy.litellm_proxy_sdk import app as sdk_app
-from src.proxy.litellm_proxy_with_memory import create_app as create_binary_app
-from src.proxy.session_manager import LiteLLMSessionManager
+from proxy.litellm_proxy_sdk import app as sdk_app
+from proxy.litellm_proxy_with_memory import create_app as create_binary_app
+from proxy.session_manager import LiteLLMSessionManager
 
 # Import test fixtures
 from tests.fixtures import (
