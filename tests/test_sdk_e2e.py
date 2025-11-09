@@ -33,6 +33,7 @@ import time
 from typing import List, Dict, Any
 
 import pytest
+import pytest_asyncio
 from fastapi.testclient import TestClient
 
 # Import SDK proxy
@@ -106,7 +107,7 @@ def e2e_config_file(tmp_path_factory):
         return create_test_config_file(tmp_path, TEST_CONFIG_YAML)
 
 
-@pytest.fixture(scope="module")
+@pytest_asyncio.fixture(loop_scope="module")
 async def e2e_client(e2e_config_file):
     """Create TestClient with real configuration."""
     os.environ["LITELLM_CONFIG_PATH"] = e2e_config_file

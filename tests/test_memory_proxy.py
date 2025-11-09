@@ -32,6 +32,7 @@ from fastapi.testclient import TestClient
 
 # Import modules under test
 from proxy.memory_router import MemoryRouter
+from proxy.schema import load_config_with_env_resolution
 from proxy.litellm_proxy_with_memory import (
     create_app,
     get_memory_router,
@@ -119,7 +120,8 @@ def with_litellm_auth():
 @pytest.fixture
 def memory_router(config_file: str) -> MemoryRouter:
     """Fixture providing initialized MemoryRouter instance."""
-    return MemoryRouter(config_file)
+    config = load_config_with_env_resolution(config_file)
+    return MemoryRouter(config)
 
 
 @pytest.fixture
