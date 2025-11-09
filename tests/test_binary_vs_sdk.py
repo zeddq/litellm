@@ -31,6 +31,8 @@ from fastapi.testclient import TestClient
 from proxy.litellm_proxy_sdk import app as sdk_app
 from proxy.litellm_proxy_with_memory import create_app as create_binary_app
 from proxy.session_manager import LiteLLMSessionManager
+from proxy.memory_router import MemoryRouter
+from proxy.schema import load_config_with_env_resolution
 
 # Import test fixtures
 from tests.fixtures import (
@@ -78,9 +80,14 @@ async def sdk_client(test_config_file, mock_env_vars):
 @pytest.fixture(scope="function")
 def binary_client(test_config_file, mock_env_vars):
     """Create TestClient for binary proxy."""
-    # Create binary app with config
+    # Load config and create memory router
+    config = load_config_with_env_resolution(test_config_file)
+    memory_router = MemoryRouter(config)
+
+    # Create binary app with proper parameters
     app = create_binary_app(
-        config_path=test_config_file,
+        litellm_auth_token=config.general_settings.master_key,
+        memory_router=memory_router,
         litellm_base_url="http://localhost:8765",  # Mock URL
     )
 
