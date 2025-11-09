@@ -1,24 +1,26 @@
 {
-  "task_type": "bug_fix",
-  "title": "Fix HTTP 500 Proxy Connection Failures (25+ test failures)",
-  "description": "Fix All connection attempts failed errors causing HTTP 500 responses in proxy tests.\n\nROOT CAUSE:\n- litellm_proxy_with_memory.py cannot connect to backend LiteLLM\n- Mock httpx client not configured correctly in test fixtures\n- Missing mock responses for LiteLLM API calls\n\nAFFECTED TESTS (25+ failures):\n- test_memory_proxy.py::test_http_methods_forwarding (6 tests)\n- test_memory_proxy.py::TestProxyHandler (6 tests)\n- test_memory_proxy.py::TestStreamingResponse::test_streaming_response_detection\n- test_memory_proxy.py::TestEndToEndScenarios (2 tests)\n- test_memory_proxy.py::TestEdgeCases::test_very_large_request_body\n- test_litellm_proxy_refactored.py::TestProxyHandler (3 tests)\n- test_litellm_proxy_refactored.py::TestIntegration::test_full_chat_completion_flow\n- test_binary_vs_sdk.py::TestChatCompletionsParity (6 tests)\n- test_binary_vs_sdk.py::TestModelsListParity::test_models_list_same_models\n\nSOLUTION:\n1. Create mock_litellm_completion fixture that returns valid responses\n2. Mock httpx.AsyncClient.request() to return proper responses\n3. Configure mock responses for:\n   - /v1/chat/completions (200 OK with completion)\n   - /v1/models (200 OK with models list)\n   - Health checks\n\nFILES TO FIX:\n- Test fixtures for mocking httpx client\n- tests/conftest.py or test file fixtures\n- Mock configuration in test setup\n\nVALIDATION:\nRun: poetry run pytest tests/test_memory_proxy.py::test_http_methods_forwarding -v\nVerify no HTTP 500 errors, tests get expected responses",
+  "task_type": "refactor",
+  "title": "Code review and optimization for run_proxies.py",
+  "description": "Review ./deploy/run_proxies.py for potential improvements: code clarity, performance, error handling, and best practices.",
   "execution_mode": "ExecutionMode.AGENT",
-  "agent_type": "AgentType.TECH_LEAD",
+  "agent_type": "AgentType.CODE_REVIEWER",
   "agent_fallback": true,
   "context": {
-    "work_item_id": "1933217e-f889-46d0-8f79-fae6a3499d53",
-    "source_type": "cli",
-    "priority": 4,
+    "work_item_id": "783d038a-eb70-4939-9269-19a7e309f1a7",
+    "source_type": "maintenance_generator",
+    "priority": 2,
     "attempts": 2,
     "files_involved": null,
     "repository_info": null,
     "previous_attempts": null,
     "session_context": {
-      "added_via": "sugar_cli",
-      "timestamp": "2025-11-09T10:04:39.601756"
+      "maintenance_task": true,
+      "task_type": "refactor",
+      "discovered_at": "2025-11-09T02:19:59.165926",
+      "source_type": "maintenance"
     }
   },
-  "timestamp": "2025-11-09T10:23:28.221510",
+  "timestamp": "2025-11-09T10:35:03.556772",
   "sugar_version": "2.1.0",
   "continue_session": true,
   "timeout_seconds": 1800,
