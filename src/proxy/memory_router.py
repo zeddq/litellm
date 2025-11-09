@@ -33,9 +33,13 @@ class MemoryRouter:
         self.header_patterns = mappings.header_patterns
         self.custom_header = mappings.custom_header
         self.default_user_id = mappings.default_user_id
-        logger.info(
-            f"MemoryRouter initialized with {len(self.header_patterns)} patterns"
+        # Resilient len() check for Mock objects in tests
+        pattern_count = (
+            len(self.header_patterns)
+            if hasattr(self.header_patterns, "__len__")
+            else "unknown"
         )
+        logger.info(f"MemoryRouter initialized with {pattern_count} patterns")
 
     def detect_user_id(self, headers: Headers) -> str:
         """

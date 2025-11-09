@@ -186,7 +186,8 @@ class TestMemoryRouterInit:
 
     def test_init_with_valid_config(self, config_file: str):
         """Test MemoryRouter initialization with valid config file."""
-        router = MemoryRouter(config_file)
+        config = load_config_with_env_resolution(config_file)
+        router = MemoryRouter(config)
 
         assert router is not None
         assert len(router.header_patterns) == 4
@@ -195,12 +196,9 @@ class TestMemoryRouterInit:
 
     def test_init_with_missing_config(self):
         """Test MemoryRouter initialization with missing config file."""
-        router = MemoryRouter("nonexistent_config.yaml")
-
-        # Should not raise exception, use defaults
-        assert router is not None
-        assert len(router.header_patterns) == 0
-        assert router.config == {}
+        # Should raise FileNotFoundError
+        with pytest.raises(FileNotFoundError):
+            config = load_config_with_env_resolution("nonexistent_config.yaml")
 
     def test_init_with_invalid_config(self):
         """Test MemoryRouter initialization with invalid YAML."""
@@ -210,9 +208,9 @@ class TestMemoryRouterInit:
             temp_path = f.name
 
         try:
-            router = MemoryRouter(temp_path)
-            # Should handle gracefully
-            assert router is not None
+            # Should raise YAMLError for invalid YAML
+            with pytest.raises(yaml.YAMLError):
+                config = load_config_with_env_resolution(temp_path)
         finally:
             Path(temp_path).unlink(missing_ok=True)
 
@@ -222,13 +220,14 @@ class TestMemoryRouterInit:
 
         assert len(patterns) == 4
 
-        # Check pattern structure
+        # Check pattern structure (HeaderPattern named tuple)
         for pattern in patterns:
-            assert "header" in pattern
-            assert "pattern" in pattern
-            assert "user_id" in pattern
-            # Verify pattern is compiled regex
-            assert hasattr(pattern["pattern"], "search")
+            assert hasattr(pattern, "header")
+            assert hasattr(pattern, "pattern")
+            assert hasattr(pattern, "user_id")
+            assert hasattr(pattern, "pattern_compiled")
+            # Verify pattern_compiled is compiled regex
+            assert hasattr(pattern.pattern_compiled, "search")
 
 
 class TestMemoryRouterDetectUserId:
@@ -1134,9 +1133,9 @@ class TestEdgeCases:
             temp_path = f.name
 
         try:
-            router = MemoryRouter(temp_path)
-            assert router is not None
-            assert len(router.header_patterns) == 0
+            # Should raise ValueError for empty config
+            with pytest.raises(ValueError, match="Config file is empty"):
+                config = load_config_with_env_resolution(temp_path)
         finally:
             Path(temp_path).unlink(missing_ok=True)
 
@@ -1257,7 +1256,8 @@ class TestEdgeCases:
             temp_path = f.name
 
         try:
-            router = MemoryRouter(temp_path)
+            config = load_config_with_env_resolution(temp_path)
+            router = MemoryRouter(config)
 
             # Test various patterns
             assert router.detect_user_id({"user-agent": "TestClient/1.0"}) == "test-user"
@@ -1301,7 +1301,8 @@ class TestPerformance:
             temp_path = f.name
 
         try:
-            router = MemoryRouter(temp_path)
+            config = load_config_with_env_resolution(temp_path)
+            router = MemoryRouter(config)
 
             # Test detection speed
             import time
