@@ -536,8 +536,7 @@ async def chat_completions(request: Request) -> Response:
         )
 
     # Inject memory routing headers
-    # user_id = memory_router.detect_user_id(request.headers)
-    user_id = "supermemory"
+    user_id = memory_router.detect_user_id(request.headers)
     logger.info(f"Request for model '{model_name}' routed to user_id: {user_id}")
 
     # Merge extra headers (memory routing + any from config)
