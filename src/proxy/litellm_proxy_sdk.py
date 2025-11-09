@@ -221,7 +221,7 @@ def should_use_context_retrieval(model_name: str, config: LiteLLMConfig) -> bool
     """
     try:
         # Get context retrieval config from the parsed config
-        context_config = config.config.get("context_retrieval")
+        context_config = config.config.context_retrieval.model_dump() if config.config.context_retrieval else None
         
         if not context_config or not context_config.get("enabled", False):
             logger.debug("Context retrieval is disabled globally")
@@ -281,7 +281,7 @@ async def apply_context_retrieval(
 
     try:
         # Get context retrieval configuration
-        context_config = config.config.get("context_retrieval", {})
+        context_config = config.config.context_retrieval.model_dump() if config.config.context_retrieval else {}
         
         # Get API key (resolve environment variable if needed)
         api_key = context_config.get("api_key")
