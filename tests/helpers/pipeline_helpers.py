@@ -10,6 +10,7 @@ Helper functions for testing the full pipeline:
 
 import asyncio
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
@@ -57,7 +58,7 @@ async def start_full_pipeline(
         'LITELLM_PROXY_URL': f'http://localhost:{litellm_port}'
     }
     memory_process = subprocess.Popen(
-        ['uvicorn', 'proxy.litellm_proxy_sdk:app', '--port', str(memory_port)],
+        [sys.executable, '-m', 'uvicorn', 'proxy.litellm_proxy_sdk:app', '--port', str(memory_port)],
         env=memory_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -71,7 +72,7 @@ async def start_full_pipeline(
         'MEMORY_PROXY_URL': f'http://localhost:{memory_port}'
     }
     interceptor_process = subprocess.Popen(
-        ['python', '-m', 'src.interceptor.cli', 'run'],
+        [sys.executable, '-m', 'src.interceptor.cli', 'run'],
         env=interceptor_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

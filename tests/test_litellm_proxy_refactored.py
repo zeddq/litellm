@@ -184,9 +184,12 @@ class TestMemoryRoutingInfoEndpoint:
             assert response.status_code == 200
 
             data = response.json()
-            assert "user_id" in data
-            assert data["user_id"] == "test-user"
-            assert "matched_pattern" in data
+            # API returns nested structure: {"routing": {...}, "request_headers": {...}}
+            assert "routing" in data
+            routing = data["routing"]
+            assert "user_id" in routing
+            assert routing["user_id"] == "test-user"
+            assert "matched_pattern" in routing
 
             # Verify the mock was called
             mock_memory_router.get_routing_info.assert_called_once()

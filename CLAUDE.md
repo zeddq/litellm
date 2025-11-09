@@ -450,14 +450,20 @@ Get routing information for current request.
 **Response**:
 ```json
 {
-  "user_id": "pycharm-ai",
-  "matched_pattern": {
-    "header": "user-agent",
-    "pattern": "OpenAIClientImpl/Java",
-    "user_id": "pycharm-ai"
+  "routing": {
+    "user_id": "pycharm-ai",
+    "matched_pattern": {
+      "header": "user-agent",
+      "pattern": "OpenAIClientImpl/Java",
+      "user_id": "pycharm-ai"
+    },
+    "custom_header_present": false,
+    "is_default": false
   },
-  "custom_header_present": false,
-  "is_default": false
+  "request_headers": {
+    "user-agent": "OpenAIClientImpl/Java",
+    "host": "localhost:8764"
+  }
 }
 ```
 

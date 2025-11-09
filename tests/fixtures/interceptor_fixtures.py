@@ -11,6 +11,7 @@ Fixtures for testing the interceptor proxy component, including:
 import asyncio
 import os
 import subprocess
+import sys
 import tempfile
 import time
 from contextlib import contextmanager
@@ -81,7 +82,7 @@ async def interceptor_server(temp_port_registry):
     env['PORT_REGISTRY_PATH'] = str(temp_port_registry)
 
     process = subprocess.Popen(
-        ['python', '-m', 'src.interceptor.cli', 'run'],
+        [sys.executable, '-m', 'src.interceptor.cli', 'run'],
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -121,7 +122,7 @@ async def memory_proxy_server():
     env['LITELLM_PROXY_URL'] = f'http://localhost:{TEST_LITELLM_PORT}'
 
     process = subprocess.Popen(
-        ['uvicorn', 'proxy.litellm_proxy_sdk:app', '--port', str(port)],
+        [sys.executable, '-m', 'uvicorn', 'proxy.litellm_proxy_sdk:app', '--port', str(port)],
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

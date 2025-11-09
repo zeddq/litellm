@@ -534,9 +534,12 @@ class TestRoutingInfoEndpoint:
         assert response.status_code == 200
         data = response.json()
 
-        assert data["user_id"] == "pycharm-client"
-        assert data["matched_pattern"] is not None
-        assert data["is_default"] is False
+        # API returns nested structure: {"routing": {...}, "request_headers": {...}}
+        assert "routing" in data
+        routing = data["routing"]
+        assert routing["user_id"] == "pycharm-client"
+        assert routing["matched_pattern"] is not None
+        assert routing["is_default"] is False
 
     def test_routing_info_with_custom_header(self, test_client: TestClient):
         """Test routing info endpoint with custom header."""
@@ -547,8 +550,11 @@ class TestRoutingInfoEndpoint:
         assert response.status_code == 200
         data = response.json()
 
-        assert data["user_id"] == "test-user-123"
-        assert data["custom_header_present"] is True
+        # API returns nested structure: {"routing": {...}, "request_headers": {...}}
+        assert "routing" in data
+        routing = data["routing"]
+        assert routing["user_id"] == "test-user-123"
+        assert routing["custom_header_present"] is True
 
     def test_routing_info_default(self, test_client: TestClient):
         """Test routing info endpoint with default routing."""
@@ -559,8 +565,11 @@ class TestRoutingInfoEndpoint:
         assert response.status_code == 200
         data = response.json()
 
-        assert data["user_id"] == "default-user"
-        assert data["is_default"] is True
+        # API returns nested structure: {"routing": {...}, "request_headers": {...}}
+        assert "routing" in data
+        routing = data["routing"]
+        assert routing["user_id"] == "default-user"
+        assert routing["is_default"] is True
 
     def test_routing_info_without_router(self, test_client_no_router: TestClient):
         """Test routing info endpoint when router is not initialized."""
@@ -935,8 +944,11 @@ class TestEndToEndScenarios:
 
             assert response.status_code == 200
             data = response.json()
+            # API returns nested structure: {"routing": {...}, "request_headers": {...}}
+            assert "routing" in data
+            routing = data["routing"]
             assert (
-                data["user_id"] == expected_user_id
+                routing["user_id"] == expected_user_id
             ), f"Failed for user-agent: {user_agent}"
 
     def test_custom_header_override(self, test_client: TestClient):
@@ -950,7 +962,10 @@ class TestEndToEndScenarios:
 
         assert response.status_code == 200
         data = response.json()
-        assert data["user_id"] == "custom-override-id"
+        # API returns nested structure: {"routing": {...}, "request_headers": {...}}
+        assert "routing" in data
+        routing = data["routing"]
+        assert routing["user_id"] == "custom-override-id"
 
 
 # ============================================================================
