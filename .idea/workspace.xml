@@ -5,19 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.claude/commands/analyze-errors.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ANALYSIS_GROUP6_ERROR_FORMAT.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FIX_SUMMARY_GROUP6_ERROR_FORMAT.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/TEST_FAILURE_FIX_STRATEGY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/TEST_FIX_IMPLEMENTATION_CHECKLIST.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/TEST_FIX_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PARALLEL_ERROR_FIX_FINAL_REPORT.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/proxy/litellm_proxy_with_memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_with_memory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/conftest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/fixtures/mock_responses.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/fixtures/mock_responses.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_interceptor_known_issues.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_interceptor_known_issues.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_sdk_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_sdk_e2e.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RUN_TESTS.sh" beforeDir="false" afterPath="$PROJECT_DIR$/RUN_TESTS.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/conftest.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_binary_vs_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_binary_vs_sdk.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_context_retrieval.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_context_retrieval.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_error_handlers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_error_handlers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_interceptor.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_interceptor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_interceptor_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_interceptor_integration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_interceptor_known_issues.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_interceptor_known_issues.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_litellm_proxy_refactored.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_litellm_proxy_refactored.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_memory_proxy.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_memory_proxy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_memory_routing.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_memory_routing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_pipeline_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_pipeline_e2e.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_sdk_components.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_sdk_components.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_sdk_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_sdk_e2e.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_sdk_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_sdk_integration.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,7 +75,7 @@
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;SHELLCHECK.PATH&quot;: &quot;/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;c596ecef&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;4d404484&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Users/cezary/litellm&quot;,
     &quot;llm.McpServerEditPanel.switcher&quot;: &quot;1&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
@@ -78,7 +85,7 @@
     &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.33448276&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   },
   &quot;keyToStringList&quot;: {
     &quot;DatabaseDriversLRU&quot;: [
@@ -98,11 +105,11 @@
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tests/src" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/docs/reference" />
       <recent name="$PROJECT_DIR$/deploy" />
       <recent name="$PROJECT_DIR$/src/proxy" />
-      <recent name="$PROJECT_DIR$/src" />
     </key>
   </component>
   <component name="RunManager" selected="Docker.deploy: Compose Deployment">
@@ -252,6 +259,8 @@
       <workItem from="1762572613404" duration="11000" />
       <workItem from="1762572634638" duration="13312000" />
       <workItem from="1762707930230" duration="15022000" />
+      <workItem from="1762796105426" duration="1694000" />
+      <workItem from="1762798939259" duration="630000" />
     </task>
     <servers />
   </component>
