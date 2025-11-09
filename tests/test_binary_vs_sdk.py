@@ -78,7 +78,7 @@ async def sdk_client(test_config_file, mock_env_vars):
 
 
 @pytest.fixture(scope="function")
-def binary_client(test_config_file, mock_env_vars):
+def binary_client(test_config_file, mock_env_vars, mock_httpx_client):
     """Create TestClient for binary proxy."""
     # Load config and create memory router
     config = load_config_with_env_resolution(test_config_file)

@@ -116,7 +116,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         config_path = os.getenv("LITELLM_CONFIG_PATH", "config/config.yaml")
         config = LiteLLMConfig(config_path=config_path)
         app.state.config = config
-        logger.info(f"  Loaded {len(config.get_all_models())} model configurations:")
+        # Resilient len() check for Mock objects in tests
+        model_count = (
+            len(config.get_all_models())
+            if hasattr(config, "get_all_models") and hasattr(config.get_all_models(), "__len__")
+            else "unknown"
+        )
+        logger.info(f"  Loaded {model_count} model configurations:")
         logger.info(Path(config_path).read_text())
         logger.info(f"  Master key configured: {bool(config.get_master_key())}")
 

@@ -6,7 +6,7 @@ and creating test configurations.
 """
 
 from typing import Dict
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -17,13 +17,17 @@ def mock_httpx_client():
     Fixture providing properly configured mock httpx.AsyncClient.
 
     This fixture creates a mock that works with the async context manager
-    pattern used by httpx.AsyncClient.
+    pattern used by httpx.AsyncClient and ProxySessionManager.
+
+    The fixture automatically patches ProxySessionManager.get_session to return
+    this mock client, so tests work with both direct httpx.AsyncClient usage
+    and ProxySessionManager usage.
 
     Usage in tests:
         def test_something(mock_httpx_client):
-            with patch("httpx.AsyncClient", return_value=mock_httpx_client):
-                # Your test code here
-                pass
+            # mock_httpx_client is automatically used by ProxySessionManager
+            # Your test code here
+            pass
 
     Returns:
         Mock httpx.AsyncClient instance configured for async context manager usage
@@ -35,16 +39,28 @@ def mock_httpx_client():
     mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
     mock_instance.__aexit__ = AsyncMock(return_value=None)
 
+    # Configure aclose for ProxySessionManager compatibility
+    mock_instance.aclose = AsyncMock()
+
+    # Configure cookies attribute (empty by default)
+    mock_instance.cookies = {}
+
     # Configure default successful response
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.headers = {"content-type": "application/json"}
     mock_response.content = b'{"choices": [{"message": {"content": "Test response"}}]}'
+    mock_response.cookies = {}
 
     # Configure request method
     mock_instance.request = AsyncMock(return_value=mock_response)
 
-    return mock_instance
+    # Automatically patch ProxySessionManager.get_session to return this mock
+    with patch(
+        "proxy.litellm_proxy_with_memory.ProxySessionManager.get_session",
+        new=AsyncMock(return_value=mock_instance),
+    ):
+        yield mock_instance
 
 
 @pytest.fixture
@@ -143,6 +159,7 @@ def configure_mock_httpx_response(mock_httpx_client):
         mock_response.status_code = status_code
         mock_response.headers = headers or {"content-type": "application/json"}
         mock_response.content = content or b'{"result": "ok"}'
+        mock_response.cookies = {}
 
         client_mock.request = AsyncMock(return_value=mock_response)
 

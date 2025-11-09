@@ -710,7 +710,7 @@ class TestProxyHandler:
             assert response.status_code == 200
 
             # Verify query string was included
-            call_kwargs = mock_instance.request.call_args[1]
+            call_kwargs = mock_httpx_client.request.call_args[1]
             assert "limit=10" in call_kwargs["url"]
             assert "offset=5" in call_kwargs["url"]
 
@@ -731,31 +731,32 @@ class TestStreamingResponse:
             yield b'data: {"delta": {"content": " world"}}\n\n'
             yield b"data: [DONE]\n\n"
 
-        # Mock streaming response
+        # Mock streaming response context manager
         mock_stream_response = Mock()
         mock_stream_response.__aenter__ = AsyncMock(
             return_value=mock_stream_response
         )
         mock_stream_response.__aexit__ = AsyncMock(return_value=None)
-        mock_stream_response.aiter_bytes = lambda: mock_stream()
+        mock_stream_response.aiter_bytes = mock_stream
 
+        # Configure the stream method to return the mock streaming response
         mock_httpx_client.stream = Mock(return_value=mock_stream_response)
 
-        # Mock non-streaming response for initial detection
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.headers = {"content-type": "text/event-stream"}
-        mock_response.content = b""
-        mock_httpx_client.request = AsyncMock(return_value=mock_response)
+        # Mock initial check response with streaming headers
+        mock_initial_response = Mock()
+        mock_initial_response.status_code = 200
+        mock_initial_response.headers = {"content-type": "text/event-stream"}
+        mock_initial_response.content = b""
+        mock_initial_response.cookies = {}
+        mock_httpx_client.request = AsyncMock(return_value=mock_initial_response)
 
-        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
-            response = test_client.post(
-                "/v1/chat/completions",
-                json=request_data,
-            )
+        response = test_client.post(
+            "/v1/chat/completions",
+            json=request_data,
+        )
 
-            # StreamingResponse returns 200
-            assert response.status_code == 200
+        # StreamingResponse returns 200
+        assert response.status_code == 200
 
 
 class TestErrorHandling:
@@ -846,7 +847,7 @@ class TestDependencyInjection:
 class TestEndToEndScenarios:
     """End-to-end integration tests."""
 
-    def test_complete_pycharm_request_flow(self, test_client: TestClient):
+    def test_complete_pycharm_request_flow(self, test_client: TestClient, mock_httpx_client, configure_mock_httpx_response):
         """Test complete request flow from PyCharm client."""
         # Simulate PyCharm AI Assistant request
         request_data = {
@@ -862,21 +863,16 @@ class TestEndToEndScenarios:
             "content-type": "application/json",
         }
 
-        with patch("httpx.AsyncClient") as mock_client, patch.dict(
+        configure_mock_httpx_response(
+            mock_httpx_client,
+            status_code=200,
+            headers={"content-type": "application/json"},
+            content=b'{"content": [{"text": "def sort_list..."}]}'
+        )
+
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client), patch.dict(
             os.environ, {"SUPERMEMORY_API_KEY": "sm_test_key"}
         ):
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_response.headers = {"content-type": "application/json"}
-            mock_response.content = b'{"content": [{"text": "def sort_list..."}]}'
-            mock_instance.request = AsyncMock(return_value=mock_response)
-
-            mock_client.return_value = mock_instance
-
             # Make request
             response = test_client.post(
                 "/v1/chat/completions", json=request_data, headers=headers
@@ -885,7 +881,7 @@ class TestEndToEndScenarios:
             assert response.status_code == 200
 
             # Verify headers were injected
-            call_kwargs = mock_instance.request.call_args[1]
+            call_kwargs = mock_httpx_client.request.call_args[1]
             forwarded_headers = call_kwargs["headers"]
 
             # Should have user ID injected
@@ -895,7 +891,7 @@ class TestEndToEndScenarios:
             )
             assert has_user_id or "x-sm-user-id" in str(forwarded_headers)
 
-    def test_complete_claude_code_request_flow(self, test_client: TestClient):
+    def test_complete_claude_code_request_flow(self, test_client: TestClient, mock_httpx_client, configure_mock_httpx_response):
         """Test complete request flow from Claude Code CLI."""
         request_data = {
             "model": "claude-sonnet",
@@ -907,21 +903,16 @@ class TestEndToEndScenarios:
             "content-type": "application/json",
         }
 
-        with patch("httpx.AsyncClient") as mock_client, patch.dict(
+        configure_mock_httpx_response(
+            mock_httpx_client,
+            status_code=200,
+            headers={"content-type": "application/json"},
+            content=b'{"content": [{"text": "Async/await..."}]}'
+        )
+
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client), patch.dict(
             os.environ, {"SUPERMEMORY_API_KEY": "sm_test_key"}
         ):
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_response.headers = {"content-type": "application/json"}
-            mock_response.content = b'{"content": [{"text": "Async/await..."}]}'
-            mock_instance.request = AsyncMock(return_value=mock_response)
-
-            mock_client.return_value = mock_instance
-
             response = test_client.post(
                 "/v1/chat/completions", json=request_data, headers=headers
             )
@@ -1103,7 +1094,7 @@ class TestEdgeCases:
         user_id = memory_router.detect_user_id(headers)
         assert user_id is not None
 
-    def test_very_large_request_body(self, test_client: TestClient):
+    def test_very_large_request_body(self, test_client: TestClient, mock_httpx_client):
         """Test handling of very large request bodies."""
         # Create large payload
         large_messages = [
@@ -1111,19 +1102,7 @@ class TestEdgeCases:
         ]
         request_data = {"model": "gpt-4", "messages": large_messages}
 
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_response.headers = {"content-type": "application/json"}
-            mock_response.content = b'{"result": "ok"}'
-            mock_instance.request = AsyncMock(return_value=mock_response)
-
-            mock_client.return_value = mock_instance
-
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             response = test_client.post("/v1/chat/completions", json=request_data)
 
             # Should handle large payloads
