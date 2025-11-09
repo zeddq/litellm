@@ -577,21 +577,16 @@ class TestProxyHandler:
     """Tests for main proxy handler."""
 
     @pytest.mark.asyncio
-    async def test_proxy_request_success(self, mock_httpx_response):
+    async def test_proxy_request_success(self, mock_httpx_client, configure_mock_httpx_response):
         """Test successful proxy request."""
-        mock_response = mock_httpx_response(
+        configure_mock_httpx_response(
+            mock_httpx_client,
             status_code=200,
             headers={"content-type": "application/json"},
             content=b'{"message": "success"}',
         )
 
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-            mock_instance.request = AsyncMock(return_value=mock_response)
-            mock_client.return_value = mock_instance
-
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             status, headers, body = await proxy_request(
                 method="GET",
                 path="/test",
@@ -605,18 +600,11 @@ class TestProxyHandler:
             assert body == b'{"message": "success"}'
 
     @pytest.mark.asyncio
-    async def test_proxy_request_with_body(self, mock_httpx_response):
+    async def test_proxy_request_with_body(self, mock_httpx_client):
         """Test proxy request with request body."""
         request_body = b'{"model": "gpt-4", "messages": []}'
-        mock_response = mock_httpx_response(status_code=200)
 
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-            mock_instance.request = AsyncMock(return_value=mock_response)
-            mock_client.return_value = mock_instance
-
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             status, headers, body = await proxy_request(
                 method="POST",
                 path="/v1/chat/completions",
@@ -626,22 +614,18 @@ class TestProxyHandler:
             )
 
             # Verify request was made with correct body
-            mock_instance.request.assert_called_once()
-            call_kwargs = mock_instance.request.call_args[1]
+            mock_httpx_client.request.assert_called_once()
+            call_kwargs = mock_httpx_client.request.call_args[1]
             assert call_kwargs["content"] == request_body
 
     @pytest.mark.asyncio
-    async def test_proxy_request_error_handling(self):
+    async def test_proxy_request_error_handling(self, mock_httpx_client):
         """Test proxy request error handling."""
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-            mock_instance.request = AsyncMock(
-                side_effect=httpx.ConnectError("Connection failed")
-            )
-            mock_client.return_value = mock_instance
+        mock_httpx_client.request = AsyncMock(
+            side_effect=httpx.ConnectError("Connection failed")
+        )
 
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             with pytest.raises(httpx.ConnectError):
                 await proxy_request(
                     method="GET",
@@ -651,23 +635,11 @@ class TestProxyHandler:
                     litellm_base_url="http://localhost:4000",
                 )
 
-    def test_chat_completion_without_supermemory(self, test_client: TestClient):
+    def test_chat_completion_without_supermemory(self, test_client: TestClient, mock_httpx_client):
         """Test chat completion request for non-Supermemory model."""
         request_data = {"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}
 
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_response.headers = {"content-type": "application/json"}
-            mock_response.content = b'{"choices": []}'
-            mock_instance.request = AsyncMock(return_value=mock_response)
-
-            mock_client.return_value = mock_instance
-
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             response = test_client.post(
                 "/v1/chat/completions",
                 json=request_data,
@@ -676,28 +648,16 @@ class TestProxyHandler:
 
             assert response.status_code == 200
 
-    def test_chat_completion_with_supermemory(self, test_client: TestClient):
+    def test_chat_completion_with_supermemory(self, test_client: TestClient, mock_httpx_client):
         """Test chat completion request for Supermemory-enabled model."""
         request_data = {
             "model": "claude-sonnet",
             "messages": [{"role": "user", "content": "Hello"}],
         }
 
-        with patch("httpx.AsyncClient") as mock_client, patch.dict(
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client), patch.dict(
             os.environ, {"SUPERMEMORY_API_KEY": "sm_test_key"}
         ):
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_response.headers = {"content-type": "application/json"}
-            mock_response.content = b'{"content": []}'
-            mock_instance.request = AsyncMock(return_value=mock_response)
-
-            mock_client.return_value = mock_instance
-
             response = test_client.post(
                 "/v1/chat/completions",
                 json=request_data,
@@ -707,28 +667,16 @@ class TestProxyHandler:
             assert response.status_code == 200
 
             # Verify that Supermemory headers were injected
-            call_kwargs = mock_instance.request.call_args[1]
+            call_kwargs = mock_httpx_client.request.call_args[1]
             injected_headers = call_kwargs["headers"]
             # Note: x-sm-user-id should be in headers
             assert "x-sm-user-id" in injected_headers or any(
                 "x-sm-user-id" in str(v) for v in injected_headers.values()
             )
 
-    def test_invalid_json_body_handling(self, test_client: TestClient):
+    def test_invalid_json_body_handling(self, test_client: TestClient, mock_httpx_client):
         """Test handling of invalid JSON in request body."""
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_response.headers = {"content-type": "application/json"}
-            mock_response.content = b'{"result": "ok"}'
-            mock_instance.request = AsyncMock(return_value=mock_response)
-
-            mock_client.return_value = mock_instance
-
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             # Send invalid JSON
             response = test_client.post(
                 "/v1/chat/completions",
@@ -739,41 +687,24 @@ class TestProxyHandler:
             # Should still forward the request
             assert response.status_code == 200
 
-    def test_get_request_forwarding(self, test_client: TestClient):
+    def test_get_request_forwarding(self, test_client: TestClient, mock_httpx_client, configure_mock_httpx_response):
         """Test that GET requests are forwarded correctly."""
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_response.headers = {"content-type": "application/json"}
-            mock_response.content = b'{"models": []}'
-            mock_instance.request = AsyncMock(return_value=mock_response)
-
-            mock_client.return_value = mock_instance
-
+        configure_mock_httpx_response(
+            mock_httpx_client,
+            status_code=200,
+            headers={"content-type": "application/json"},
+            content=b'{"models": []}'
+        )
+        
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             response = test_client.get("/v1/models")
 
             assert response.status_code == 200
-            mock_instance.request.assert_called_once()
+            mock_httpx_client.request.assert_called_once()
 
-    def test_query_string_preservation(self, test_client: TestClient):
+    def test_query_string_preservation(self, test_client: TestClient, mock_httpx_client):
         """Test that query strings are preserved in forwarding."""
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_response.headers = {"content-type": "application/json"}
-            mock_response.content = b'{"result": "ok"}'
-            mock_instance.request = AsyncMock(return_value=mock_response)
-
-            mock_client.return_value = mock_instance
-
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             response = test_client.get("/v1/models?limit=10&offset=5")
 
             assert response.status_code == 200
@@ -787,7 +718,7 @@ class TestProxyHandler:
 class TestStreamingResponse:
     """Tests for streaming response handling."""
 
-    def test_streaming_response_detection(self, test_client: TestClient):
+    def test_streaming_response_detection(self, test_client: TestClient, mock_httpx_client):
         """Test detection and handling of streaming responses."""
         request_data = {
             "model": "gpt-4",
@@ -800,30 +731,24 @@ class TestStreamingResponse:
             yield b'data: {"delta": {"content": " world"}}\n\n'
             yield b"data: [DONE]\n\n"
 
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
+        # Mock streaming response
+        mock_stream_response = Mock()
+        mock_stream_response.__aenter__ = AsyncMock(
+            return_value=mock_stream_response
+        )
+        mock_stream_response.__aexit__ = AsyncMock(return_value=None)
+        mock_stream_response.aiter_bytes = lambda: mock_stream()
 
-            # Mock streaming response
-            mock_stream_response = Mock()
-            mock_stream_response.__aenter__ = AsyncMock(
-                return_value=mock_stream_response
-            )
-            mock_stream_response.__aexit__ = AsyncMock(return_value=None)
-            mock_stream_response.aiter_bytes = lambda: mock_stream()
+        mock_httpx_client.stream = Mock(return_value=mock_stream_response)
 
-            mock_instance.stream = Mock(return_value=mock_stream_response)
+        # Mock non-streaming response for initial detection
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.headers = {"content-type": "text/event-stream"}
+        mock_response.content = b""
+        mock_httpx_client.request = AsyncMock(return_value=mock_response)
 
-            # Mock non-streaming response for initial detection
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_response.headers = {"content-type": "text/event-stream"}
-            mock_response.content = b""
-            mock_instance.request = AsyncMock(return_value=mock_response)
-
-            mock_client.return_value = mock_instance
-
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             response = test_client.post(
                 "/v1/chat/completions",
                 json=request_data,
@@ -836,33 +761,25 @@ class TestStreamingResponse:
 class TestErrorHandling:
     """Tests for error handling scenarios."""
 
-    def test_proxy_backend_unavailable(self, test_client: TestClient):
+    def test_proxy_backend_unavailable(self, test_client: TestClient, mock_httpx_client):
         """Test handling when LiteLLM backend is unavailable."""
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-            mock_instance.request = AsyncMock(
-                side_effect=httpx.ConnectError("Connection refused")
-            )
-            mock_client.return_value = mock_instance
+        mock_httpx_client.request = AsyncMock(
+            side_effect=httpx.ConnectError("Connection refused")
+        )
 
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             response = test_client.get("/v1/models")
 
             assert response.status_code == 500
             assert b"Connection refused" in response.content
 
-    def test_proxy_timeout(self, test_client: TestClient):
+    def test_proxy_timeout(self, test_client: TestClient, mock_httpx_client):
         """Test handling of request timeouts."""
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = Mock()
-            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-            mock_instance.__aexit__ = AsyncMock(return_value=None)
-            mock_instance.request = AsyncMock(
-                side_effect=httpx.TimeoutException("Request timeout")
-            )
-            mock_client.return_value = mock_instance
+        mock_httpx_client.request = AsyncMock(
+            side_effect=httpx.TimeoutException("Request timeout")
+        )
 
+        with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             response = test_client.post(
                 "/v1/chat/completions",
                 json={"model": "gpt-4", "messages": []},
@@ -1095,26 +1012,14 @@ def test_supermemory_model_detection(
     "method",
     ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 )
-def test_http_methods_forwarding(test_client: TestClient, method: str):
+def test_http_methods_forwarding(test_client: TestClient, method: str, mock_httpx_client):
     """Parametrized test for different HTTP methods."""
-    with patch("httpx.AsyncClient") as mock_client:
-        mock_instance = Mock()
-        mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
-        mock_instance.__aexit__ = AsyncMock(return_value=None)
-
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.headers = {"content-type": "application/json"}
-        mock_response.content = b'{"result": "ok"}'
-        mock_instance.request = AsyncMock(return_value=mock_response)
-
-        mock_client.return_value = mock_instance
-
+    with patch("httpx.AsyncClient", return_value=mock_httpx_client):
         response = test_client.request(method, "/v1/test")
 
         assert response.status_code == 200
-        mock_instance.request.assert_called_once()
-        assert mock_instance.request.call_args[1]["method"] == method
+        mock_httpx_client.request.assert_called_once()
+        assert mock_httpx_client.request.call_args[1]["method"] == method
 
 
 # ============================================================================

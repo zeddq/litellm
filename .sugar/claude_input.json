@@ -1,12 +1,12 @@
 {
   "task_type": "bug_fix",
-  "title": "Fix Memory Router receiving string instead of config object (8 failures)",
-  "description": "Fix AttributeError: str object has no attribute user_id_mappings in test_memory_proxy.py and test_memory_routing.py tests.\n\nROOT CAUSE:\n- Tests passing string config path to MemoryRouter()\n- MemoryRouter expects LiteLLMProxyConfig object, not string\n- Error occurs when MemoryRouter tries to access config.user_id_mappings\n\nAFFECTED TESTS (8 failures):\n- test_memory_routing.py::test_model_detection\n- test_memory_routing.py::test_header_injection  \n- test_memory_proxy.py::TestMemoryRouterInit (all 4 tests)\n- test_memory_proxy.py::TestPerformance::test_router_performance_many_patterns\n- test_memory_proxy.py::TestEdgeCases (2 tests)\n\nSOLUTION:\nUpdate all MemoryRouter() instantiations to load config first:\n  from proxy.schema import load_config_with_env_resolution\n  config = load_config_with_env_resolution(config_file)\n  memory_router = MemoryRouter(config)\n\nFILES TO FIX:\n- tests/test_memory_routing.py (search for MemoryRouter() calls)\n- tests/test_memory_proxy.py (search for MemoryRouter() calls)\n\nVALIDATION:\nRun: poetry run pytest tests/test_memory_routing.py tests/test_memory_proxy.py::TestMemoryRouterInit -v\nVerify all 8 tests PASS, no AttributeError str object errors",
+  "title": "Fix HTTP 500 Proxy Connection Failures (25+ test failures)",
+  "description": "Fix All connection attempts failed errors causing HTTP 500 responses in proxy tests.\n\nROOT CAUSE:\n- litellm_proxy_with_memory.py cannot connect to backend LiteLLM\n- Mock httpx client not configured correctly in test fixtures\n- Missing mock responses for LiteLLM API calls\n\nAFFECTED TESTS (25+ failures):\n- test_memory_proxy.py::test_http_methods_forwarding (6 tests)\n- test_memory_proxy.py::TestProxyHandler (6 tests)\n- test_memory_proxy.py::TestStreamingResponse::test_streaming_response_detection\n- test_memory_proxy.py::TestEndToEndScenarios (2 tests)\n- test_memory_proxy.py::TestEdgeCases::test_very_large_request_body\n- test_litellm_proxy_refactored.py::TestProxyHandler (3 tests)\n- test_litellm_proxy_refactored.py::TestIntegration::test_full_chat_completion_flow\n- test_binary_vs_sdk.py::TestChatCompletionsParity (6 tests)\n- test_binary_vs_sdk.py::TestModelsListParity::test_models_list_same_models\n\nSOLUTION:\n1. Create mock_litellm_completion fixture that returns valid responses\n2. Mock httpx.AsyncClient.request() to return proper responses\n3. Configure mock responses for:\n   - /v1/chat/completions (200 OK with completion)\n   - /v1/models (200 OK with models list)\n   - Health checks\n\nFILES TO FIX:\n- Test fixtures for mocking httpx client\n- tests/conftest.py or test file fixtures\n- Mock configuration in test setup\n\nVALIDATION:\nRun: poetry run pytest tests/test_memory_proxy.py::test_http_methods_forwarding -v\nVerify no HTTP 500 errors, tests get expected responses",
   "execution_mode": "ExecutionMode.AGENT",
   "agent_type": "AgentType.TECH_LEAD",
   "agent_fallback": true,
   "context": {
-    "work_item_id": "cfcd5a85-bfbb-4384-b47d-21a3b507f746",
+    "work_item_id": "1933217e-f889-46d0-8f79-fae6a3499d53",
     "source_type": "cli",
     "priority": 4,
     "attempts": 2,
@@ -15,10 +15,10 @@
     "previous_attempts": null,
     "session_context": {
       "added_via": "sugar_cli",
-      "timestamp": "2025-11-09T10:04:23.810110"
+      "timestamp": "2025-11-09T10:04:39.601756"
     }
   },
-  "timestamp": "2025-11-09T10:18:34.830830",
+  "timestamp": "2025-11-09T10:23:28.221510",
   "sugar_version": "2.1.0",
   "continue_session": true,
   "timeout_seconds": 1800,
