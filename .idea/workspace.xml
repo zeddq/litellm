@@ -5,11 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/conftest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_binary_vs_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_binary_vs_sdk.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_litellm_proxy_refactored.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_litellm_proxy_refactored.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_memory_proxy.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_memory_proxy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.sugar/claude_input.json" beforeDir="false" afterPath="$PROJECT_DIR$/.sugar/claude_input.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.sugar/sugar.db" beforeDir="false" afterPath="$PROJECT_DIR$/.sugar/sugar.db" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,7 +57,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
-    "git-widget-placeholder": "43d39a6a",
+    "git-widget-placeholder": "7820fa19",
     "last_opened_file_path": "/Users/cezary/litellm",
     "llm.McpServerEditPanel.switcher": "1",
     "node.js.detected.package.eslint": "true",
