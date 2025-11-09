@@ -1,24 +1,26 @@
 {
-  "task_type": "bug_fix",
-  "title": "Fix memory routing user ID detection returning wrong IDs",
-  "description": "IMPORTANT: Use /ultrathink slash command to orchestrate this investigation and fix.\n\nFix memory routing tests that expect detected user IDs but actually get 'supermemory' or 'litellm-memory' default values.\n\nROOT CAUSE:\n- Tests expect detected user IDs: 'pycharm-ai', 'claude-code', 'my-project'\n- Actually getting default container tag values: 'supermemory', 'litellm-memory'\n- Mock is not properly routing headers through memory_router.detect_user_id() logic\n- Header patterns not being matched correctly in test environment\n\nAFFECTED TESTS (~5 failures):\n- test_memory_routing.py::test_header_injection - Wrong user ID\n- test_memory_proxy.py::TestMemoryRouterInjectHeaders::test_inject_headers_basic - 'litellm-memory' vs 'claude-code'\n- test_memory_proxy.py::TestMemoryRouterInjectHeaders::test_inject_headers_with_api_key - 'litellm-memory' vs 'default-user'\n- test_binary_vs_sdk.py::TestBackwardCompatibility::test_anthropic_format_compatible - 'supermemory' vs 'anthropic-python'\n- Additional tests in test_sdk_integration.py expecting proper user ID detection\n\nERROR EXAMPLES:\n- AssertionError: assert 'supermemory' == 'pycharm-ai'\n- AssertionError: assert 'litellm-memory' == 'claude-code'\n- AssertionError: assert 'supermemory' == 'my-project'\n\nINVESTIGATION TASKS:\n1. Use /ultrathink to analyze:\n   - memory_router.py detect_user_id() logic\n   - How User-Agent header patterns are matched\n   - Test fixtures setting User-Agent headers\n   - Mock chain for memory routing\n2. Verify memory_router.detect_user_id() is being called\n3. Check if header patterns are being matched correctly\n4. Identify why default user IDs are returned instead of detected ones\n\nROOT CAUSE HYPOTHESES:\n1. Mock bypassing memory_router.detect_user_id() call\n2. Header patterns not matching test User-Agent strings\n3. Headers not being properly passed to memory router\n4. Default user ID being used instead of pattern-matched ID\n\nSOLUTION:\n- Fix mock to properly inject x-sm-user-id header based on memory router detection\n- Verify memory_router.detect_user_id() is called in mock chain\n- Ensure header patterns match test User-Agent strings\n- Update test fixtures to properly set User-Agent headers\n\nFILES TO FIX:\n- Test fixtures mocking litellm completion calls\n- memory_router.py detection logic (if needed)\n- Test User-Agent header configuration\n- Mock memory routing chain\n\nVALIDATION:\nRun: poetry run pytest tests/test_memory_routing.py tests/test_memory_proxy.py::TestMemoryRouterInjectHeaders -v\nVerify: Tests get expected detected user IDs, not default 'supermemory' or 'litellm-memory'",
+  "task_type": "documentation",
+  "title": "Review and improve documentation in conftest.py",
+  "description": "Review the documentation and comments in ./tests/conftest.py and improve clarity, completeness, and accuracy.",
   "execution_mode": "ExecutionMode.AGENT",
-  "agent_type": "AgentType.TECH_LEAD",
+  "agent_type": "AgentType.GENERAL_PURPOSE",
   "agent_fallback": true,
   "context": {
-    "work_item_id": "66cb8bdc-fcb3-4add-aee8-1f477727640d",
-    "source_type": "cli",
-    "priority": 5,
+    "work_item_id": "d60791a1-f452-4f27-a757-eefb57bcad8c",
+    "source_type": "maintenance_generator",
+    "priority": 2,
     "attempts": 1,
     "files_involved": null,
     "repository_info": null,
     "previous_attempts": null,
     "session_context": {
-      "added_via": "sugar_cli",
-      "timestamp": "2025-11-09T11:09:58.368474"
+      "maintenance_task": true,
+      "task_type": "documentation",
+      "discovered_at": "2025-11-09T13:25:32.408777",
+      "source_type": "maintenance"
     }
   },
-  "timestamp": "2025-11-09T11:41:57.951754",
+  "timestamp": "2025-11-09T13:25:33.765556",
   "sugar_version": "2.1.0",
   "continue_session": false,
   "timeout_seconds": 1800,
