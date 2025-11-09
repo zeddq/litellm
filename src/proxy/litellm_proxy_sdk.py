@@ -124,9 +124,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info("Step 4/5: Initializing memory router...")
         memory_router = MemoryRouter(config=config.config)
         app.state.memory_router = memory_router
-        logger.info(
-            f"  Memory router initialized with {len(memory_router.header_patterns)} patterns"
+        # Resilient len() check for Mock objects in tests
+        pattern_count = (
+            len(memory_router.header_patterns)
+            if hasattr(memory_router.header_patterns, "__len__")
+            else "unknown"
         )
+        logger.info(f"  Memory router initialized with {pattern_count} patterns")
 
         # 5. Configure LiteLLM settings
         logger.info("Step 5/5: Configuring LiteLLM settings...")
