@@ -16,6 +16,8 @@ echo -e "${BLUE}╔════════════════════�
 echo -e "${BLUE}║      LiteLLM Memory Proxy - Test Suite Runner           ║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════════════════════════╝${NC}"
 echo ""
+root_dir=$(dirname $0)
+timestamp=$(date +"%Y_%m_%d_%H:%M:%S.%3N")
 
 # Function to run tests
 run_tests() {
@@ -25,7 +27,7 @@ run_tests() {
     echo -e "${YELLOW}Running: ${desc}${NC}"
     echo -e "${GREEN}Command: ${cmd}${NC}"
     echo ""
-    eval "$cmd"
+    eval "$cmd | tee $root_dir/logs/errors/run_$timestamp.log"
     echo ""
 }
 

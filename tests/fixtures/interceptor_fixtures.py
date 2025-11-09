@@ -22,7 +22,6 @@ import httpx
 import pytest
 import yaml
 
-
 # Test ports (avoid conflicts with dev instances)
 TEST_INTERCEPTOR_PORT = 18888
 TEST_MEMORY_PROXY_PORT = 18764

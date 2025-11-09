@@ -69,6 +69,7 @@ model_list:
       api_key: sk-fake-key
 """
 
+TEST_INVALID_API_KEY="321"
 
 # =============================================================================
 # Sample Request Bodies

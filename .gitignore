@@ -820,6 +820,6 @@ secring.*
 scripts/sup_project_doc.md
 **/logs
 out
-.sugar/sugar.db
-.sugar/backups
+.sugar/
+!.sugar/config.yaml
 outscripts/sup_project_doc.md
