@@ -199,6 +199,77 @@ register_exception_handlers(app, include_debug_info=bool(os.getenv("DEBUG", Fals
 
 
 # ============================================================================
+# HTTPException Handler (OpenAI Format Compatibility)
+# ============================================================================
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    """
+    Convert FastAPI HTTPException to OpenAI-compatible error format.
+
+    This handler ensures all HTTP errors return OpenAI's standard error format:
+    {"error": {"message": "...", "type": "...", "code": "..."}}
+
+    Args:
+        request: FastAPI request object
+        exc: HTTPException instance
+
+    Returns:
+        JSONResponse with OpenAI-compatible error format
+    """
+    # Map status codes to OpenAI error types
+    error_type_map = {
+        400: "invalid_request_error",
+        401: "authentication_error",
+        403: "permission_error",
+        404: "not_found_error",
+        408: "timeout_error",
+        429: "rate_limit_error",
+        500: "api_error",
+        503: "service_unavailable_error",
+    }
+
+    error_type = error_type_map.get(exc.status_code, "api_error")
+
+    # Build base error response
+    error_content: Dict[str, Any] = {
+        "message": exc.detail,
+        "type": error_type,
+    }
+
+    # Add specific error codes based on status and message
+    detail_lower = str(exc.detail).lower()
+
+    if exc.status_code == 401:
+        error_content["code"] = "invalid_api_key"
+    elif exc.status_code == 404:
+        error_content["code"] = "model_not_found"
+    elif exc.status_code == 400:
+        if "model" in detail_lower and "missing" in detail_lower:
+            error_content["code"] = "missing_parameter"
+            error_content["param"] = "model"
+        elif "messages" in detail_lower and "missing" in detail_lower:
+            error_content["code"] = "missing_parameter"
+            error_content["param"] = "messages"
+        elif "json" in detail_lower or "invalid" in detail_lower:
+            error_content["code"] = "invalid_request"
+        else:
+            error_content["code"] = "invalid_parameter"
+
+    # Log the error
+    logger.warning(
+        f"HTTP {exc.status_code}: {exc.detail}",
+        extra={"status_code": exc.status_code, "path": request.url.path},
+    )
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": error_content},
+    )
+
+
+# ============================================================================
 # Dependency Injection
 # ============================================================================
 
@@ -230,8 +301,21 @@ def should_use_context_retrieval(model_name: str, config: LiteLLMConfig) -> bool
         True if context retrieval is enabled and model is allowed, False otherwise
     """
     try:
-        # Get context retrieval config from the parsed config
-        context_config = config.config.context_retrieval.model_dump() if config.config.context_retrieval else None
+        # Get context retrieval config - handle both Pydantic models and dicts
+        if hasattr(config.config, 'context_retrieval'):
+            # Pydantic model (production)
+            context_retrieval_obj = config.config.context_retrieval
+            if context_retrieval_obj is None:
+                return False
+            context_config = context_retrieval_obj.model_dump() if hasattr(context_retrieval_obj, 'model_dump') else context_retrieval_obj
+        elif isinstance(config.config, dict):
+            # Dict (tests)
+            context_config = config.config.get("context_retrieval")
+            if context_config is None:
+                return False
+        else:
+            logger.debug("Context retrieval config not found")
+            return False
         
         if not context_config or not context_config.get("enabled", False):
             logger.debug("Context retrieval is disabled globally")
@@ -290,8 +374,19 @@ async def apply_context_retrieval(
         return messages
 
     try:
-        # Get context retrieval configuration
-        context_config = config.config.context_retrieval.model_dump() if config.config.context_retrieval else {}
+        # Get context retrieval configuration - handle both Pydantic models and dicts
+        if hasattr(config.config, 'context_retrieval'):
+            # Pydantic model (production)
+            context_retrieval_obj = config.config.context_retrieval
+            if context_retrieval_obj is None:
+                return messages
+            context_config = context_retrieval_obj.model_dump() if hasattr(context_retrieval_obj, 'model_dump') else context_retrieval_obj
+        elif isinstance(config.config, dict):
+            # Dict (tests)
+            context_config = config.config.get("context_retrieval", {})
+        else:
+            logger.warning("Context retrieval config not found")
+            return messages
         
         # Get API key (resolve environment variable if needed)
         api_key = context_config.get("api_key")
@@ -357,10 +452,7 @@ async def verify_api_key(request: Request) -> None:
         HTTPException: 401 if invalid or missing API key
     """
     config = get_config()
-
-    mh = request.headers.mutablecopy()
-    mh["authorization"] = f"Bearer {config.get_master_key()}"
-    auth_header = mh.get("authorization", "")
+    auth_header = request.headers.get("authorization", "")
 
     if not auth_header.startswith("Bearer "):
         raise HTTPException(

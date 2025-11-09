@@ -20,13 +20,14 @@ import httpx
 import pytest
 import yaml
 
-from tests.fixtures.interceptor_fixtures import (
+from tests.fixtures import (
     TEST_INTERCEPTOR_PORT,
     TEST_MEMORY_PROXY_PORT,
     TEST_LITELLM_PORT,
     TEST_HEADERS,
     TEST_REQUEST_BODIES,
 )
+
 from tests.helpers.pipeline_helpers import (
     start_full_pipeline,
     stop_pipeline,
@@ -253,11 +254,11 @@ class TestOtherKnownIssues:
             f.write("{ corrupted json content }")
 
         # Should recover gracefully
-        registry = PortRegistry(str(registry_file))
-        port = registry.allocate_port("/test/project")
+        registry = PortRegistry(registry_file=registry_file)
+        port = registry.get_or_allocate_port("/test/project")
 
         assert port is not None
-        assert 18888 <= port <= 18999
+        assert 8888 <= port <= 9999
 
     @pytest.mark.asyncio
     async def test_concurrent_port_allocation_race_condition(self, tmp_path):
@@ -271,8 +272,8 @@ class TestOtherKnownIssues:
         registry_file = tmp_path / "concurrent_registry.json"
 
         async def allocate_for_project(project_id):
-            registry = PortRegistry(str(registry_file))
-            return registry.allocate_port(f"/test/project/{project_id}")
+            registry = PortRegistry(registry_file=registry_file)
+            return registry.get_or_allocate_port(f"/test/project/{project_id}")
 
         # Allocate ports concurrently
         ports = await asyncio.gather(*[
@@ -292,16 +293,16 @@ class TestOtherKnownIssues:
         from src.interceptor.port_registry import PortRegistry
 
         registry_file = tmp_path / "registry.json"
-        registry = PortRegistry(str(registry_file))
+        registry = PortRegistry(registry_file=registry_file)
 
         # Very long path
         long_path = "/very" + "/long" * 100 + "/project/path"
 
-        port = registry.allocate_port(long_path)
+        port = registry.get_or_allocate_port(long_path)
         assert port is not None
 
         # Same long path should get same port
-        port2 = registry.allocate_port(long_path)
+        port2 = registry.get_or_allocate_port(long_path)
         assert port == port2
 
 

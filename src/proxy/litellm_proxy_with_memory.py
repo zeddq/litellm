@@ -19,14 +19,15 @@ import asyncio
 import json
 import logging
 import os
+import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Annotated, Optional
+from typing import Annotated, Any, Dict, Optional
 
 import httpx
 import uvicorn
-from fastapi import Depends, FastAPI, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse
 from litellm.types.llms.anthropic import AnthropicThinkingParam
 from starlette.datastructures import Headers
@@ -507,11 +508,90 @@ def create_app(
         Args:
             request: FastAPI request object
             memory_router: Injected MemoryRouter instance
+        
+        Returns:
+            Dict with routing information in standardized format matching SDK proxy
         """
         if memory_router:
-            info = memory_router.get_routing_info(request.headers)
-            return info
+            routing_info = memory_router.get_routing_info(request.headers)
+            return {
+                "routing": routing_info,
+                "request_headers": dict(request.headers),
+            }
         return {"error": "Memory router not initialized"}
+
+    async def verify_api_key(request: Request) -> None:
+        """
+        Verify API key from Authorization header.
+
+        Args:
+            request: FastAPI request object
+
+        Raises:
+            HTTPException: 401 if invalid or missing API key
+        """
+        auth_header = request.headers.get("authorization", "")
+
+        if not auth_header.startswith("Bearer "):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing or invalid Authorization header",
+            )
+
+        provided_key = auth_header[7:]  # Remove "Bearer " prefix
+        expected_key = litellm_auth_token
+
+        if provided_key != expected_key:
+            logger.warning(f"Invalid API key attempt from {request.client.host if request.client else 'unknown'}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid API key",
+            )
+
+    @app.get("/v1/models")
+    async def list_models(
+        request: Request,
+        memory_router: Annotated[
+            Optional[MemoryRouter], Depends(get_memory_router)
+        ] = None,
+    ) -> Dict[str, Any]:
+        """
+        List available models (OpenAI-compatible endpoint).
+
+        Args:
+            request: FastAPI request object
+            memory_router: Injected MemoryRouter instance
+
+        Returns:
+            Dict with list of available models
+        """
+        await verify_api_key(request)
+
+        if not memory_router or not memory_router.config:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Configuration not available",
+            )
+
+        config = memory_router.config
+
+        models = [
+            {
+                "id": model_config.model_name,
+                "object": "model",
+                "created": int(time.time()),
+                "owned_by": "litellm",
+                "permission": [],
+                "root": model_config.model_name,
+                "parent": None,
+            }
+            for model_config in config.model_list
+        ]
+
+        return {
+            "object": "list",
+            "data": models,
+        }
 
     # Catch-all proxy handler - MUST be defined LAST
     # noinspection D

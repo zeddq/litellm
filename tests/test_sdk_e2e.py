@@ -96,15 +96,13 @@ requires_any_key = pytest.mark.skipif(
 
 @pytest.fixture(scope="module")
 def e2e_config_file(tmp_path_factory):
-    """Create config file with real API keys."""
+    """Create config file with test API keys for e2e testing.
+    
+    Note: E2E tests use TEST_CONFIG_YAML which has master_key: sk-test-1234
+    to match the default API key used in get_request_headers().
+    """
     tmp_path = tmp_path_factory.mktemp("e2e_config")
-
-    # Use real config if available, else create test config
-    real_config_path = "config/config.yaml"
-    if os.path.exists(real_config_path):
-        return real_config_path
-    else:
-        return create_test_config_file(tmp_path, TEST_CONFIG_YAML)
+    return create_test_config_file(tmp_path, TEST_CONFIG_YAML)
 
 
 @pytest_asyncio.fixture(loop_scope="module")

@@ -413,20 +413,69 @@ def _smart_response_router(method: str, url: str, **kwargs) -> Mock:
 
     # Route based on endpoint
     if "/chat/completions" in path or "/v1/messages" in path:
-        # Chat completion endpoint
-        mock_response.status_code = 200
+        # Chat completion endpoint - validate request first
         mock_response.headers = {"content-type": "application/json"}
 
-        # Try to extract model from request body
-        model = "claude-sonnet-4.5"  # default
+        # Try to extract and validate request body
         if "content" in kwargs and kwargs["content"]:
             try:
                 body = json.loads(kwargs["content"].decode())
-                model = body.get("model", model)
-            except:
-                pass
-
-        mock_response.content = _create_openai_chat_completion_response(model)
+                
+                # Validate required fields
+                if "model" not in body:
+                    mock_response.status_code = 400
+                    mock_response.content = json.dumps({
+                        "error": {
+                            "type": "invalid_request_error",
+                            "message": "Missing required parameter: model"
+                        }
+                    }).encode()
+                    return mock_response
+                    
+                if "messages" not in body:
+                    mock_response.status_code = 400
+                    mock_response.content = json.dumps({
+                        "error": {
+                            "type": "invalid_request_error",
+                            "message": "Missing required parameter: messages"
+                        }
+                    }).encode()
+                    return mock_response
+                
+                # Validate model exists (mock valid models list)
+                model = body.get("model", "claude-sonnet-4.5")
+                valid_models = ["claude-sonnet-4.5", "gpt-4", "gpt-5-pro"]
+                if model not in valid_models:
+                    mock_response.status_code = 404
+                    mock_response.content = json.dumps({
+                        "error": {
+                            "type": "not_found_error",
+                            "message": f"Model '{model}' not found"
+                        }
+                    }).encode()
+                    return mock_response
+                
+                # Valid request
+                mock_response.status_code = 200
+                mock_response.content = _create_openai_chat_completion_response(model)
+            except json.JSONDecodeError:
+                mock_response.status_code = 400
+                mock_response.content = json.dumps({
+                    "error": {
+                        "type": "invalid_request_error",
+                        "message": "Invalid JSON in request body"
+                    }
+                }).encode()
+                return mock_response
+        else:
+            # No body provided
+            mock_response.status_code = 400
+            mock_response.content = json.dumps({
+                "error": {
+                    "type": "invalid_request_error",
+                    "message": "Request body is required"
+                }
+            }).encode()
 
     elif "/models" in path:
         # Models list endpoint

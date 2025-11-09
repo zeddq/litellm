@@ -7,7 +7,7 @@ Provides realistic mock responses for:
 - HTTP responses from providers
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 
 # =============================================================================
@@ -263,7 +263,7 @@ class MockHTTPResponse:
         self,
         status_code: int,
         json_data: Dict[str, Any] = None,
-        text: str = None,
+        text: Optional[str] = None,
         headers: Dict[str, str] = None,
     ):
         self.status_code = status_code
@@ -322,6 +322,14 @@ class MockStreamingChunk:
             for choice_data in chunk_dict["choices"]:
                 self.choices.append(MockChoice(choice_data))
 
+        # Additional attributes required by CustomStreamWrapper
+        self.id = chunk_dict.get("id", "chatcmpl-test-123")
+        self.object = chunk_dict.get("object", "chat.completion.chunk")
+        self.created = chunk_dict.get("created", 1234567890)
+        self.model = chunk_dict.get("model", "claude-sonnet-4.5")
+        self.system_fingerprint = chunk_dict.get("system_fingerprint")
+        self.usage = chunk_dict.get("usage")
+
     def model_dump(self) -> Dict[str, Any]:
         """Pydantic v2 compatibility."""
         return self._data
@@ -338,6 +346,8 @@ class MockChoice:
         self.index = choice_data.get("index", 0)
         self.delta = MockDelta(choice_data.get("delta", {}))
         self.finish_reason = choice_data.get("finish_reason")
+        # Additional attributes for compatibility
+        self.logprobs = choice_data.get("logprobs")
 
 
 class MockDelta:
@@ -346,6 +356,9 @@ class MockDelta:
     def __init__(self, delta_data: Dict[str, Any]):
         self.content = delta_data.get("content")
         self.role = delta_data.get("role")
+        # Additional attributes required by CustomStreamWrapper
+        self.function_call = delta_data.get("function_call")
+        self.tool_calls = delta_data.get("tool_calls")
 
 
 # =============================================================================
@@ -355,20 +368,119 @@ class MockDelta:
 
 def create_mock_streaming_iterator(chunks: List[Dict[str, Any]]):
     """
-    Create an async iterator for mock streaming chunks.
+    Create a CustomStreamWrapper-compatible mock for streaming chunks.
+
+    This function creates a real CustomStreamWrapper instance with properly formatted
+    litellm streaming objects, ensuring compatibility with CustomStreamWrapper's
+    internal processing logic.
 
     Args:
-        chunks: List of chunk dictionaries
+        chunks: List of chunk dictionaries in OpenAI streaming format
 
     Returns:
-        Async iterator yielding MockStreamingChunk objects
+        CustomStreamWrapper instance wrapping an async iterator yielding proper chunk objects
     """
+    from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
+    from litellm.utils import StreamingChoices, Delta, ModelResponse
+    from unittest.mock import Mock
 
     async def mock_iterator():
-        for chunk in chunks:
-            yield MockStreamingChunk(chunk)
+        """Inner async generator that yields properly formatted chunks."""
+        for chunk_data in chunks:
+            # Create proper litellm streaming response object
+            # Build choices list with proper Delta objects
+            choices_list = []
+            if "choices" in chunk_data:
+                for choice_data in chunk_data["choices"]:
+                    delta_data = choice_data.get("delta", {})
+                    delta = Delta(
+                        content=delta_data.get("content"),
+                        role=delta_data.get("role"),
+                        function_call=delta_data.get("function_call"),
+                        tool_calls=delta_data.get("tool_calls"),
+                    )
+                    choice = StreamingChoices(
+                        finish_reason=choice_data.get("finish_reason"),
+                        index=choice_data.get("index", 0),
+                        delta=delta,
+                        logprobs=choice_data.get("logprobs"),
+                    )
+                    choices_list.append(choice)
 
-    return mock_iterator()
+            # Create a mock response object that has all required attributes
+            # Use spec_set=[] to prevent auto-creation of Mock attributes
+            mock_chunk = Mock(spec_set=[
+                "choices", "id", "object", "created", "model",
+                "system_fingerprint", "usage", "provider_specific_fields",
+                "citations", "model_dump", "dict", "_hidden_params"
+            ])
+            mock_chunk.choices = choices_list
+            mock_chunk.id = chunk_data.get("id", "chatcmpl-test-123")
+            mock_chunk.object = chunk_data.get("object", "chat.completion.chunk")
+            mock_chunk.created = chunk_data.get("created", 1234567890)
+            mock_chunk.model = chunk_data.get("model", "test-model")
+            mock_chunk.system_fingerprint = chunk_data.get("system_fingerprint")
+            mock_chunk.usage = chunk_data.get("usage")
+            # Provider-specific fields (must be None or dict, not Mock)
+            mock_chunk.provider_specific_fields = None
+            mock_chunk.citations = None
+            mock_chunk._hidden_params = {}
+
+            # Add model_dump() method for serialization
+            def model_dump():
+                result = {
+                    "id": mock_chunk.id,
+                    "object": mock_chunk.object,
+                    "created": mock_chunk.created,
+                    "model": mock_chunk.model,
+                    "choices": [
+                        {
+                            "index": c.index,
+                            "delta": {
+                                "content": c.delta.content,
+                                "role": c.delta.role,
+                                "function_call": c.delta.function_call,
+                                "tool_calls": c.delta.tool_calls,
+                            },
+                            "finish_reason": c.finish_reason,
+                            "logprobs": c.logprobs,
+                        }
+                        for c in mock_chunk.choices
+                    ],
+                }
+                if mock_chunk.system_fingerprint:
+                    result["system_fingerprint"] = mock_chunk.system_fingerprint
+                if mock_chunk.usage:
+                    result["usage"] = mock_chunk.usage
+                return result
+
+            mock_chunk.model_dump = model_dump
+            mock_chunk.dict = model_dump  # Pydantic v1 compatibility
+
+            yield mock_chunk
+
+    # Create a minimal mock logging object with proper async methods
+    mock_logging_obj = Mock()
+    mock_logging_obj.model_call_details = {
+        "litellm_params": {},
+        "model": "test-model",
+    }
+
+    # Make async_failure_handler a proper async function
+    async def async_failure_handler(*_args, **_kwargs):
+        """Mock async failure handler."""
+        pass
+
+    mock_logging_obj.async_failure_handler = async_failure_handler
+    mock_logging_obj.async_success_handler = async_failure_handler  # Reuse for success
+
+    # Use the real CustomStreamWrapper class to ensure isinstance checks pass
+    return CustomStreamWrapper(
+        completion_stream=mock_iterator(),
+        model="test-model",
+        custom_llm_provider="openai",
+        logging_obj=mock_logging_obj,
+    )
 
 
 # =============================================================================

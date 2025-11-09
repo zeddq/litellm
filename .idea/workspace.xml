@@ -5,24 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jsonSchemas.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/litellm.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/watcherTasks.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.sugar/config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/fixtures/interceptor_fixtures.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/fixtures/interceptor_fixtures.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/fixtures/test_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/fixtures/test_data.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.claude/commands/analyze-errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ANALYSIS_GROUP6_ERROR_FORMAT.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FIX_SUMMARY_GROUP6_ERROR_FORMAT.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TEST_FAILURE_FIX_STRATEGY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TEST_FIX_IMPLEMENTATION_CHECKLIST.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TEST_FIX_SUMMARY.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/litellm_proxy_with_memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_with_memory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/conftest.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/fixtures/mock_responses.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/fixtures/mock_responses.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_interceptor_known_issues.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_interceptor_known_issues.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_sdk_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_sdk_e2e.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -73,7 +68,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
-    "git-widget-placeholder": "8eb6d85d",
+    "git-widget-placeholder": "c596ecef",
     "last_opened_file_path": "/Users/cezary/litellm",
     "llm.McpServerEditPanel.switcher": "1",
     "node.js.detected.package.eslint": "true",
@@ -256,7 +251,7 @@
       <workItem from="1762567821419" duration="3977000" />
       <workItem from="1762572613404" duration="11000" />
       <workItem from="1762572634638" duration="13312000" />
-      <workItem from="1762707930230" duration="6328000" />
+      <workItem from="1762707930230" duration="15022000" />
     </task>
     <servers />
   </component>
