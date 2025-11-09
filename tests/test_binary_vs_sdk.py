@@ -22,7 +22,7 @@ import json
 import os
 import time
 from typing import Dict, Any, Literal
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import pytest
 from fastapi.testclient import TestClient

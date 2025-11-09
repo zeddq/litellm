@@ -7,8 +7,8 @@
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.sugar/sugar.db" beforeDir="false" afterPath="$PROJECT_DIR$/.sugar/sugar.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_memory_proxy.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_memory_proxy.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_sdk_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_sdk_e2e.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_binary_vs_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_binary_vs_sdk.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,7 +59,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
-    "git-widget-placeholder": "670de1ca",
+    "git-widget-placeholder": "c04c72db",
     "last_opened_file_path": "/Users/cezary/litellm",
     "llm.McpServerEditPanel.switcher": "1",
     "node.js.detected.package.eslint": "true",
