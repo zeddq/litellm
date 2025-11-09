@@ -156,7 +156,7 @@ sugar:
     
   # Logging
   logging:
-    level: "INFO"
+    level: "DEBUG"
     file: ".sugar/sugar.log"  # Project-specific logs
     
   # Unified Workflow System

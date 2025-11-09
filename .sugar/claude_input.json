@@ -1,28 +1,26 @@
 {
-  "task_type": "refactor",
-  "title": "Code review and optimization for test_data.py",
-  "description": "Review ./tests/fixtures/test_data.py for potential improvements: code clarity, performance, error handling, and best practices.",
+  "task_type": "bug_fix",
+  "title": "Fix test isolation - Mock fixture leakage across test files",
+  "description": "IMPORTANT: Use /ultrathink slash command to orchestrate this investigation.\n\nFix test isolation problem where tests pass individually but fail with Mock len() errors when run in full suite.\n\nROOT CAUSE ANALYSIS NEEDED:\n- Tests in test_sdk_integration.py PASS when run alone\n- Same tests ERROR with 'Mock has no len()' when run with other test files\n- Evidence of module-scoped fixture contamination\n\nINVESTIGATION TASKS:\n1. Use /ultrathink to analyze fixture scopes in:\n   - tests/test_sdk_integration.py\n   - tests/test_sdk_e2e.py\n   - tests/test_sdk_components.py\n2. Find module-scoped fixtures that leak Mock objects\n3. Identify which fixtures should be function-scoped instead\n4. Check for shared state between test files\n\nAFFECTED TESTS (49 errors):\n- All test_sdk_integration.py tests (ERROR at setup when run with other files)\n- All test_sdk_e2e.py tests (ERROR at setup when run with other files)\n\nEVIDENCE:\nRun individually: poetry run pytest tests/test_sdk_integration.py::TestHealthEndpoint::test_health_check \u2192 PASS\nRun in suite: ./RUN_TESTS.sh all \u2192 ERROR at setup: object of type 'Mock' has no len()\n\nSOLUTION:\n- Fix fixture scopes to prevent Mock leakage\n- Ensure proper test isolation\n- Add fixture cleanup if needed\n\nVALIDATION:\nRun: ./RUN_TESTS.sh all\nVerify: 49 ERROR count drops to 0, tests that pass individually also pass in full suite",
   "execution_mode": "ExecutionMode.AGENT",
-  "agent_type": "AgentType.CODE_REVIEWER",
+  "agent_type": "AgentType.TECH_LEAD",
   "agent_fallback": true,
   "context": {
-    "work_item_id": "6863b43a-f1f0-4b50-baf0-4581bfd301e1",
-    "source_type": "maintenance_generator",
-    "priority": 2,
-    "attempts": 2,
+    "work_item_id": "ed81e84f-f9e3-411b-9e95-420eb1bf1314",
+    "source_type": "cli",
+    "priority": 5,
+    "attempts": 1,
     "files_involved": null,
     "repository_info": null,
     "previous_attempts": null,
     "session_context": {
-      "maintenance_task": true,
-      "task_type": "refactor",
-      "discovered_at": "2025-11-09T09:10:38.331547",
-      "source_type": "maintenance"
+      "added_via": "sugar_cli",
+      "timestamp": "2025-11-09T11:08:53.909414"
     }
   },
-  "timestamp": "2025-11-09T10:40:19.093738",
+  "timestamp": "2025-11-09T11:10:26.534128",
   "sugar_version": "2.1.0",
-  "continue_session": true,
+  "continue_session": false,
   "timeout_seconds": 1800,
   "working_directory": null
 }
