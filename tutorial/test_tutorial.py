@@ -532,42 +532,68 @@ async def test_client_detection():
 
 @runner.test("Module 4: Rate Limiting")
 async def test_rate_limiting():
-    """Test rate limiter functionality."""
+    """
+    Test rate limiter functionality and per-client throttling.
+    
+    Validates:
+    - Request counting within time windows
+    - Rate limit enforcement (blocking excess requests)
+    - Per-client isolation (separate limits for each client)
+    - Retry-after timing information
+    
+    Rate limiting protects the proxy from abuse and ensures fair
+    resource allocation across multiple clients. Each client gets
+    independent rate limits based on their client_id.
+    """
+    # Configure rate limiter: 5 requests per 10 second window
     limiter = RateLimiter(max_requests=5, window_seconds=10)
 
     client_id = "test_client"
 
-    # Should allow first 5 requests
+    # First 5 requests should be allowed
     for i in range(5):
         allowed, retry_after = await limiter.check_rate_limit(client_id)
-        assert allowed, f"Request {i+1} should be allowed"
+        assert allowed, f"Request {i+1} should be allowed within limit"
         print(f"   Request {i+1}: ✓ Allowed")
 
-    # Should block 6th request
+    # 6th request should be blocked (exceeds limit)
     allowed, retry_after = await limiter.check_rate_limit(client_id)
-    assert not allowed, "Request 6 should be blocked"
-    assert retry_after is not None
+    assert not allowed, "Request 6 should be blocked (over limit)"
+    assert retry_after is not None, "Should provide retry-after timing"
     print(f"   Request 6: ✓ Rate limited (retry after {retry_after}s)")
 
-    # Test different client (should be allowed)
+    # Different client should have independent limit
     allowed, _ = await limiter.check_rate_limit("different_client")
-    assert allowed, "Different client should be allowed"
-    print(f"   Different client: ✓ Allowed")
+    assert allowed, "Different client should have separate rate limit"
+    print(f"   Different client: ✓ Allowed (independent limit)")
 
 
 @runner.test("Module 4: Context Window Management")
 async def test_context_window():
-    """Test context window size limits."""
+    """
+    Test context window size limits and message truncation.
+    
+    Validates:
+    - Context window size enforcement (max_context_messages)
+    - Recent message prioritization (keeps most recent)
+    - System message preservation
+    - Correct truncation when conversation exceeds limit
+    
+    Context window management prevents token overflow by limiting
+    the number of historical messages sent to the AI. This test
+    verifies that even with many messages stored, only the most
+    recent N messages (plus system message) are included in context.
+    """
     store = InMemoryStore()
     manager = MemoryManager(
         store=store,
-        max_context_messages=5  # Small window for testing
+        max_context_messages=5  # Small window for testing truncation
     )
 
     session_id = "window_test"
     user_id = "user_1"
 
-    # Add many messages (more than max)
+    # Add 20 messages (10 user + 10 assistant) - more than max
     for i in range(10):
         await manager.add_user_message(
             session_id=session_id,
@@ -581,7 +607,7 @@ async def test_context_window():
             content=f"Response {i}"
         )
 
-    # Get context - should be limited
+    # Get context - should be limited to most recent messages
     context = await manager.get_context_for_request(
         session_id=session_id,
         user_id=user_id
@@ -589,7 +615,8 @@ async def test_context_window():
 
     # Should have system message + at most 5 conversation messages
     conversation_messages = [m for m in context if m['role'] != 'system']
-    assert len(conversation_messages) <= 5, f"Context should be limited to 5, got {len(conversation_messages)}"
+    assert len(conversation_messages) <= 5, \
+        f"Context should be limited to 5, got {len(conversation_messages)}"
 
     print(f"   Total messages added: 20")
     print(f"   Context size: {len(conversation_messages)} (max: 5)")
@@ -598,8 +625,24 @@ async def test_context_window():
 
 @runner.test("Integration: Complete Conversation Flow")
 async def test_complete_flow():
-    """Test complete conversation flow with memory."""
-    # Setup
+    """
+    Test complete end-to-end conversation flow with memory persistence.
+    
+    Validates:
+    - Multi-turn conversation tracking
+    - Memory continuity across turns (name, preferences)
+    - Context retrieval with historical information
+    - Proper message ordering and storage
+    
+    This integration test simulates a realistic conversation where:
+    1. User introduces themselves and shares preferences
+    2. User asks questions that require memory recall
+    3. Assistant responses demonstrate memory retention
+    
+    This is the most comprehensive test, ensuring all components
+    work together correctly for a complete user experience.
+    """
+    # Setup components
     store = InMemoryStore()
     manager = MemoryManager(store, max_context_messages=10)
 
@@ -608,7 +651,7 @@ async def test_complete_flow():
 
     print("\n   Simulating conversation:")
 
-    # Turn 1: User introduces themselves
+    # Turn 1: User introduces themselves with personal information
     print("   👤 Alice: My name is Alice and I love Python")
     await manager.add_user_message(
         session_id=session_id,
@@ -623,7 +666,7 @@ async def test_complete_flow():
     )
     print("   🤖 Assistant: Hello Alice! It's great to meet a Python enthusiast!")
 
-    # Turn 2: User asks a question
+    # Turn 2: User asks about their name (tests memory recall)
     print("   👤 Alice: What's my name?")
     await manager.add_user_message(
         session_id=session_id,
@@ -631,15 +674,15 @@ async def test_complete_flow():
         content="What's my name?"
     )
 
-    # Get context for response
+    # Get context for response generation
     context = await manager.get_context_for_request(
         session_id=session_id,
         user_id=user_id
     )
 
-    # Verify context contains the introduction
+    # Verify context contains the introduction from Turn 1
     context_text = " ".join([m['content'] for m in context])
-    assert "Alice" in context_text, "Context should contain user's name"
+    assert "Alice" in context_text, "Context should contain user's name from earlier"
 
     await manager.add_assistant_message(
         session_id=session_id,
@@ -648,7 +691,7 @@ async def test_complete_flow():
     )
     print("   🤖 Assistant: Your name is Alice")
 
-    # Turn 3: User asks about preference
+    # Turn 3: User asks about preference (tests memory recall)
     print("   👤 Alice: What programming language do I like?")
     await manager.add_user_message(
         session_id=session_id,
@@ -661,8 +704,10 @@ async def test_complete_flow():
         user_id=user_id
     )
 
+    # Verify context contains the preference from Turn 1
     context_text = " ".join([m['content'] for m in context])
-    assert "Python" in context_text, "Context should contain programming language preference"
+    assert "Python" in context_text, \
+        "Context should contain programming language preference from earlier"
 
     await manager.add_assistant_message(
         session_id=session_id,
@@ -671,9 +716,10 @@ async def test_complete_flow():
     )
     print("   🤖 Assistant: You love Python")
 
-    # Verify final state
+    # Verify final state: all messages stored correctly
     session = await store.get_session(session_id)
-    assert len(session.messages) == 6  # 3 user + 3 assistant
+    assert len(session.messages) == 6, \
+        "Session should contain 6 messages (3 user + 3 assistant)"
 
     print(f"\n   ✓ Conversation completed with {len(session.messages)} messages")
     print(f"   ✓ Memory maintained throughout conversation")
@@ -681,13 +727,29 @@ async def test_complete_flow():
 
 
 async def run_all_tests():
-    """Run all tutorial tests."""
+    """
+    Run all tutorial tests in sequence.
+    
+    Tests are organized by module:
+    - Module 1: Foundation (environment, logging)
+    - Module 2: Configuration (models, routing)
+    - Module 3: Memory (messages, sessions, storage)
+    - Module 4: Proxy features (detection, rate limiting)
+    - Integration: End-to-end flows
+    
+    Returns:
+        bool: True if all tests passed, False if any failed
+        
+    Note:
+        Tests run sequentially to maintain output readability.
+        Each test is independent and can be run in any order.
+    """
     print("="*70)
     print("LITELLM PROXY WITH MEMORY - TUTORIAL TEST SUITE")
     print("="*70)
     print(f"\nStarting tests at {datetime.now().isoformat()}\n")
 
-    # Run tests
+    # Run all tests in sequence
     await test_environment_config()
     await test_logging_setup()
     await test_proxy_configuration()
@@ -699,21 +761,37 @@ async def run_all_tests():
     await test_context_window()
     await test_complete_flow()
 
-    # Print summary
+    # Print summary and return overall status
     runner.print_summary()
 
     return runner.failed == 0
 
 
 def main():
-    """Main entry point."""
+    """
+    Main entry point for test suite execution.
+    
+    Handles:
+    - Async test runner execution
+    - Exit code management (0=success, 1=failure, 130=interrupted)
+    - Graceful keyboard interrupt handling
+    - Fatal error reporting with stack traces
+    
+    Exit Codes:
+        0: All tests passed successfully
+        1: One or more tests failed, or fatal error occurred
+        130: Tests interrupted by user (Ctrl+C)
+    """
     try:
+        # Run async test suite
         success = asyncio.run(run_all_tests())
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
+        # User pressed Ctrl+C - clean exit
         print("\n\nTests interrupted by user")
         sys.exit(130)
     except Exception as e:
+        # Unexpected fatal error - report with traceback
         print(f"\n\nFATAL ERROR: {e}")
         import traceback
         traceback.print_exc()
