@@ -553,7 +553,9 @@ if __name__ == "__main__":
             print("Test 1: Load Configuration")
             config = LiteLLMConfig("config/config.yaml")
             print(f"  ✅ Config loaded")
-            print(f"  Models: {len(config.get_all_models())}")
+            models = config.get_all_models()
+            models_count = len(models) if hasattr(models, "__len__") else "unknown"
+            print(f"  Models: {models_count}")
 
             # Test 2: Get model list
             print("\nTest 2: Get Model List")

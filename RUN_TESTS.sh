@@ -37,58 +37,58 @@ fi
 
 case "${1:-all}" in
     all)
-        run_tests "pytest tests/ -v --ignore=tests/test_interceptor.py --ignore=tests/test_pipeline_e2e.py --ignore=tests/test_interceptor_integration.py" "All Tests (Excluding Pipeline Tests)"
+        run_tests "poetry run pytest tests/ -v --ignore=tests/test_interceptor.py --ignore=tests/test_pipeline_e2e.py --ignore=tests/test_interceptor_integration.py" "All Tests (Excluding Pipeline Tests)"
         ;;
 
     full-suite)
-        run_tests "pytest tests/ -v" "Complete Test Suite (Including Pipeline Tests)"
+        run_tests "poetry run pytest tests/ -v" "Complete Test Suite (Including Pipeline Tests)"
         ;;
 
     coverage)
-        run_tests "pytest tests/ --cov=. --cov-report=html --cov-report=term-missing" "Tests with Coverage"
+        run_tests "poetry run pytest tests/ --cov=. --cov-report=html --cov-report=term-missing" "Tests with Coverage"
         echo -e "${GREEN}✅ Coverage report generated in htmlcov/index.html${NC}"
         ;;
 
     unit)
-        run_tests "pytest tests/test_memory_proxy.py -v -k 'TestMemoryRouter'" "Memory Proxy Unit Tests"
+        run_tests "poetry run pytest tests/test_memory_proxy.py -v -k 'TestMemoryRouter'" "Memory Proxy Unit Tests"
         ;;
 
     integration)
-        run_tests "pytest tests/test_memory_proxy.py -v -k 'TestFastAPI or TestHealth'" "Memory Proxy Integration Tests"
+        run_tests "poetry run pytest tests/test_memory_proxy.py -v -k 'TestFastAPI or TestHealth'" "Memory Proxy Integration Tests"
         ;;
 
     e2e)
-        run_tests "pytest tests/test_memory_proxy.py -v -k 'TestEndToEnd'" "Memory Proxy E2E Tests"
+        run_tests "poetry run pytest tests/test_memory_proxy.py -v -k 'TestEndToEnd'" "Memory Proxy E2E Tests"
         ;;
 
     interceptor)
-        run_tests "pytest tests/test_interceptor.py -v" "Interceptor Component Tests"
+        run_tests "poetry run pytest tests/test_interceptor.py -v" "Interceptor Component Tests"
         ;;
 
     pipeline)
-        run_tests "pytest tests/test_pipeline_e2e.py -v --run-e2e" "Full Pipeline E2E Tests"
+        run_tests "poetry run pytest tests/test_pipeline_e2e.py -v --run-e2e" "Full Pipeline E2E Tests"
         ;;
 
     interceptor-integration)
-        run_tests "pytest tests/test_interceptor_integration.py -v" "Interceptor Integration Tests"
+        run_tests "poetry run pytest tests/test_interceptor_integration.py -v" "Interceptor Integration Tests"
         ;;
 
     known-issues)
-        run_tests "pytest tests/test_interceptor_known_issues.py -v" "Known Issues Tests (Expected Failures)"
+        run_tests "poetry run pytest tests/test_interceptor_known_issues.py -v" "Known Issues Tests (Expected Failures)"
         ;;
 
     fast)
-        run_tests "pytest tests/ -v -m 'not slow' --ignore=tests/test_pipeline_e2e.py" "Fast Tests (Skip Slow)"
+        run_tests "poetry run pytest tests/ -v -m 'not slow' --ignore=tests/test_pipeline_e2e.py" "Fast Tests (Skip Slow)"
         ;;
 
     debug)
-        run_tests "pytest tests/ -v -x --pdb" "Debug Mode (Stop on First Failure)"
+        run_tests "poetry run pytest tests/ -v -x --pdb" "Debug Mode (Stop on First Failure)"
         ;;
 
     parallel)
         echo -e "${YELLOW}Installing pytest-xdist for parallel execution...${NC}"
-        pip install pytest-xdist
-        run_tests "pytest tests/ -v -n auto" "Parallel Test Execution"
+        poetry add --group test pytest-xdist
+        run_tests "poetry run pytest tests/ -v -n auto" "Parallel Test Execution"
         ;;
 
     help|--help|-h)
