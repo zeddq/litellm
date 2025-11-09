@@ -102,8 +102,7 @@ class MemoryRouter:
         """
         # Always inject user ID for routing and debugging
         user_id = self.detect_user_id(headers)
-        # headers["x-sm-user-id"] = user_id
-        headers["x-sm-user-id"] = "litellm-memory"
+        headers["x-sm-user-id"] = user_id
 
         # Only inject API key if provided
         if supermemory_api_key:

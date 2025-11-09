@@ -1,12 +1,12 @@
 {
   "task_type": "bug_fix",
-  "title": "Fix HTTP 500 proxy connection errors - Mock httpx client properly",
-  "description": "IMPORTANT: Use /ultrathink slash command to orchestrate this fix.\n\nFix HTTP 500 'All connection attempts failed' errors in proxy tests by properly mocking httpx client responses.\n\nROOT CAUSE:\n- litellm_proxy_with_memory.py cannot connect to backend LiteLLM\n- Mock httpx.AsyncClient not configured correctly in test fixtures\n- Missing mock responses for LiteLLM API calls\n\nAFFECTED TESTS (~15 failures):\n- test_binary_vs_sdk.py::TestChatCompletionsParity (6 tests) - HTTP 500\n- test_binary_vs_sdk.py::TestModelsListParity::test_models_list_same_models - HTTP 500\n- test_litellm_proxy_refactored.py::TestProxyHandler (3 tests) - HTTP 500\n- test_litellm_proxy_refactored.py::TestIntegration::test_full_chat_completion_flow - HTTP 500\n- Multiple other tests showing 'Proxy error: All connection attempts failed'\n\nERROR LOG EVIDENCE:\n- proxy.litellm_proxy_with_memory:litellm_proxy_with_memory.py:690 Proxy error: All connection attempts failed\n- assert 500 == 200  # Tests expecting 200 OK getting 500 Internal Server Error\n\nINVESTIGATION TASKS:\n1. Use /ultrathink to analyze:\n   - Test fixtures mocking httpx.AsyncClient\n   - Mock configuration in test setup\n   - LiteLLM response mocking patterns\n2. Find where httpx client should be mocked\n3. Identify what responses need to be configured\n\nSOLUTION:\n1. Create mock_litellm_completion fixture that returns valid responses\n2. Mock httpx.AsyncClient.request() to return proper responses\n3. Configure mock responses for:\n   - /v1/chat/completions (200 OK with completion)\n   - /v1/models (200 OK with models list)\n   - Health checks\n4. Update test fixtures to use proper httpx mocking\n\nFILES TO FIX:\n- Test fixtures for mocking httpx client\n- tests/conftest.py or test file fixtures\n- Mock configuration in test setup\n\nVALIDATION:\nRun: poetry run pytest tests/test_binary_vs_sdk.py tests/test_litellm_proxy_refactored.py -v\nVerify: No HTTP 500 errors, tests get expected 200 OK responses",
+  "title": "Fix memory routing user ID detection returning wrong IDs",
+  "description": "IMPORTANT: Use /ultrathink slash command to orchestrate this investigation and fix.\n\nFix memory routing tests that expect detected user IDs but actually get 'supermemory' or 'litellm-memory' default values.\n\nROOT CAUSE:\n- Tests expect detected user IDs: 'pycharm-ai', 'claude-code', 'my-project'\n- Actually getting default container tag values: 'supermemory', 'litellm-memory'\n- Mock is not properly routing headers through memory_router.detect_user_id() logic\n- Header patterns not being matched correctly in test environment\n\nAFFECTED TESTS (~5 failures):\n- test_memory_routing.py::test_header_injection - Wrong user ID\n- test_memory_proxy.py::TestMemoryRouterInjectHeaders::test_inject_headers_basic - 'litellm-memory' vs 'claude-code'\n- test_memory_proxy.py::TestMemoryRouterInjectHeaders::test_inject_headers_with_api_key - 'litellm-memory' vs 'default-user'\n- test_binary_vs_sdk.py::TestBackwardCompatibility::test_anthropic_format_compatible - 'supermemory' vs 'anthropic-python'\n- Additional tests in test_sdk_integration.py expecting proper user ID detection\n\nERROR EXAMPLES:\n- AssertionError: assert 'supermemory' == 'pycharm-ai'\n- AssertionError: assert 'litellm-memory' == 'claude-code'\n- AssertionError: assert 'supermemory' == 'my-project'\n\nINVESTIGATION TASKS:\n1. Use /ultrathink to analyze:\n   - memory_router.py detect_user_id() logic\n   - How User-Agent header patterns are matched\n   - Test fixtures setting User-Agent headers\n   - Mock chain for memory routing\n2. Verify memory_router.detect_user_id() is being called\n3. Check if header patterns are being matched correctly\n4. Identify why default user IDs are returned instead of detected ones\n\nROOT CAUSE HYPOTHESES:\n1. Mock bypassing memory_router.detect_user_id() call\n2. Header patterns not matching test User-Agent strings\n3. Headers not being properly passed to memory router\n4. Default user ID being used instead of pattern-matched ID\n\nSOLUTION:\n- Fix mock to properly inject x-sm-user-id header based on memory router detection\n- Verify memory_router.detect_user_id() is called in mock chain\n- Ensure header patterns match test User-Agent strings\n- Update test fixtures to properly set User-Agent headers\n\nFILES TO FIX:\n- Test fixtures mocking litellm completion calls\n- memory_router.py detection logic (if needed)\n- Test User-Agent header configuration\n- Mock memory routing chain\n\nVALIDATION:\nRun: poetry run pytest tests/test_memory_routing.py tests/test_memory_proxy.py::TestMemoryRouterInjectHeaders -v\nVerify: Tests get expected detected user IDs, not default 'supermemory' or 'litellm-memory'",
   "execution_mode": "ExecutionMode.AGENT",
   "agent_type": "AgentType.TECH_LEAD",
   "agent_fallback": true,
   "context": {
-    "work_item_id": "f110038b-e8fd-47ff-a0e3-c3d244d9052b",
+    "work_item_id": "66cb8bdc-fcb3-4add-aee8-1f477727640d",
     "source_type": "cli",
     "priority": 5,
     "attempts": 1,
@@ -15,10 +15,10 @@
     "previous_attempts": null,
     "session_context": {
       "added_via": "sugar_cli",
-      "timestamp": "2025-11-09T11:09:12.550561"
+      "timestamp": "2025-11-09T11:09:58.368474"
     }
   },
-  "timestamp": "2025-11-09T11:22:25.986111",
+  "timestamp": "2025-11-09T11:41:57.951754",
   "sugar_version": "2.1.0",
   "continue_session": false,
   "timeout_seconds": 1800,
