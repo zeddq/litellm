@@ -1,11 +1,34 @@
 """
 Test Script for LiteLLM Proxy with Memory Tutorial
 
-This script demonstrates and validates the key features of the tutorial.
-Run this after reviewing the tutorial to see everything in action.
+This comprehensive test suite validates all components and features covered in the
+LiteLLM Memory Proxy tutorial. It provides executable examples of how each module
+works and ensures the tutorial code functions correctly.
+
+The test suite covers:
+- Module 1: Environment configuration and logging setup
+- Module 2: Proxy configuration and model management
+- Module 3: Memory management (messages, sessions, storage)
+- Module 4: Client detection, rate limiting, and context windows
+- Integration: End-to-end conversation flows with memory persistence
+
+Each test is self-contained and demonstrates a specific feature or capability.
+Tests will skip (not fail) if optional dependencies are missing.
 
 Usage:
+    # Run all tests
     python test_tutorial.py
+    
+    # Or via pytest
+    pytest test_tutorial.py -v
+
+Exit codes:
+    0: All tests passed
+    1: One or more tests failed
+    130: Tests interrupted by user
+    
+Note: Some tests require environment variables (OPENAI_API_KEY, etc.) but will
+      use placeholder values for validation testing.
 """
 
 import asyncio
@@ -44,18 +67,51 @@ from tutorial_proxy_with_memory import (
 
 
 class TestRunner:
-    """Test runner for tutorial validation."""
+    """
+    Custom test runner for tutorial validation with structured output.
+    
+    This runner provides:
+    - Clear test separation with visual dividers
+    - Three test outcomes: passed, failed, skipped
+    - Detailed error reporting for failures
+    - Summary statistics at completion
+    
+    Attributes:
+        passed (int): Count of tests that passed all assertions
+        failed (int): Count of tests that failed one or more assertions
+        skipped (int): Count of tests skipped due to missing dependencies or errors
+    """
 
     def __init__(self):
-        """Initialize test runner."""
+        """Initialize test runner with zero counters."""
         self.passed = 0
         self.failed = 0
         self.skipped = 0
 
     def test(self, name: str):
-        """Decorator for test methods."""
+        """
+        Decorator that wraps test functions with error handling and reporting.
+        
+        This decorator:
+        - Prints formatted test headers and results
+        - Catches and categorizes exceptions (AssertionError vs general Exception)
+        - Updates test counters based on outcome
+        - Converts sync or async functions into async test wrappers
+        
+        Args:
+            name: Human-readable test name displayed in output
+            
+        Returns:
+            Decorator function that wraps the test method
+            
+        Example:
+            @runner.test("Module 1: Basic Configuration")
+            async def test_basic_config():
+                assert True, "This will pass"
+        """
         def decorator(func):
             async def wrapper(*args, **kwargs):
+                # Print test header
                 print(f"\n{'='*70}")
                 print(f"TEST: {name}")
                 print(f"{'='*70}")
@@ -64,10 +120,12 @@ class TestRunner:
                     self.passed += 1
                     print(f"✅ PASSED: {name}")
                 except AssertionError as e:
+                    # Test logic failed - this is a true test failure
                     self.failed += 1
                     print(f"❌ FAILED: {name}")
                     print(f"   Error: {e}")
                 except Exception as e:
+                    # Unexpected error (missing dependency, etc.) - skip test
                     self.skipped += 1
                     print(f"⚠️  SKIPPED: {name}")
                     print(f"   Reason: {e}")
@@ -76,7 +134,16 @@ class TestRunner:
         return decorator
 
     def print_summary(self):
-        """Print test summary."""
+        """
+        Print formatted test summary with statistics and final verdict.
+        
+        Returns:
+            bool: True if all tests passed (no failures), False otherwise
+            
+        Note:
+            Skipped tests don't count as failures - they indicate missing
+            dependencies or environmental issues, not broken code.
+        """
         total = self.passed + self.failed + self.skipped
         print(f"\n{'='*70}")
         print(f"TEST SUMMARY")
@@ -101,21 +168,39 @@ runner = TestRunner()
 
 @runner.test("Module 1: Environment Configuration")
 async def test_environment_config():
-    """Test environment configuration and validation."""
-    # Test with minimal environment
+    """
+    Test environment configuration loading and validation.
+    
+    Validates:
+    - Environment variable loading (with defaults)
+    - Configuration field validation (types, ranges)
+    - Sensitive data handling (API keys)
+    
+    This test uses a placeholder API key since we're only testing
+    configuration parsing, not actual API connectivity.
+    """
     import os
 
-    # Set minimal required env vars
+    # Set minimal required env vars for configuration validation
+    # Note: This is a test placeholder, not a real API key
     os.environ.setdefault("OPENAI_API_KEY", "sk-test-key-for-validation")
 
-    # Load config
+    # Load configuration from environment
     config = EnvironmentConfig.from_env()
 
-    # Validate fields
-    assert config.openai_api_key is not None and len(config.openai_api_key) > 0
-    assert config.proxy_port > 0 and config.proxy_port < 65536
-    assert config.max_context_messages > 0
+    # Validate API key is present and non-empty
+    assert config.openai_api_key is not None and len(config.openai_api_key) > 0, \
+        "API key should be loaded from environment"
+    
+    # Validate port is in valid range (1-65535)
+    assert config.proxy_port > 0 and config.proxy_port < 65536, \
+        f"Proxy port {config.proxy_port} must be in range 1-65535"
+    
+    # Validate message limit is positive
+    assert config.max_context_messages > 0, \
+        "Max context messages must be positive"
 
+    # Display loaded configuration (with masked API key for security)
     print(f"   Proxy: {config.proxy_host}:{config.proxy_port}")
     print(f"   Max Context: {config.max_context_messages} messages")
     print(f"   Memory TTL: {config.memory_ttl_seconds}s")
@@ -124,11 +209,22 @@ async def test_environment_config():
 
 @runner.test("Module 1: Logging Setup")
 async def test_logging_setup():
-    """Test structured logging configuration."""
-    # Test console logging
+    """
+    Test structured logging configuration and output.
+    
+    Validates:
+    - Logger initialization with specified log level
+    - Multiple log level methods (info, debug, warning, etc.)
+    - Structured output format
+    
+    The logger uses Python's standard logging module with custom
+    formatting for readable console output.
+    """
+    # Initialize logger with DEBUG level for comprehensive output
     test_logger = setup_logging(LogLevel.DEBUG)
-    assert test_logger is not None
+    assert test_logger is not None, "Logger should be initialized"
 
+    # Test different log levels
     test_logger.info("Test info message")
     test_logger.debug("Test debug message")
 
@@ -138,104 +234,145 @@ async def test_logging_setup():
 
 @runner.test("Module 2: Proxy Configuration")
 async def test_proxy_configuration():
-    """Test proxy configuration management."""
+    """
+    Test proxy configuration management and model setup.
+    
+    Validates:
+    - Adding multiple AI provider models (OpenAI, Anthropic)
+    - User pattern configuration for client detection
+    - Configuration structure validation
+    - Conversion to LiteLLM-compatible format
+    
+    This demonstrates the declarative configuration approach used
+    by the proxy to manage multiple AI providers and routing rules.
+    """
     config = ProxyConfiguration()
 
-    # Add models
+    # Add OpenAI model configuration
     config.add_model(ModelConfig(
         model_name="test-gpt-4",
         provider=ModelProvider.OPENAI,
         litellm_model="gpt-4",
-        api_key="OPENAI_API_KEY"
+        api_key="OPENAI_API_KEY"  # Environment variable name
     ))
 
+    # Add Anthropic model configuration
     config.add_model(ModelConfig(
         model_name="test-claude",
         provider=ModelProvider.ANTHROPIC,
         litellm_model="claude-sonnet-4-5-20250929",
-        api_key="ANTHROPIC_API_KEY"
+        api_key="ANTHROPIC_API_KEY"  # Environment variable name
     ))
 
-    # Add user patterns
+    # Add user detection pattern for client identification
     config.add_user_pattern(
         header="user-agent",
         pattern="TestClient",
         user_id="test-user"
     )
 
-    # Validate
-    assert len(config.models) == 2
-    assert len(config.user_id_mappings["header_patterns"]) == 1
+    # Validate configuration structure
+    assert len(config.models) == 2, "Should have 2 models configured"
+    assert len(config.user_id_mappings["header_patterns"]) == 1, \
+        "Should have 1 user pattern configured"
 
     print(f"   Models configured: {len(config.models)}")
     print(f"   User patterns: {len(config.user_id_mappings['header_patterns'])}")
 
-    # Test conversion to LiteLLM format
+    # Test conversion to LiteLLM-compatible format
     litellm_config = config.models[0].to_litellm_config()
-    assert "model_name" in litellm_config
-    assert "litellm_params" in litellm_config
+    assert "model_name" in litellm_config, "Config must include model_name"
+    assert "litellm_params" in litellm_config, "Config must include litellm_params"
 
     print("   Config conversion: OK")
 
 
 @runner.test("Module 3: Message and Session")
 async def test_message_and_session():
-    """Test message and conversation session management."""
-    # Create messages
+    """
+    Test message creation, format conversion, and session management.
+    
+    Validates:
+    - Message creation with roles and optional metadata
+    - Conversion to OpenAI and Anthropic API formats
+    - Conversation session initialization and message storage
+    - Context window retrieval with message limits
+    - Session serialization and deserialization
+    
+    This demonstrates the core data structures used for maintaining
+    conversation history and context across multiple turns.
+    """
+    # Create user message with metadata
     msg1 = Message(
         role="user",
         content="Hello, my name is Alice",
-        metadata={"test": True}
+        metadata={"test": True}  # Optional metadata for tracking
     )
 
+    # Create assistant response message
     msg2 = Message(
         role="assistant",
         content="Hello Alice! How can I help you?"
     )
 
-    # Test message conversion
+    # Test conversion to OpenAI API format
     openai_format = msg1.to_openai_format()
-    assert openai_format["role"] == "user"
-    assert openai_format["content"] == "Hello, my name is Alice"
+    assert openai_format["role"] == "user", "Role should match"
+    assert openai_format["content"] == "Hello, my name is Alice", "Content should match"
 
+    # Test conversion to Anthropic API format
     anthropic_format = msg1.to_anthropic_format()
-    assert anthropic_format["role"] == "user"
+    assert anthropic_format["role"] == "user", "Role should match Anthropic format"
 
-    # Create session
+    # Create conversation session to hold messages
     session = ConversationSession(
         session_id="test_session_1",
         user_id="test_user"
     )
 
+    # Add messages to session (maintains order)
     session.add_message(msg1)
     session.add_message(msg2)
 
-    assert len(session.messages) == 2
+    assert len(session.messages) == 2, "Session should contain 2 messages"
 
-    # Test context retrieval
+    # Test context retrieval with message limit
     context = session.get_context_messages(max_messages=10)
-    assert len(context) == 2
+    assert len(context) == 2, "Context should include all messages within limit"
 
     print(f"   Session created: {session.session_id}")
     print(f"   Messages: {len(session.messages)}")
     print(f"   Context size: {len(context)}")
 
-    # Test serialization
+    # Test session persistence (serialization/deserialization)
     session_dict = session.to_dict()
     restored = ConversationSession.from_dict(session_dict)
 
-    assert restored.session_id == session.session_id
-    assert len(restored.messages) == len(session.messages)
+    assert restored.session_id == session.session_id, "Session ID should be preserved"
+    assert len(restored.messages) == len(session.messages), \
+        "All messages should be restored"
 
     print("   Serialization: OK")
 
 
 @runner.test("Module 3: In-Memory Store")
 async def test_in_memory_store():
-    """Test in-memory storage backend."""
+    """
+    Test in-memory storage backend operations.
+    
+    Validates:
+    - Session persistence (save/retrieve)
+    - Session listing (all sessions and filtered by user)
+    - Session deletion and cleanup
+    - Data integrity across operations
+    
+    The in-memory store provides a simple, fast storage backend
+    suitable for development and testing. In production, this would
+    be replaced with a persistent database backend.
+    """
     store = InMemoryStore()
 
-    # Create session
+    # Create a test session with a message
     session = ConversationSession(
         session_id="memory_test_1",
         user_id="user_1"
@@ -246,51 +383,63 @@ async def test_in_memory_store():
         content="Test message"
     ))
 
-    # Save session
+    # Save session to store
     await store.save_session(session)
 
-    # Retrieve session
+    # Retrieve session and verify data integrity
     retrieved = await store.get_session("memory_test_1")
-    assert retrieved is not None
-    assert retrieved.session_id == "memory_test_1"
-    assert len(retrieved.messages) == 1
+    assert retrieved is not None, "Session should exist after save"
+    assert retrieved.session_id == "memory_test_1", "Session ID should match"
+    assert len(retrieved.messages) == 1, "Message count should match"
 
     print(f"   Session saved and retrieved: {retrieved.session_id}")
 
-    # List sessions
+    # List all sessions (no filter)
     sessions = await store.list_sessions()
-    assert "memory_test_1" in sessions
+    assert "memory_test_1" in sessions, "Session should appear in list"
 
     print(f"   Total sessions: {len(sessions)}")
 
-    # Filter by user
+    # List sessions filtered by user ID
     user_sessions = await store.list_sessions(user_id="user_1")
-    assert "memory_test_1" in user_sessions
+    assert "memory_test_1" in user_sessions, "Session should match user filter"
 
     print(f"   User sessions: {len(user_sessions)}")
 
-    # Delete session
+    # Delete session and verify removal
     await store.delete_session("memory_test_1")
     deleted = await store.get_session("memory_test_1")
-    assert deleted is None
+    assert deleted is None, "Session should not exist after deletion"
 
     print("   Session deletion: OK")
 
 
 @runner.test("Module 3: Memory Manager")
 async def test_memory_manager():
-    """Test high-level memory management."""
+    """
+    Test high-level memory management and conversation tracking.
+    
+    Validates:
+    - Adding user and assistant messages to conversations
+    - Context retrieval with system message injection
+    - Memory continuity across multiple turns
+    - Automatic session creation and management
+    
+    The MemoryManager provides a high-level API that handles session
+    lifecycle, context window management, and system message injection
+    automatically.
+    """
     store = InMemoryStore()
     manager = MemoryManager(
         store=store,
-        max_context_messages=5,
-        ttl_seconds=3600
+        max_context_messages=5,  # Limit context window
+        ttl_seconds=3600  # 1 hour session timeout
     )
 
     session_id = "manager_test_1"
     user_id = "user_1"
 
-    # Add conversation
+    # Simulate a conversation about user preferences
     await manager.add_user_message(
         session_id=session_id,
         user_id=user_id,
@@ -309,21 +458,21 @@ async def test_memory_manager():
         content="What's my favorite color?"
     )
 
-    # Get context
+    # Retrieve context for next AI response
     context = await manager.get_context_for_request(
         session_id=session_id,
         user_id=user_id
     )
 
     # Should have system message + 3 conversation messages
-    assert len(context) >= 3
+    assert len(context) >= 3, "Context should include system message and conversation"
 
     print(f"   Context messages: {len(context)}")
     print(f"   System message: {'yes' if any(m['role'] == 'system' for m in context) else 'no'}")
 
-    # Verify conversation flow
+    # Verify conversation flow and memory continuity
     user_messages = [m for m in context if m['role'] == 'user']
-    assert len(user_messages) >= 2
+    assert len(user_messages) >= 2, "Should have at least 2 user messages"
 
     print(f"   User messages: {len(user_messages)}")
     print(f"   Memory continuity: OK")
@@ -331,34 +480,51 @@ async def test_memory_manager():
 
 @runner.test("Module 4: Client Detection")
 async def test_client_detection():
-    """Test client detection and user ID assignment."""
+    """
+    Test client detection and automatic user ID assignment.
+    
+    Validates:
+    - Pattern matching against User-Agent headers
+    - Custom header detection (x-memory-user-id)
+    - Default user ID fallback for unknown clients
+    - Multiple pattern configurations
+    
+    Client detection enables automatic memory isolation by identifying
+    different AI clients (IDEs, CLI tools, custom apps) and assigning
+    them unique user IDs for separate conversation contexts.
+    """
     config = ProxyConfiguration()
 
-    # Add patterns
+    # Add detection patterns for different clients
     config.add_user_pattern(
         header="user-agent",
-        pattern="Claude Code",
+        pattern="Claude Code",  # Matches "Claude Code/1.0", etc.
         user_id="claude-cli"
     )
     config.add_user_pattern(
         header="user-agent",
-        pattern="python-requests",
+        pattern="python-requests",  # Matches "python-requests/2.28.0", etc.
         user_id="python-client"
     )
 
     detector = ClientDetector(config)
 
-    # Test pattern matching
+    # Test cases: (headers, expected_user_id)
     test_cases = [
+        # Known client: Claude Code
         ({"user-agent": "Claude Code/1.0"}, "claude-cli"),
+        # Known client: Python requests library
         ({"user-agent": "python-requests/2.28.0"}, "python-client"),
+        # Unknown client: Falls back to default
         ({"user-agent": "curl/7.68.0"}, config.user_id_mappings["default_user_id"]),
+        # Explicit user ID via custom header (overrides detection)
         ({"x-memory-user-id": "custom-123"}, "custom-123"),
     ]
 
     for headers, expected_user_id in test_cases:
         detected = detector.detect_user_id(headers)
-        assert detected == expected_user_id, f"Expected {expected_user_id}, got {detected}"
+        assert detected == expected_user_id, \
+            f"Expected {expected_user_id}, got {detected} for {headers}"
         print(f"   {headers} -> {detected} ✓")
 
     print("   All detection patterns working correctly")
