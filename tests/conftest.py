@@ -71,6 +71,15 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+# Import interceptor fixtures to make them available to all tests
+from fixtures.interceptor_fixtures import (
+    temp_port_registry,
+    cleanup_port_registry,
+    interceptor_server,
+)
+
+__all__ = ['temp_port_registry', 'cleanup_port_registry', 'interceptor_server']
+
 
 # ============================================================================
 # HELPER FUNCTIONS FOR MOCK RESPONSES
