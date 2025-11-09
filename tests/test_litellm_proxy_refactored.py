@@ -210,7 +210,7 @@ class TestProxyHandler:
 
     @patch("proxy.litellm_proxy_with_memory.proxy_request")
     async def test_proxy_handler_non_chat_endpoint(
-        self, mock_proxy_request, client_with_router
+        self, mock_proxy_request, client_with_router, mock_httpx_client
     ):
         """Test proxying a non-chat endpoint (no memory routing applied)."""
         mock_proxy_request.return_value = (
@@ -226,7 +226,7 @@ class TestProxyHandler:
     @patch("proxy.litellm_proxy_with_memory.proxy_request")
     @patch.dict("os.environ", {"SUPERMEMORY_API_KEY": "test-sm-key"})
     async def test_proxy_handler_chat_with_memory_routing(
-        self, mock_proxy_request, client_with_router, mock_memory_router
+        self, mock_proxy_request, client_with_router, mock_memory_router, mock_httpx_client
     ):
         """Test chat completions with memory routing enabled."""
         mock_proxy_request.return_value = (
@@ -258,7 +258,7 @@ class TestProxyHandler:
 
     @patch("proxy.litellm_proxy_with_memory.proxy_request")
     async def test_proxy_handler_chat_without_memory_routing(
-        self, mock_proxy_request, client_without_router
+        self, mock_proxy_request, client_without_router, mock_httpx_client
     ):
         """Test chat completions with memory routing disabled."""
         mock_proxy_request.return_value = (
@@ -331,7 +331,7 @@ class TestIntegration:
     @patch("proxy.litellm_proxy_with_memory.proxy_request")
     @patch.dict("os.environ", {"SUPERMEMORY_API_KEY": "test-sm-key"})
     async def test_full_chat_completion_flow(
-        self, mock_proxy_request, client_with_router, mock_memory_router
+        self, mock_proxy_request, client_with_router, mock_memory_router, mock_httpx_client
     ):
         """Test the complete flow from request to response with memory routing."""
         # Setup mock response
