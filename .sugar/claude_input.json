@@ -1,24 +1,24 @@
 {
   "task_type": "bug_fix",
-  "title": "Fix Mock len() STARTUP FAILURES blocking 40 tests",
-  "description": "Fix the critical STARTUP FAILED error: object of type Mock has no len() at litellm_proxy_sdk.py:150 that blocks 40 tests in test_sdk_integration.py, test_sdk_e2e.py, and test_interceptor*.py.\n\nROOT CAUSE:\n- Line 150: len(memory_router.header_patterns) called during lifespan() startup\n- During TestClient initialization, memory_router.header_patterns is a Mock object\n- Mock objects dont support len() operation\n\nAFFECTED TESTS (40 errors):\n- All TestHealthEndpoint tests (ERROR at setup)\n- All TestMemoryRoutingInfoEndpoint tests (ERROR at setup)  \n- All TestChatCompletionsNonStreaming tests (ERROR at setup)\n- All TestChatCompletionsStreaming tests (ERROR at setup)\n- All TestErrorHandling tests (ERROR at setup)\n- All test_interceptor.py tests (ERROR at setup)\n- All test_sdk_e2e.py E2E tests (ERROR at setup)\n\nSOLUTION:\nAdd resilient len() check in litellm_proxy_sdk.py:150:\nif hasattr(memory_router.header_patterns, __len__):\n    len(memory_router.header_patterns)\n\nFILES TO FIX:\n- src/proxy/litellm_proxy_sdk.py:150\n\nVALIDATION:\nRun: poetry run pytest tests/test_sdk_integration.py -v --tb=no\nVerify 0 STARTUP FAILED errors, 40 tests move from ERROR to PASSED/FAILED",
+  "title": "Fix Memory Router receiving string instead of config object (8 failures)",
+  "description": "Fix AttributeError: str object has no attribute user_id_mappings in test_memory_proxy.py and test_memory_routing.py tests.\n\nROOT CAUSE:\n- Tests passing string config path to MemoryRouter()\n- MemoryRouter expects LiteLLMProxyConfig object, not string\n- Error occurs when MemoryRouter tries to access config.user_id_mappings\n\nAFFECTED TESTS (8 failures):\n- test_memory_routing.py::test_model_detection\n- test_memory_routing.py::test_header_injection  \n- test_memory_proxy.py::TestMemoryRouterInit (all 4 tests)\n- test_memory_proxy.py::TestPerformance::test_router_performance_many_patterns\n- test_memory_proxy.py::TestEdgeCases (2 tests)\n\nSOLUTION:\nUpdate all MemoryRouter() instantiations to load config first:\n  from proxy.schema import load_config_with_env_resolution\n  config = load_config_with_env_resolution(config_file)\n  memory_router = MemoryRouter(config)\n\nFILES TO FIX:\n- tests/test_memory_routing.py (search for MemoryRouter() calls)\n- tests/test_memory_proxy.py (search for MemoryRouter() calls)\n\nVALIDATION:\nRun: poetry run pytest tests/test_memory_routing.py tests/test_memory_proxy.py::TestMemoryRouterInit -v\nVerify all 8 tests PASS, no AttributeError str object errors",
   "execution_mode": "ExecutionMode.AGENT",
   "agent_type": "AgentType.TECH_LEAD",
   "agent_fallback": true,
   "context": {
-    "work_item_id": "f14ad09f-76f7-4466-8d9b-e71b887414e2",
+    "work_item_id": "cfcd5a85-bfbb-4384-b47d-21a3b507f746",
     "source_type": "cli",
-    "priority": 5,
+    "priority": 4,
     "attempts": 2,
     "files_involved": null,
     "repository_info": null,
     "previous_attempts": null,
     "session_context": {
       "added_via": "sugar_cli",
-      "timestamp": "2025-11-09T10:04:06.011751"
+      "timestamp": "2025-11-09T10:04:23.810110"
     }
   },
-  "timestamp": "2025-11-09T10:13:33.691176",
+  "timestamp": "2025-11-09T10:18:34.830830",
   "sugar_version": "2.1.0",
   "continue_session": true,
   "timeout_seconds": 1800,

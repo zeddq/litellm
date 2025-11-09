@@ -7,6 +7,7 @@ Run this to validate the routing logic before deploying.
 import sys
 
 from proxy.memory_router import MemoryRouter
+from proxy.schema import load_config_with_env_resolution
 
 # Test cases
 TEST_CASES = [
@@ -76,7 +77,8 @@ def test_routing():
 
     # Initialize router
     try:
-        router = MemoryRouter("config/config.yaml")
+        config = load_config_with_env_resolution("config/config.yaml")
+        router = MemoryRouter(config)
         print("✓ Router initialized successfully")
         print()
     except Exception as e:
@@ -174,7 +176,8 @@ def test_header_injection():
     print("=" * 70)
     print()
 
-    router = MemoryRouter("config/config.yaml")
+    config = load_config_with_env_resolution("config/config.yaml")
+    router = MemoryRouter(config)
 
     test_headers = {
         "user-agent": "OpenAIClientImpl/Java unknown",
@@ -215,7 +218,8 @@ def test_model_detection():
     print("=" * 70)
     print()
 
-    router = MemoryRouter("config/config.yaml")
+    config = load_config_with_env_resolution("config/config.yaml")
+    router = MemoryRouter(config)
 
     models = [
         ("claude-sonnet-4.5", True, "Should use Supermemory"),
@@ -237,7 +241,7 @@ def test_model_detection():
     else:
         print("\n✗ Some model detection tests failed")
 
-    return required
+    return all_passed
 
 
 def main():
