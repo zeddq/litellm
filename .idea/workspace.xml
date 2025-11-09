@@ -5,18 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/E2E_TESTS_IMPLEMENTATION_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/out" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/fixtures/interceptor_fixtures.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/helpers/pipeline_helpers.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_interceptor.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_interceptor_integration.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_interceptor_known_issues.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_pipeline_e2e.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.sugar/sugar.db" beforeDir="false" afterPath="$PROJECT_DIR$/.sugar/sugar.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RUN_TESTS.sh" beforeDir="false" afterPath="$PROJECT_DIR$/RUN_TESTS.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,7 +56,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
-    "git-widget-placeholder": "11d418ae",
+    "git-widget-placeholder": "b306b312",
     "last_opened_file_path": "/Users/cezary/litellm",
     "llm.McpServerEditPanel.switcher": "1",
     "node.js.detected.package.eslint": "true",
