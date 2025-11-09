@@ -402,9 +402,13 @@ class MyFastMemoryLane(FastAPI):
             app.state.litellm_auth_token = litellm_auth_token
 
             if memory_router:
-                logger.info(
-                    f"Memory Router initialized with {len(memory_router.header_patterns)} patterns"
+                # Resilient len() check for Mock objects in tests
+                pattern_count = (
+                    len(memory_router.header_patterns)
+                    if hasattr(memory_router.header_patterns, "__len__")
+                    else "unknown"
                 )
+                logger.info(f"Memory Router initialized with {pattern_count} patterns")
             else:
                 logger.warning("Memory Router not provided - memory routing disabled")
 
