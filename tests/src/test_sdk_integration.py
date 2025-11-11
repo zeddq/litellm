@@ -616,16 +616,23 @@ class TestApplicationLifecycle:
         """Test that startup initializes session manager."""
         os.environ["LITELLM_CONFIG_PATH"] = test_config_file
 
-        with TestClient(app) as client:
-            # Session should be initialized
+        # Manually invoke the lifespan context manager
+        lifespan_context = app.router.lifespan_context(app)
+        
+        async with lifespan_context:
+            # Session should be initialized after lifespan startup
             assert LiteLLMSessionManager.is_initialized()
 
-            # Health check should confirm
-            response = client.get("/health")
-            data = response.json()
-            assert data["session"]["initialized"] is True
+            # Use httpx.AsyncClient to make requests
+            async with httpx.AsyncClient(
+                transport=httpx.ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                # Health check should confirm
+                response = await client.get("/health")
+                data = response.json()
+                assert data["session"]["initialized"] is True
 
-        # After context exit, session should be closed
+        # After lifespan context exit, session should be closed
         assert not LiteLLMSessionManager.is_initialized()
 
 

@@ -233,6 +233,33 @@ class PortRegistry:
 
         return False
 
+    def allocate_port(self, project_path: str) -> int:
+        """
+        Backward-compatible alias for get_or_allocate_port().
+
+        Args:
+            project_path: Absolute path to the project
+
+        Returns:
+            Assigned port number
+
+        Raises:
+            RuntimeError: If no ports available in the configured range
+        """
+        return self.get_or_allocate_port(project_path)
+
+    def deallocate_port(self, project_path: str) -> bool:
+        """
+        Backward-compatible alias for remove_mapping().
+
+        Args:
+            project_path: Absolute path to the project
+
+        Returns:
+            True if mapping was removed, False if not found
+        """
+        return self.remove_mapping(project_path)
+
     def get_info(self) -> dict:
         """
         Get registry information.

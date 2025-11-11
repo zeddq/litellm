@@ -23,18 +23,25 @@ import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Annotated, Any, Dict, Optional
+from typing import Annotated, Any, Dict, Optional, TypedDict
 
 import httpx
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse
-from litellm.types.llms.anthropic import AnthropicThinkingParam
 from starlette.datastructures import Headers
 
 from proxy import schema
 # Handle both package and direct execution imports
 from proxy.memory_router import MemoryRouter
+
+
+# Type definition for Anthropic thinking parameters
+# This replaces the non-existent litellm.types.llms.anthropic.AnthropicThinkingParam
+class AnthropicThinkingParam(TypedDict, total=False):
+    """TypedDict for Anthropic extended thinking parameters."""
+    type: str
+    budget_tokens: int
 
 # if os.getenv('ENABLE_DEBUG'):
 #       import debugpy
@@ -565,6 +572,7 @@ def create_app(
         Returns:
             Dict with list of available models
         """
+        # Verify API key before serving models list
         await verify_api_key(request)
 
         if not memory_router or not memory_router.config:
@@ -766,10 +774,59 @@ def create_app(
                 headers=dict(response_headers),
             )
 
+        except httpx.ConnectError as e:
+            logger.error(f"{request_id} Backend unavailable: {e}")
+            error_response = {
+                "error": {
+                    "message": f"Backend service unavailable: {str(e)}",
+                    "type": "connection_error",
+                    "code": "backend_unavailable"
+                }
+            }
+            return Response(
+                content=json.dumps(error_response).encode(),
+                status_code=500,
+                headers={"content-type": "application/json"},
+            )
+        except httpx.TimeoutException as e:
+            logger.error(f"{request_id} Request timeout: {e}")
+            error_response = {
+                "error": {
+                    "message": f"Request timeout: {str(e)}",
+                    "type": "timeout_error",
+                    "code": "request_timeout"
+                }
+            }
+            return Response(
+                content=json.dumps(error_response).encode(),
+                status_code=504,
+                headers={"content-type": "application/json"},
+            )
+        except json.JSONDecodeError as e:
+            logger.error(f"{request_id} Malformed response from backend: {e}")
+            error_response = {
+                "error": {
+                    "message": "Malformed response from backend",
+                    "type": "invalid_response_error",
+                    "code": "malformed_response"
+                }
+            }
+            return Response(
+                content=json.dumps(error_response).encode(),
+                status_code=502,
+                headers={"content-type": "application/json"},
+            )
         except Exception as e:
             logger.error(f"{request_id} Proxy error: {e}")
+            error_response = {
+                "error": {
+                    "message": f"Internal proxy error: {str(e)}",
+                    "type": "internal_error",
+                    "code": "proxy_error"
+                }
+            }
             return Response(
-                content=str(e).encode(),
+                content=json.dumps(error_response).encode(),
                 status_code=500,
                 headers={"content-type": "text/plain"},
             )

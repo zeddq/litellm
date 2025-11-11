@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": {
+      "tools": [
+        "TodoWrite",
+        "SlashCommand",
+        "Bash",
+        "Read",
+        "Grep",
+        "Edit",
+        "BashOutput"
+      ]
+    }
+  }
+}
