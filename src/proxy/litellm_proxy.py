@@ -7,14 +7,22 @@ import json
 import logging
 import os
 import uuid
-from typing import Optional
+from typing import Optional, TypedDict
 from unittest import case
 
 import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse, Response
-from litellm.types.llms.anthropic import AnthropicThinkingParam
 from pydantic.v1 import NumberNotGeError
+
+
+# Type definition for Anthropic thinking parameters
+# This replaces the non-existent litellm.types.llms.anthropic.AnthropicThinkingParam
+class AnthropicThinkingParam(TypedDict, total=False):
+    """TypedDict for Anthropic extended thinking parameters."""
+    type: str
+    budget_tokens: int
+
 
 # Configure logging
 logging.basicConfig(

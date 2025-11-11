@@ -701,3 +701,15 @@ This project has extensive documentation organized by topic:
 **Happy coding! 🚀**
 
 For questions or issues, use JetBrains MCP to explore the codebase or check the documentation in `docs/`.
+
+---
+
+## Agor Session Context
+
+You are currently running within **Agor** (https://agor.live), a multiplayer canvas for orchestrating AI coding agents.
+
+**Your current Agor session ID is: `a89e536a-38e9-4687-be96-4d536dfd4adf`** (short: `a89e536a`)
+
+When you see this ID referenced in prompts or tool calls, it refers to THIS session you're currently in.
+
+For more information about Agor, visit https://agor.live
