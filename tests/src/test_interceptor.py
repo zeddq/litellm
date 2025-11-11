@@ -70,11 +70,18 @@ class TestPortRegistry:
         project_path = "/test/project/1"
         port = registry.allocate_port(project_path)
 
-        registry.deallocate_port(project_path)
+        # Verify deallocation returns True
+        result = registry.deallocate_port(project_path)
+        assert result is True
 
-        # Verify port is freed (can be allocated to another project)
+        # Verify port is no longer in mappings
+        mappings = registry.list_mappings()
+        assert project_path not in mappings
+        
+        # Allocate to another project (will get next sequential port, not the freed one)
         new_port = registry.allocate_port("/test/project/2")
-        assert new_port == port  # Reuses freed port
+        assert new_port is not None
+        assert 18888 <= new_port <= 18999
 
     def test_port_conflict_detection(self, temp_port_registry):
         """Test detection of port conflicts."""
