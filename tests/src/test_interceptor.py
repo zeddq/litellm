@@ -104,7 +104,7 @@ class TestPortRegistry:
             f.write("{ invalid json }")
 
         # Should recover and create new registry
-        registry = PortRegistry(str(registry_file))
+        registry = PortRegistry(port_min=18888, port_max=18999, registry_file=registry_file)
         port = registry.allocate_port("/test/project/1")
 
         assert port is not None
