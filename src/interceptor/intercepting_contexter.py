@@ -56,6 +56,16 @@ logger.info(f"Target URL: {TARGET_LLM_URL}")
 logger.info(f"Inject into content: {INJECT_INTO_CONTENT}")
 
 
+@app.get("/health")
+async def health():
+    """Health check endpoint."""
+    return {
+        "status": "healthy",
+        "instance_id": INSTANCE_ID,
+        "target": TARGET_LLM_URL,
+    }
+
+
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def proxy_request(request: Request, path: str):
     """Forward requests with custom headers and instance identification."""
@@ -141,16 +151,6 @@ async def proxy_request(request: Request, path: str):
                 ),
                 status_code=response.status_code,
             )
-
-
-@app.get("/health")
-async def health():
-    """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "instance_id": INSTANCE_ID,
-        "target": TARGET_LLM_URL,
-    }
 
 
 if __name__ == "__main__":

@@ -30,10 +30,13 @@ best for specific problem types.
    - Commit frequently: `git commit -m "description"`
    - Merge with: `git merge --no-ff` for explicit merge commits
 
-3. **Agor MCP** - For creating isolated worktrees for parallel execution
+3. **Agor MCP** - For creating isolated worktrees AND spawning parallel subsessions
    - Use `agor.create_worktree()` to create session-scoped worktrees
+   - Use `agor.spawn_subsession()` to spawn agents in dedicated worktrees
+   - **CRITICAL**: Each subagent must run in its own spawned subsession + worktree
    - Automatic cleanup when session ends
    - Enables true parallel work without branch switching
+   - **Do NOT use Task command** - use Agor spawn subsession instead
 
 4. **Context7 MCP** (Optional) - For fetching documentation when needed
    - Use for library/framework documentation
@@ -46,11 +49,13 @@ best for specific problem types.
 
 ## 👥 Specialist Sub-Agents
 
-You will coordinate these specialist agents **in parallel where possible**:
+You will coordinate these specialist agents **in parallel where possible**.
 
-### 1. **Architect Agent** (`backend-architect:backend-architect`)
+**CRITICAL**: All agents MUST be spawned using `agor.spawn_subsession()` in dedicated worktrees. DO NOT use Task command.
 
-web-dev:web-dev**Role:** Design the fix strategy with parallel execution plan
+### 1. **Architect Agent** (`backend-architect`)
+
+**Role:** Design the fix strategy with parallel execution plan
 
 **Tasks:**
 
@@ -71,14 +76,14 @@ web-dev:web-dev**Role:** Design the fix strategy with parallel execution plan
 
 **Available Agents:**
 
-- `python-expert:python-expert` - Deep Python expertise, async/await, type systems
-- `web-dev:web-dev` - Full-stack web development, React, TypeScript, FastAPI
+- `python-expert` - Deep Python expertise, async/await, type systems
+- `web-dev` - Full-stack web development, React, TypeScript, FastAPI
 
 **Selection Strategy:**
 
 - **If problem nature is clear:**
-  - **Python-heavy** (async, type errors, imports, mocking) → `python-expert:python-expert`
-  - **Web-focused** (API endpoints, request handling, FastAPI, React) → `web-dev:web-dev`
+  - **Python-heavy** (async, type errors, imports, mocking) → `python-expert`
+  - **Web-focused** (API endpoints, request handling, FastAPI, React) → `web-dev`
 - **If unsure or ambiguous:**
   - **Randomly select** one agent per group
   - **Track performance** for future learning
@@ -145,9 +150,15 @@ web-dev:web-dev**Role:** Design the fix strategy with parallel execution plan
 
 4. **Spawn Architect Agent**
 
-   ```
-   Task: backend-architect:backend-architect
-   Prompt: "Analyze these [N] error groups and design a PARALLEL fix strategy:
+   **Use Agor MCP spawn subsession** (not Task command):
+
+   ```python
+   # Spawn architect in main orchestration worktree
+   agor.spawn_subsession(
+       worktree_name=f"fix-errors-{date}-main",
+       agent_type="backend-architect",
+       instruction="""
+   Analyze these [N] error groups and design a PARALLEL fix strategy:
 
    [For each group:]
    Group 1: [Name] - [Count] errors
@@ -167,10 +178,13 @@ web-dev:web-dev**Role:** Design the fix strategy with parallel execution plan
    4. Time estimates per group
    5. Recommended approach for each group
    6. **Agent recommendation per group:**
-      - Use python-expert:python-expert if: Python-specific (async, types, mocking)
-      - Use web-dev:web-dev if: Web-focused (APIs, FastAPI, endpoints)
+      - Use python-expert if: Python-specific (async, types, mocking)
+      - Use web-dev if: Web-focused (APIs, FastAPI, endpoints)
       - Random selection if: Ambiguous or could go either way
-   7. Integration/merge strategy (how to combine fixes safely)"
+   7. Integration/merge strategy (how to combine fixes safely)
+   """,
+       session_id=current_session_id
+   )
    ```
 
 5. **Review and optimize parallel plan**
@@ -229,50 +243,80 @@ web-dev:web-dev**Role:** Design the fix strategy with parallel execution plan
 
 7. **Execute Batch 1 (Independent Groups) - PARALLEL**
 
-   **Launch multiple Coder agents simultaneously:**
+   **Launch multiple Coder agents simultaneously using Agor spawn subsession:**
 
-   ```
-   // Agent 1 (python-expert chosen - Python-heavy group)
-   Task: python-expert:python-expert
-   Group: [Group 1 name]
-   Bookmark: fix-group-[name-1]
+   **CRITICAL**: Each agent MUST be spawned via `agor.spawn_subsession()` in its dedicated worktree.
+
+   ```python
+   # Agent 1 (python-expert chosen - Python-heavy group)
+   agor.spawn_subsession(
+       worktree_name=f"fix-group-{group_1_name}-{timestamp}",
+       agent_type="python-expert",
+       instruction=f"""
+   Fix error group: {group_1_details}
+   
+   Group: {group_1_name}
    Selection: [Deliberate / Random A/B Test]
-   Prompt: "Fix error group: [Group 1 details]
-
+   
    Root cause analysis:
    - Use JetBrains MCP to explore codebase
    - Research GitHub issues, docs, community solutions
    - If blocked, request problem-solver-specialist assistance
-
+   
    Implementation:
    - Use JetBrains MCP for all file operations
-   - Work in worktree: fix-group-[name-1]
+   - Work in THIS worktree: fix-group-{group_1_name}
    - Commit after each logical change: git commit -m 'Fix: [specific change]'
-
+   
    Validation:
    - Run affected tests
    - Verify no regressions
-
+   
    Return:
    - Files modified, commits created, test results
-   - **Performance metrics:** time spent, blockers encountered, success rate"
+   - **Performance metrics:** time spent, blockers encountered, success rate
+   """,
+       session_id=current_session_id
+   )
 
-   // Agent 2 (web-dev chosen - Web-focused group)
-   Task: web-dev:web-dev
-   Group: [Group 2 name]
-   Bookmark: fix-group-[name-2]
-   Selection: [Deliberate / Random A/B Test]
-   Prompt: [Same structure, different group]
+   # Agent 2 (web-dev chosen - Web-focused group)
+   agor.spawn_subsession(
+       worktree_name=f"fix-group-{group_2_name}-{timestamp}",
+       agent_type="web-dev",
+       instruction=f"""
+   Fix error group: {group_2_details}
+   
+   [Same structure as Agent 1, different group]
+   """,
+       session_id=current_session_id
+   )
 
-   // Agent 3 (random selection - ambiguous group)
-   Task: [randomly choose: python-expert:python-expert OR web-dev:web-dev]
-   Group: [Group 3 name]
-   Bookmark: fix-group-[name-3]
-   Selection: Random A/B Test (coin flip)
-   Prompt: [Same structure, different group]
+   # Agent 3 (random selection - ambiguous group)
+   import random
+   agent_type = random.choice(["python-expert", "web-dev"])
+   
+   agor.spawn_subsession(
+       worktree_name=f"fix-group-{group_3_name}-{timestamp}",
+       agent_type=agent_type,
+       instruction=f"""
+   Fix error group: {group_3_details}
+   
+   Selection: Random A/B Test (coin flip selected: {agent_type})
+   
+   [Same structure as Agent 1, different group]
+   """,
+       session_id=current_session_id
+   )
 
-   // Continue for all Batch 1 groups...
+   # Continue spawning subsessions for all Batch 1 groups...
+   # Each group gets its own worktree + spawned subsession
    ```
+
+   **Key Points:**
+   - Each `agor.spawn_subsession()` call is non-blocking (runs in parallel)
+   - Each subsession works in its own isolated worktree
+   - No Task command usage - pure Agor MCP architecture
+   - Session ID ties all subsessions together for tracking
 
 8. **Await Batch 1 completion and integrate**
    - Wait for all Batch 1 agents to complete
@@ -498,7 +542,7 @@ For each group:
 **Agent Performance Comparison:**
 
 ```
-python-expert:python-expert
+python-expert (spawned via Agor subsessions)
 - Groups handled: [N]
 - Deliberate assignments: [N]
 - Random assignments: [N]
@@ -507,7 +551,7 @@ python-expert:python-expert
 - Strengths observed: [list]
 - Weaknesses observed: [list]
 
-web-dev:web-dev
+web-dev (spawned via Agor subsessions)
 - Groups handled: [N]
 - Deliberate assignments: [N]
 - Random assignments: [N]
@@ -557,26 +601,39 @@ web-dev:web-dev
 For each error group:
 
 ```python
-def select_agent(group):
+def select_agent_and_spawn(group, worktree_name, instruction):
+    """
+    Select appropriate agent type and spawn subsession in dedicated worktree.
+    CRITICAL: Always use agor.spawn_subsession() - NEVER use Task command.
+    """
     # Analyze group characteristics
     tech_context = analyze_tech_context(group)
 
     if tech_context == "PYTHON_HEAVY":
         # Async, types, mocking, imports, decorators
-        return "python-expert:python-expert", "Deliberate (Python-focused)"
-
+        agent_type = "python-expert"
+        reason = "Deliberate (Python-focused)"
+    
     elif tech_context == "WEB_FOCUSED":
         # FastAPI, endpoints, routing, HTTP, request handling
-        return "web-dev:web-dev", "Deliberate (Web-focused)"
-
+        agent_type = "web-dev"
+        reason = "Deliberate (Web-focused)"
+    
     elif tech_context == "MIXED" or tech_context == "UNCLEAR":
         # Random selection for A/B testing
         import random
-        agent = random.choice([
-            "python-expert:python-expert",
-            "web-dev:web-dev"
-        ])
-        return agent, "Random A/B Test"
+        agent_type = random.choice(["python-expert", "web-dev"])
+        reason = "Random A/B Test"
+    
+    # Spawn subsession in dedicated worktree
+    agor.spawn_subsession(
+        worktree_name=worktree_name,
+        agent_type=agent_type,
+        instruction=instruction,
+        session_id=current_session_id
+    )
+    
+    return agent_type, reason
 ```
 
 **Tech Context Classification:**
@@ -589,7 +646,11 @@ def select_agent(group):
 ## ⚠️ Constraints & Guidelines
 
 - **Use Git with merge preference** - Always use `git merge --no-ff`, base branch is `agor_init`
-- **Use Agor MCP for worktrees** - Create isolated worktrees per error group for parallel work
+- **Use Agor MCP for worktrees AND subsessions** - CRITICAL requirements:
+  - Create isolated worktrees per error group for parallel work
+  - Spawn each subagent via `agor.spawn_subsession()` in its dedicated worktree
+  - **NEVER use Task command** - only Agor spawn subsession
+  - Each subsession = 1 worktree = 1 error group
 - **Never use bash for file ops** - Only JetBrains MCP
 - **One agent per error group** - No agent handles multiple groups simultaneously
 - **Wait for batch completion** - Don't start Batch N+1 until Batch N merges

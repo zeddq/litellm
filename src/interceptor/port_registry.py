@@ -44,7 +44,12 @@ class PortRegistry:
         self.port_max = port_max or int(
             os.getenv("INTERCEPTOR_PORT_MAX", self.DEFAULT_PORT_MAX)
         )
-        self.registry_file = registry_file or self.REGISTRY_FILE
+        # Check PORT_REGISTRY_PATH environment variable before using default
+        env_registry_path = os.getenv("PORT_REGISTRY_PATH")
+        if env_registry_path and not registry_file:
+            self.registry_file = Path(env_registry_path)
+        else:
+            self.registry_file = registry_file or self.REGISTRY_FILE
 
         # Ensure registry directory exists
         self.registry_file.parent.mkdir(parents=True, exist_ok=True)
