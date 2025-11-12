@@ -15,6 +15,7 @@ Example:
     'sk-1234'
 """
 
+import logging
 import os
 import re
 from enum import Enum
@@ -31,6 +32,8 @@ from pydantic import (
     ConfigDict,
 )
 from pydantic_settings import BaseSettings
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -93,11 +96,144 @@ class ThinkingType(str, Enum):
 
 
 # =============================================================================
+# Helper Functions for Environment Variable Synchronization
+# =============================================================================
+
+
+def sync_field_to_env(field_name: str, field_value: Any, env_var_name: str) -> None:
+    """
+    Synchronize a field value to an environment variable.
+
+    This helper function sets an environment variable to the resolved value
+    of a Pydantic field. It handles environment variable reference resolution
+    and type conversion automatically.
+
+    Args:
+        field_name: Name of the field being synced (for logging)
+        field_value: Value to sync (can contain env var references like 'os.environ/VAR')
+        env_var_name: Target environment variable name
+
+    Example:
+        >>> sync_field_to_env("database_url", "postgresql://localhost/db", "DATABASE_URL")
+        >>> os.getenv("DATABASE_URL")
+        'postgresql://localhost/db'
+
+        >>> # With env var reference
+        >>> os.environ["SOURCE_URL"] = "postgresql://from-env/db"
+        >>> sync_field_to_env("database_url", "os.environ/SOURCE_URL", "DATABASE_URL")
+        >>> os.getenv("DATABASE_URL")
+        'postgresql://from-env/db'
+    """
+    if field_value is None:
+        return
+
+    # Resolve any env var references in the value first
+    resolved_value = resolve_env_vars(field_value)
+
+    # Convert to string and set environment variable
+    os.environ[env_var_name] = str(resolved_value)
+
+    logger.debug(f"Synced field '{field_name}' → {env_var_name}")
+
+
+def sync_model_fields_to_env(model: BaseModel) -> None:
+    """
+    Sync all fields marked with sync_to_env metadata to environment variables.
+
+    This function scans a Pydantic model's fields for 'sync_to_env' markers
+    in the field's json_schema_extra metadata and automatically sets the
+    corresponding environment variables to the field values.
+
+    This enables declarative environment variable management where field
+    definitions explicitly declare which env vars they should populate.
+
+    Args:
+        model: Pydantic model instance to process
+
+    Example:
+        >>> class MyConfig(BaseModel):
+        ...     db_url: str = Field(
+        ...         ...,
+        ...         json_schema_extra={"sync_to_env": "DATABASE_URL"}
+        ...     )
+        >>>
+        >>> config = MyConfig(db_url="postgresql://localhost/db")
+        >>> sync_model_fields_to_env(config)
+        >>> os.getenv("DATABASE_URL")
+        'postgresql://localhost/db'
+
+    Note:
+        If multiple fields sync to the same environment variable, the last
+        field processed will win. Field processing order follows Pydantic's
+        model_fields dictionary order.
+    """
+    for field_name, field_info in model.__class__.model_fields.items():
+        # Check if field has sync_to_env metadata
+        extras = field_info.json_schema_extra or {}
+        env_var_name = extras.get('sync_to_env')
+
+        if env_var_name:
+            field_value = getattr(model, field_name, None)
+            sync_field_to_env(field_name, field_value, env_var_name)
+
+
+class EnvSyncMixin(BaseModel):
+    """
+    Mixin to automatically sync field values to environment variables.
+
+    This mixin provides automatic environment variable synchronization for
+    Pydantic models. Fields marked with json_schema_extra={"sync_to_env": "ENV_VAR"}
+    will have their values automatically written to the specified environment
+    variable after model validation.
+
+    This is useful for:
+    - Ensuring environment variables match config file values
+    - Making config values available to subprocesses or external tools
+    - Maintaining backward compatibility with env-var-based configuration
+
+    Usage:
+        Inherit from this mixin in your Pydantic model and mark fields
+        with the sync_to_env metadata:
+
+        >>> class MySettings(EnvSyncMixin):
+        ...     database_url: str = Field(
+        ...         ...,
+        ...         description="Database connection URL",
+        ...         json_schema_extra={"sync_to_env": "DATABASE_URL"}
+        ...     )
+        ...     redis_host: str = Field(
+        ...         default="localhost",
+        ...         json_schema_extra={"sync_to_env": "REDIS_HOST"}
+        ...     )
+        >>>
+        >>> # When model is instantiated, env vars are automatically set
+        >>> settings = MySettings(database_url="postgresql://localhost/db")
+        >>> os.getenv("DATABASE_URL")
+        'postgresql://localhost/db'
+        >>> os.getenv("REDIS_HOST")
+        'localhost'
+
+    Note:
+        - Synchronization happens AFTER validation in the model_validator
+        - Environment variable references (os.environ/VAR) are resolved before syncing
+        - None values are skipped (don't set env vars)
+        - Non-string values are converted to strings
+        - If multiple fields sync to the same env var, last field wins
+    """
+
+    @model_validator(mode='after')
+    def _sync_fields_to_env(self):
+        """Sync marked fields to environment variables after validation."""
+        sync_model_fields_to_env(self)
+        return self
+
+
+# =============================================================================
 # General Settings Models
 # =============================================================================
 
 
-class GeneralSettings(BaseModel):
+class GeneralSettings(EnvSyncMixin, BaseModel):
     """
     General proxy settings including authentication, database, and forwarding rules.
 
@@ -105,7 +241,7 @@ class GeneralSettings(BaseModel):
         master_key: Master API key for proxy authentication
         forward_openai_org_id: Whether to forward OpenAI organization ID headers
         forward_client_headers_to_llm_api: Forward all client headers to LLM providers
-        database_url: Database connection URL (supports env vars)
+        database_url: Database connection URL (supports env vars, auto-syncs to DATABASE_URL)
         database_connection_pool_limit: Maximum database connections in pool
         store_model_in_db: Whether to store model information in database
         store_prompts_in_spend_logs: Whether to log prompts in spending logs
@@ -128,6 +264,7 @@ class GeneralSettings(BaseModel):
     database_url: Optional[EnvVarStr] = Field(
         default=None,
         description="Database connection URL. Format: postgresql://user:pass@host:port/db",
+        json_schema_extra={"sync_to_env": "DATABASE_URL"},
     )
     database_connection_pool_limit: int = Field(
         default=100,
@@ -488,15 +625,15 @@ class MCPServerConfig(BaseModel):
 # =============================================================================
 
 
-class RedisCacheParams(BaseModel):
+class RedisCacheParams(EnvSyncMixin, BaseModel):
     """
     Redis cache configuration parameters.
 
     Attributes:
         type: Cache type (must be 'redis')
-        host: Redis server host
-        port: Redis server port
-        password: Redis password (supports env vars)
+        host: Redis server host (auto-syncs to REDIS_HOST env var)
+        port: Redis server port (auto-syncs to REDIS_PORT env var)
+        password: Redis password (supports env vars, auto-syncs to REDIS_PASSWORD)
         db: Redis database number
         ttl: Cache TTL in seconds
         ssl: Enable SSL/TLS
@@ -511,16 +648,19 @@ class RedisCacheParams(BaseModel):
     host: str = Field(
         default="localhost",
         description="Redis server hostname or IP",
+        json_schema_extra={"sync_to_env": "REDIS_HOST"},
     )
     port: int = Field(
         default=6379,
         ge=1,
         le=65535,
         description="Redis server port",
+        json_schema_extra={"sync_to_env": "REDIS_PORT"},
     )
     password: Optional[EnvVarStr] = Field(
         default=None,
         description="Redis password (use 'os.environ/VAR' for env vars)",
+        json_schema_extra={"sync_to_env": "REDIS_PASSWORD"},
     )
     db: int = Field(
         default=0,
@@ -715,13 +855,13 @@ class ContextRetrievalConfig(BaseModel):
 # =============================================================================
 
 
-class LiteLLMSettings(BaseModel):
+class LiteLLMSettings(EnvSyncMixin, BaseModel):
     """
     General LiteLLM proxy settings including database, callbacks, OTEL, and cache.
 
     Attributes:
         database_type: Database backend type
-        database_url: Database connection URL
+        database_url: Database connection URL (auto-syncs to DATABASE_URL env var)
         store_model_in_db: Store model metadata in database
         success_callback: Success event callbacks (e.g., ['postgres', 'otel'])
         failure_callback: Failure event callbacks
@@ -749,6 +889,7 @@ class LiteLLMSettings(BaseModel):
     database_url: Optional[EnvVarStr] = Field(
         default=None,
         description="Database connection URL",
+        json_schema_extra={"sync_to_env": "DATABASE_URL"},
     )
     store_model_in_db: bool = Field(
         default=True,

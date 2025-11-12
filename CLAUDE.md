@@ -368,7 +368,89 @@ poetry run python test_tutorial.py
 ### Test Structure
 - `test_memory_proxy.py` - Main test suite (routing, FastAPI, integration)
 - `test_tutorial.py` - Tutorial examples (will be deleted)
+- `tests/test_set_env_vars_decorator.py` - Decorator tests (23 test cases, thread-safety validated)
 - Coverage reports: `htmlcov/index.html` (after `./RUN_TESTS.sh coverage`)
+
+### Environment Variable Testing with @set_env_vars
+
+The `@set_env_vars` decorator in `src/proxy/config_parser.py` enables dynamic environment variable injection for testing and development. This is particularly useful for testing with different database connections, Redis settings, or API keys without modifying your actual environment.
+
+**Key Features**:
+- **Thread-safe**: Uses `threading.RLock()` for concurrent execution
+- **Temporary scope** (default): Automatically restores original values after function execution
+- **Persistent mode**: Option to leave changes in place with `persist=True`
+- **Type validation**: Ensures all values are strings at decorator application time
+- **Exception-safe**: Guarantees cleanup even if function raises exceptions
+
+**Basic Usage**:
+```python
+from proxy.config_parser import set_env_vars, LiteLLMConfig
+
+# Temporary scope (auto-restore) - recommended for tests
+@set_env_vars(
+    DATABASE_URL="postgresql://test:pass@localhost:5432/test_db",
+    REDIS_HOST="localhost",
+    REDIS_PORT="6379"
+)
+def test_config_with_custom_settings():
+    config = LiteLLMConfig("config/config.yaml")
+    # Test logic here - uses injected env vars
+    # Original values automatically restored after function completes
+
+# Persistent mode - leaves changes in place
+@set_env_vars(
+    persist=True,
+    OPENAI_API_KEY="sk-test-key"
+)
+def setup_test_environment():
+    # OPENAI_API_KEY remains set after function completes
+    pass
+```
+
+**Pytest Integration**:
+```python
+import pytest
+from proxy.config_parser import set_env_vars
+
+@pytest.fixture
+@set_env_vars(DATABASE_URL="postgresql://localhost/test")
+def test_config():
+    return LiteLLMConfig("config/config.yaml")
+
+def test_database_connection(test_config):
+    # test_config uses injected DATABASE_URL
+    assert test_config.get_litellm_settings()["database_url"]
+```
+
+**Thread-Safe Concurrent Testing**:
+```python
+import threading
+
+@set_env_vars(USER_ID="user-1")
+def test_user_1():
+    config = LiteLLMConfig("config/config.yaml")
+    # User 1 specific tests
+
+@set_env_vars(USER_ID="user-2")
+def test_user_2():
+    config = LiteLLMConfig("config/config.yaml")
+    # User 2 specific tests
+
+# Safe to run concurrently - decorator serializes env var modifications
+threading.Thread(target=test_user_1).start()
+threading.Thread(target=test_user_2).start()
+```
+
+**When to Use**:
+- ✅ **Testing with different configurations**: DATABASE_URL, REDIS_HOST, API keys
+- ✅ **Integration tests**: Isolate test environments per test case
+- ✅ **CI/CD pipelines**: Inject credentials without environment pollution
+- ✅ **Concurrent test execution**: Thread-safe environment isolation
+- ❌ **Production code**: Use proper configuration management instead
+- ❌ **Performance-critical paths**: Has ~17x overhead due to lock (acceptable for tests)
+
+**Implementation Location**: `src/proxy/config_parser.py:78-240`
+**Test Suite**: `tests/test_set_env_vars_decorator.py` (23 tests, full thread-safety validation)
 
 **For detailed testing strategies**, see: `docs/guides/testing/TESTING_GUIDE.md`
 

@@ -125,7 +125,7 @@ class PrismaProxyLogger(CustomLogger):
         self.use_redis_buffer = use_redis_buffer or (
             os.getenv("USE_REDIS_TRANSACTION_BUFFER", "").lower() == "true"
         )
-
+--
         # Components (initialized lazily)
         self.prisma_client: Optional[PrismaClient] = None
         self.spend_writer: Optional[DBSpendUpdateWriter] = None
