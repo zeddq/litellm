@@ -77,8 +77,9 @@ async def stream_litellm_completion(
     log_extra = {"request_id": request_id} if request_id else {}
 
     chunk_count = 0
-    last_content = ""
+    last_chunk_json = None
     repeated_chunk_count = 0
+    max_chunks = 1000  # Safety limit to prevent infinite loops
 
     try:
         logger.debug(f"Starting stream processing", extra=log_extra)
@@ -86,36 +87,41 @@ async def stream_litellm_completion(
         async for chunk in response_iterator:
             chunk_count += 1
 
-            # Extract content for infinite loop detection
-            content = ""
-            if hasattr(chunk, "choices") and len(chunk.choices) > 0:
-                delta = chunk.choices[0].delta
-                if hasattr(delta, "content") and delta.content:
-                    content = delta.content
+            # Safety check: prevent infinite loops
+            if chunk_count > max_chunks:
+                logger.error(
+                    f"Stream exceeded maximum chunk limit ({max_chunks}). Breaking to prevent infinite loop.",
+                    extra=log_extra,
+                )
+                break
 
-            # Detect infinite loops (same content repeated)
-            if detect_infinite_loops and content and content == last_content:
-                repeated_chunk_count += 1
-                if repeated_chunk_count >= 5:
-                    logger.warning(
-                        f"Repeated chunk detected {repeated_chunk_count} times: {content[:50]}...",
-                        extra=log_extra,
-                    )
-            else:
-                repeated_chunk_count = 0
-
-            last_content = content
-
-            # Convert chunk to dictionary
+            # Convert chunk to dictionary for comparison
             if hasattr(chunk, "model_dump"):
-                # Pydantic v2
                 chunk_dict = chunk.model_dump()
             elif hasattr(chunk, "dict"):
-                # Pydantic v1
                 chunk_dict = chunk.dict()
             else:
-                # Fallback: assume it's already a dict
                 chunk_dict = chunk if isinstance(chunk, dict) else {"data": str(chunk)}
+
+            # Detect infinite loops (same chunk repeated)
+            if detect_infinite_loops:
+                chunk_json = json.dumps(chunk_dict, sort_keys=True)
+                if chunk_json == last_chunk_json:
+                    repeated_chunk_count += 1
+                    if repeated_chunk_count >= 10:
+                        logger.error(
+                            f"Identical chunk repeated {repeated_chunk_count} times. Breaking to prevent infinite loop.",
+                            extra=log_extra,
+                        )
+                        break
+                    elif repeated_chunk_count >= 5:
+                        logger.warning(
+                            f"Identical chunk repeated {repeated_chunk_count} times: {str(chunk_dict)[:100]}...",
+                            extra=log_extra,
+                        )
+                else:
+                    repeated_chunk_count = 0
+                last_chunk_json = chunk_json
 
             # Format as SSE
             try:

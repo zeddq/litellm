@@ -3,17 +3,12 @@
 PyCharm AI Chat Interceptor Proxy
 Adds custom headers and injects instance identification into requests.
 """
+import logging
+
+import httpx
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
-import httpx
-import os
-import socket
-import logging
-import json
-
 from starlette import status
-
-from proxy.error_handlers import ErrorResponse
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -46,6 +41,7 @@ INSTANCE_ID = (
 INJECT_INTO_CONTENT = os.getenv("INJECT_INSTANCE_ID", "true").lower() == "true"
 
 CUSTOM_HEADERS = {
+    "Authorization": "Bearer sk-1234",
     "x-memory-user-id": INSTANCE_ID,
     "x-pycharm-instance": INSTANCE_ID,
     "x-source": "pycharm-ai-chat",

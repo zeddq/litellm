@@ -42,7 +42,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict
+from typing import Any, AsyncIterator, Dict, Optional
 
 import litellm
 from fastapi import FastAPI, HTTPException, Request, Response, status
@@ -56,6 +56,7 @@ from proxy.error_handlers import LiteLLMErrorHandler, register_exception_handler
 from proxy.memory_router import MemoryRouter
 from proxy.session_manager import LiteLLMSessionManager
 from proxy.streaming_utils import stream_litellm_completion
+from proxy.tool_executor import ToolExecutor, ToolExecutionConfig, should_execute_tools
 
 # Configure logging
 logging.basicConfig(
@@ -139,7 +140,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info(f"  Memory router initialized with {pattern_count} patterns")
 
         # 5. Configure LiteLLM settings
-        logger.info("Step 5/5: Configuring LiteLLM settings...")
+        logger.info("Step 5/6: Configuring LiteLLM settings...")
         litellm.set_verbose = config.get_litellm_settings().get("set_verbose", True)
         litellm.drop_params = config.get_litellm_settings().get("drop_params", True)
         logger.info(f"  Verbose logging: {litellm.set_verbose}")
@@ -149,6 +150,31 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.error_handler = LiteLLMErrorHandler(
             include_debug_info=config.get_litellm_settings().get("set_verbose", False)
         )
+
+        # 6. Initialize tool executor
+        logger.info("Step 6/6: Initializing tool executor...")
+        tool_exec_config_dict = config.config.tool_execution or {}
+        tool_exec_config = ToolExecutionConfig.from_config_dict(tool_exec_config_dict)
+
+        if should_execute_tools(tool_exec_config):
+            try:
+                tool_executor = ToolExecutor(
+                    supermemory_api_key=tool_exec_config.supermemory_api_key,
+                    supermemory_base_url=tool_exec_config.supermemory_base_url,
+                    timeout=tool_exec_config.timeout_per_tool,
+                    max_results=tool_exec_config_dict.get("max_results", 5) if isinstance(tool_exec_config_dict, dict) else 5,
+                )
+                app.state.tool_executor = tool_executor
+                app.state.tool_exec_config = tool_exec_config
+                logger.info(f"  ✅ Tool executor initialized (max_iterations={tool_exec_config.max_iterations})")
+            except Exception as e:
+                logger.warning(f"  ⚠️  Tool executor initialization failed: {e}")
+                app.state.tool_executor = None
+                app.state.tool_exec_config = None
+        else:
+            logger.info("  Tool execution disabled")
+            app.state.tool_executor = None
+            app.state.tool_exec_config = None
 
         logger.info("=" * 70)
         logger.info("STARTUP COMPLETE - Server ready to accept requests")
@@ -287,6 +313,16 @@ def get_memory_router() -> MemoryRouter:
 def get_error_handler() -> LiteLLMErrorHandler:
     """Dependency: Get error handler."""
     return app.state.error_handler
+
+
+def get_tool_executor() -> Optional[ToolExecutor]:
+    """Dependency: Get tool executor (may be None if disabled)."""
+    return getattr(app.state, "tool_executor", None)
+
+
+def get_tool_exec_config() -> Optional[ToolExecutionConfig]:
+    """Dependency: Get tool execution config (may be None if disabled)."""
+    return getattr(app.state, "tool_exec_config", None)
 
 
 def should_use_context_retrieval(model_name: str, config: LiteLLMConfig) -> bool:
@@ -679,6 +715,7 @@ async def chat_completions(request: Request) -> Response:
             litellm_params=litellm_params,
             request_id=request_id,
             error_handler=error_handler,
+            user_id=user_id,
         )
 
 
@@ -692,38 +729,145 @@ async def handle_non_streaming_completion(
     litellm_params: Dict[str, Any],
     request_id: str,
     error_handler: LiteLLMErrorHandler,
+    user_id: Optional[str] = None,
 ) -> JSONResponse:
     """
-    Handle non-streaming completion request.
+    Handle non-streaming completion request with automatic tool execution.
+
+    If the LLM returns tool_calls, this function automatically:
+    1. Executes the tools using ToolExecutor
+    2. Appends tool results to messages
+    3. Calls the LLM again with the tool results
+    4. Repeats until a final text response is received
 
     Args:
         messages: Chat messages
         litellm_params: Parameters for litellm.acompletion()
         request_id: Request tracking ID
         error_handler: Error handler instance
+        user_id: User ID for tool execution context (optional)
 
     Returns:
-        JSONResponse with completion result
+        JSONResponse with completion result (final text response)
     """
     try:
         start_time = time.time()
 
-        # Call LiteLLM SDK
-        response = await litellm.acompletion(
-            messages=messages,
-            **litellm_params,
-        )
+        # Get tool executor and config
+        tool_executor = get_tool_executor()
+        tool_exec_config = get_tool_exec_config()
 
+        # Tool execution loop
+        iteration = 0
+        max_iterations = tool_exec_config.max_iterations if tool_exec_config else 10
+
+        while iteration < max_iterations:
+            iteration += 1
+            logger.info(f"[{request_id}] Tool execution iteration {iteration}/{max_iterations}")
+
+            # Call LiteLLM SDK
+            response = await litellm.acompletion(
+                messages=messages,
+                **litellm_params,
+            )
+
+            # Check if response has tool_calls
+            has_tool_calls = False
+            tool_calls = None
+
+            # Extract tool_calls from response (different formats possible)
+            if hasattr(response, 'choices') and response.choices:
+                choice = response.choices[0]
+                if hasattr(choice, 'message') and hasattr(choice.message, 'tool_calls'):
+                    tool_calls = choice.message.tool_calls
+                    has_tool_calls = tool_calls is not None and len(tool_calls) > 0
+
+            if not has_tool_calls:
+                # No tool calls - return final response
+                elapsed = time.time() - start_time
+                logger.info(f"[{request_id}] Completed in {elapsed:.2f}s (no tool calls)")
+
+                # Return OpenAI-compatible response
+                response_dict = response.model_dump() if hasattr(response, 'model_dump') else dict(response)
+                return JSONResponse(content=response_dict)
+
+            # Check if tool executor is available
+            if not tool_executor:
+                logger.warning(f"[{request_id}] Tool calls detected but tool executor not initialized")
+                # Return response as-is (client needs to handle tool calls)
+                response_dict = response.model_dump() if hasattr(response, 'model_dump') else dict(response)
+                return JSONResponse(content=response_dict)
+
+            # Execute tools
+            logger.info(f"[{request_id}] Executing {len(tool_calls)} tool call(s)")
+
+            # Append assistant message with tool_calls to messages
+            assistant_message = {
+                "role": "assistant",
+                "content": response.choices[0].message.content if response.choices[0].message.content else "",
+                "tool_calls": [
+                    {
+                        "id": tc.id,
+                        "type": tc.type,
+                        "function": {
+                            "name": tc.function.name,
+                            "arguments": tc.function.arguments,
+                        }
+                    }
+                    for tc in tool_calls
+                ]
+            }
+            messages.append(assistant_message)
+
+            # Execute each tool and append results
+            for tool_call in tool_calls:
+                tool_name = tool_call.function.name
+                tool_args_str = tool_call.function.arguments
+                tool_call_id = tool_call.id
+
+                logger.info(f"[{request_id}] Executing tool: {tool_name} (id={tool_call_id})")
+
+                try:
+                    # Parse tool arguments
+                    tool_args = json.loads(tool_args_str) if isinstance(tool_args_str, str) else tool_args_str
+
+                    # Execute tool
+                    tool_result = await tool_executor.execute_tool_call(
+                        tool_name=tool_name,
+                        tool_args=tool_args,
+                        user_id=user_id or "default",
+                        tool_call_id=tool_call_id,
+                    )
+
+                    # Format tool result for LLM
+                    tool_result_content = tool_executor.format_tool_result_for_llm(tool_result)
+
+                    logger.info(f"[{request_id}] Tool {tool_name} executed successfully")
+
+                except Exception as tool_error:
+                    logger.error(f"[{request_id}] Tool execution failed: {tool_error}", exc_info=True)
+                    tool_result_content = f"Tool execution error: {str(tool_error)}"
+
+                # Append tool result message
+                tool_message = {
+                    "role": "tool",
+                    "tool_call_id": tool_call_id,
+                    "content": tool_result_content,
+                }
+                messages.append(tool_message)
+
+            logger.info(f"[{request_id}] All tools executed, sending results back to LLM")
+
+        # Max iterations reached
         elapsed = time.time() - start_time
-        logger.info(f"[{request_id}] Completed in {elapsed:.2f}s")
+        logger.warning(f"[{request_id}] Max iterations ({max_iterations}) reached in {elapsed:.2f}s")
 
-        # Return OpenAI-compatible response
-        # Convert response to dict (litellm.ModelResponse has dict() method)
+        # Return last response even if it has tool_calls
         response_dict = response.model_dump() if hasattr(response, 'model_dump') else dict(response)
         return JSONResponse(content=response_dict)
 
     except Exception as e:
-        logger.error(f"[{request_id}] Error: {type(e).__name__}: {e}")
+        logger.error(f"[{request_id}] Error: {type(e).__name__}: {e}", exc_info=True)
 
         # Use error handler to convert to HTTP response
         return await error_handler.handle_completion_error(e, request_id=request_id)

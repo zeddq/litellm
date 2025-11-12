@@ -873,6 +873,7 @@ class LiteLLMProxyConfig(BaseModel):
         mcp_servers: MCP server configurations
         litellm_settings: LiteLLM-specific settings (callbacks, OTEL, cache, etc.)
         context_retrieval: Context retrieval configuration for Supermemory integration
+        tool_execution: Tool execution configuration for automatic tool calling
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -900,6 +901,10 @@ class LiteLLMProxyConfig(BaseModel):
     context_retrieval: Optional[ContextRetrievalConfig] = Field(
         default=None,
         description="Context retrieval configuration for Supermemory integration",
+    )
+    tool_execution: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Tool execution configuration for automatic tool calling",
     )
 
     @model_validator(mode="after")
