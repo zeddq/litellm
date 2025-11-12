@@ -170,7 +170,7 @@ class TestMultiProjectIsolation:
 
         from src.interceptor.port_registry import PortRegistry
 
-        registry = PortRegistry(str(temp_port_registry))
+        registry = PortRegistry(registry_file=temp_port_registry)
 
         # Allocate ports for different projects
         port1 = registry.allocate_port("/project/one")

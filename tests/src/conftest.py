@@ -453,7 +453,13 @@ def _smart_response_router(method: str, url: str, **kwargs) -> Mock:
                 
                 # Validate model exists (mock valid models list)
                 model = body.get("model", "claude-sonnet-4.5")
-                valid_models = ["claude-sonnet-4.5", "gpt-4", "gpt-5-pro"]
+                valid_models = [
+                    "claude-sonnet-4.5",
+                    "claude-sonnet",  # Used by tests
+                    "gpt-4",
+                    "gpt-4-with-memory",  # Used by tests with memory routing
+                    "gpt-5-pro"
+                ]
                 if model not in valid_models:
                     mock_response.status_code = 404
                     mock_response.content = json.dumps({
