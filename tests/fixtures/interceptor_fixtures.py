@@ -9,6 +9,7 @@ Fixtures for testing the interceptor proxy component, including:
 """
 
 import asyncio
+import json
 import os
 import subprocess
 import sys
@@ -45,11 +46,12 @@ def temp_port_registry(tmp_path):
     registry_data = {
         "version": "1.0",
         "port_range": {"start": 18888, "end": 18999},
-        "mappings": {}
+        "mappings": {},
+        "next_available": 18888
     }
 
     with open(registry_file, 'w') as f:
-        yaml.dump(registry_data, f)
+        json.dump(registry_data, f)
 
     # Patch the registry path
     with patch.dict(os.environ, {'PORT_REGISTRY_PATH': str(registry_file)}):
@@ -89,10 +91,36 @@ async def interceptor_server(temp_port_registry):
         text=True
     )
 
+    # Give process a moment to start before health checking
+    await asyncio.sleep(0.5)
+
+    # Check if process crashed immediately
+    if process.poll() is not None:
+        # Process has exited
+        stdout, stderr = process.communicate(timeout=1)
+        error_msg = f"Interceptor process crashed immediately (exit code {process.returncode})\n"
+        error_msg += f"STDOUT:\n{stdout}\n"
+        error_msg += f"STDERR:\n{stderr}"
+        pytest.fail(error_msg)
+
     # Wait for server to be ready
     if not await wait_for_service(port, SERVICE_START_TIMEOUT):
-        process.kill()
-        pytest.fail(f"Interceptor failed to start on port {port}")
+        # Try to get process output for debugging
+        if process.poll() is None:
+            process.terminate()
+            try:
+                stdout, stderr = process.communicate(timeout=2)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                stdout, stderr = process.communicate()
+        else:
+            stdout, stderr = process.communicate(timeout=1)
+        
+        error_msg = f"Interceptor failed to start on port {port}\n"
+        error_msg += f"Process exit code: {process.returncode}\n"
+        error_msg += f"STDOUT:\n{stdout}\n"
+        error_msg += f"STDERR:\n{stderr}"
+        pytest.fail(error_msg)
 
     yield process, port
 

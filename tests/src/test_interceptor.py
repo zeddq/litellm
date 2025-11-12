@@ -36,7 +36,7 @@ class TestPortRegistry:
 
     def test_port_allocation(self, temp_port_registry):
         """Test basic port allocation."""
-        registry = PortRegistry(str(temp_port_registry))
+        registry = PortRegistry(port_min=18888, port_max=18999, registry_file=temp_port_registry)
 
         project_path = "/test/project/1"
         port = registry.allocate_port(project_path)
@@ -46,7 +46,7 @@ class TestPortRegistry:
 
     def test_consistent_port_allocation(self, temp_port_registry):
         """Test that same project gets same port."""
-        registry = PortRegistry(str(temp_port_registry))
+        registry = PortRegistry(port_min=18888, port_max=18999, registry_file=temp_port_registry)
 
         project_path = "/test/project/1"
         port1 = registry.allocate_port(project_path)
@@ -56,7 +56,7 @@ class TestPortRegistry:
 
     def test_different_projects_different_ports(self, temp_port_registry):
         """Test that different projects get different ports."""
-        registry = PortRegistry(str(temp_port_registry))
+        registry = PortRegistry(port_min=18888, port_max=18999, registry_file=temp_port_registry)
 
         port1 = registry.allocate_port("/test/project/1")
         port2 = registry.allocate_port("/test/project/2")
@@ -65,20 +65,27 @@ class TestPortRegistry:
 
     def test_port_deallocation(self, temp_port_registry):
         """Test port deallocation."""
-        registry = PortRegistry(str(temp_port_registry))
+        registry = PortRegistry(port_min=18888, port_max=18999, registry_file=temp_port_registry)
 
         project_path = "/test/project/1"
         port = registry.allocate_port(project_path)
 
-        registry.deallocate_port(project_path)
+        # Verify deallocation returns True
+        result = registry.deallocate_port(project_path)
+        assert result is True
 
-        # Verify port is freed (can be allocated to another project)
+        # Verify port is no longer in mappings
+        mappings = registry.list_mappings()
+        assert project_path not in mappings
+        
+        # Allocate to another project (will get next sequential port, not the freed one)
         new_port = registry.allocate_port("/test/project/2")
-        assert new_port == port  # Reuses freed port
+        assert new_port is not None
+        assert 18888 <= new_port <= 18999
 
     def test_port_conflict_detection(self, temp_port_registry):
         """Test detection of port conflicts."""
-        registry = PortRegistry(str(temp_port_registry))
+        registry = PortRegistry(port_min=18888, port_max=18999, registry_file=temp_port_registry)
 
         # Allocate all ports
         for i in range(18888, 18999):
@@ -97,7 +104,7 @@ class TestPortRegistry:
             f.write("{ invalid json }")
 
         # Should recover and create new registry
-        registry = PortRegistry(str(registry_file))
+        registry = PortRegistry(port_min=18888, port_max=18999, registry_file=registry_file)
         port = registry.allocate_port("/test/project/1")
 
         assert port is not None
@@ -113,7 +120,7 @@ class TestPortRegistry:
 
     def test_project_path_normalization(self, temp_port_registry):
         """Test that project paths are normalized."""
-        registry = PortRegistry(str(temp_port_registry))
+        registry = PortRegistry(port_min=18888, port_max=18999, registry_file=temp_port_registry)
 
         # Different path representations of same project
         port1 = registry.allocate_port("/test/project/../project")
