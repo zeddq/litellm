@@ -3,5 +3,7 @@
   "baseFontSize": 18,
   "showRibbon": true,
   "showViewHeader": false,
-  "translucency": true
+  "translucency": true,
+  "cssTheme": "AnuPpuccin",
+  "accentColor": "#b5aa36"
 }

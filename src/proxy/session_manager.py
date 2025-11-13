@@ -29,6 +29,7 @@ import httpx
 import litellm
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class LiteLLMSessionManager:

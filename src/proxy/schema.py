@@ -18,9 +18,9 @@ Example:
 import logging
 import os
 import re
-from enum import Enum
+from enum import Enum, StrEnum
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union, Self
 
 import yaml
 from pydantic import (
@@ -65,7 +65,7 @@ class CacheType(str, Enum):
     MEMORY = "memory"
 
 
-class OTELExporter(str, Enum):
+class OTELExporter(StrEnum):
     """OpenTelemetry exporter types."""
 
     OTLP_HTTP = "otlp_http"
@@ -135,7 +135,6 @@ def sync_field_to_env(field_name: str, field_value: Any, env_var_name: str) -> N
 
     logger.debug(f"Synced field '{field_name}' → {env_var_name}")
 
-
 def sync_model_fields_to_env(model: BaseModel) -> None:
     """
     Sync all fields marked with sync_to_env metadata to environment variables.
@@ -170,11 +169,11 @@ def sync_model_fields_to_env(model: BaseModel) -> None:
     for field_name, field_info in model.__class__.model_fields.items():
         # Check if field has sync_to_env metadata
         extras = field_info.json_schema_extra or {}
-        env_var_name = extras.get('sync_to_env')
+        env_var_name = extras.get("sync_to_env")
 
         if env_var_name:
             field_value = getattr(model, field_name, None)
-            sync_field_to_env(field_name, field_value, env_var_name)
+            sync_field_to_env(field_name, field_value, str(env_var_name))
 
 
 class EnvSyncMixin(BaseModel):
@@ -222,7 +221,7 @@ class EnvSyncMixin(BaseModel):
     """
 
     @model_validator(mode='after')
-    def _sync_fields_to_env(self):
+    def _sync_fields_to_env(self) -> Self:
         """Sync marked fields to environment variables after validation."""
         sync_model_fields_to_env(self)
         return self
@@ -233,7 +232,7 @@ class EnvSyncMixin(BaseModel):
 # =============================================================================
 
 
-class GeneralSettings(EnvSyncMixin, BaseModel):
+class GeneralSettings(EnvSyncMixin):
     """
     General proxy settings including authentication, database, and forwarding rules.
 
@@ -849,7 +848,6 @@ class ContextRetrievalConfig(BaseModel):
         return self
 
 
-
 # =============================================================================
 # LiteLLM Settings Models
 # =============================================================================
@@ -914,18 +912,22 @@ class LiteLLMSettings(EnvSyncMixin, BaseModel):
     otel_exporter: Optional[OTELExporter] = Field(
         default=None,
         description="OTEL exporter type (otlp_http, otlp_grpc, console)",
+        json_schema_extra={"sync_to_env": "OTEL_EXPORTER"},
     )
     otel_endpoint: Optional[str] = Field(
         default=None,
         description="OTEL collector endpoint URL (e.g., http://localhost:4318/v1/traces)",
+        json_schema_extra={"sync_to_env": "OTEL_ENDPOINT"},
     )
     otel_service_name: Optional[str] = Field(
         default="litellm-proxy",
         description="Service name for OTEL traces",
+        json_schema_extra={"sync_to_env": "OTEL_SERVICE"},
     )
     otel_headers: Optional[str] = Field(
         default="",
         description="Additional OTEL headers (comma-separated key=value pairs)",
+        json_schema_extra={"sync_to_env": "OTEL_HEADERS"},
     )
 
     # Cache settings

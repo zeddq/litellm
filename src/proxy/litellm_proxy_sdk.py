@@ -36,21 +36,23 @@ References:
     - SDK_MIGRATION_ROLLOUT_ARCHITECTURE.md: Architecture design
     - poc_litellm_sdk_proxy.py: Working proof of concept
 """
+
 import json
-from integrations.prisma_proxy import PrismaProxyLogger
 import logging
 import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional
 
 import litellm
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse, JSONResponse
+from litellm.integrations.custom_logger import CustomLogger
 from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
 from litellm.types.utils import ModelResponseStream
 
+from integrations.prisma_proxy import PrismaProxyLogger
 from proxy.config_parser import LiteLLMConfig
 from proxy.context_retriever import ContextRetriever, retrieve_and_inject_context
 from proxy.error_handlers import LiteLLMErrorHandler, register_exception_handlers
@@ -64,9 +66,8 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-
-litellm.callbacks = ["otel"]
 
 # ============================================================================
 # Tool Call Buffer Management
@@ -76,7 +77,7 @@ litellm.callbacks = ["otel"]
 class ToolCallBuffer:
     """
     Buffer for managing tool call state during streaming/non-streaming responses.
-    
+
     This class handles edge cases in tool call processing:
     - Empty or None arguments
     - Already-parsed dictionary arguments
@@ -84,20 +85,20 @@ class ToolCallBuffer:
     - Validation that tool calls are complete and executable
     - Streaming: incremental argument buffering
     - Streaming: finish_reason tracking for completion detection
-    
+
     The buffer is keyed by tool_call_id to track each tool call independently.
-    
+
     In STREAMING mode:
     - Tool call arguments arrive incrementally across multiple chunks
     - Each chunk adds more text to the arguments string
     - The LAST chunk has finish_reason set (not None)
     - Tool calls are marked "finished" only when finish_reason is present
     - Tool execution happens AFTER finish_reason indicates completion
-    
+
     Attributes:
         buffer: Dict mapping tool_call_id -> tool call data
         finished_tool_ids: Set of tool_call_ids that have seen finish_reason
-        
+
     Example:
         ```python
         # Non-streaming: single add
@@ -108,7 +109,7 @@ class ToolCallBuffer:
             arguments='{"query": "python async"}',
             tool_type="function"
         )
-        
+
         # Streaming: incremental adds + finish_reason
         buffer = ToolCallBuffer()
         # Chunk 1: initial tool call with partial args
@@ -119,56 +120,95 @@ class ToolCallBuffer:
         buffer.append_arguments("call_123", ' async"}')
         # Chunk 4: finish_reason signals completion
         buffer.mark_finished_by_finish_reason("call_123")
-        
+
         # Now ready for execution
         if buffer.is_finished("call_123"):
             tool_data = buffer.get_tool_call("call_123")
             parsed_args = buffer.parse_arguments("call_123")
         ```
     """
-    
+
     def __init__(self):
         """Initialize empty tool call buffer."""
         self.buffer: Dict[str, Dict[str, Any]] = {}
         self.finished_tool_ids: set[str] = set()  # Track which tools saw finish_reason
-        
+        self.retry_counts: Dict[str, int] = {}  # Track retry attempts per tool call
+        self.error_history: Dict[str, List[str]] = {}  # Track error types per tool call
+        self.id_mapping: Dict[str, str] = (
+            {}
+        )  # Maps chunk_id -> tool_call_id for streaming correlation
+
     def add_tool_call(
         self,
-        tool_call_id: str,
+        tool_call_id: Optional[str],
         tool_name: str,
         arguments: Any,
-        tool_type: str = "function"
+        chunk_id: str,
+        tool_type: str = "function",
     ) -> None:
         """
         Add or update a tool call in the buffer.
-        
+
         In streaming mode, this may be called multiple times for the same
         tool_call_id as arguments arrive incrementally. Use append_arguments()
         for subsequent chunks.
-        
+
+        Handles ID correlation in streaming mode:
+        - First chunk may contain BOTH tool_call_id and chunk_id
+        - Tool call ID: actual tool identifier (e.g., 'toolu_xxx')
+        - Chunk ID: completion/chunk identifier (e.g., 'chatcmpl-xxx')
+        - Arguments may arrive with chunk_id instead of tool_call_id
+        - Establishes mapping: chunk_id -> tool_call_id
+
         Args:
             tool_call_id: Unique identifier for this tool call
             tool_name: Name of the tool/function to call
             arguments: Arguments as string, dict, or None
             tool_type: Type of tool call (usually "function")
+            chunk_id: Optional chunk/completion ID for correlation
         """
-        # Check if this is an UPDATE to existing tool call (streaming)
+
+        # Establish ID correlation if chunk_id is provided and different from tool_call_id
+        if chunk_id and tool_call_id:
+            self.id_mapping[chunk_id] = tool_call_id
+            logger.info(
+                f"ToolCallBuffer: Established mapping chunk_id={chunk_id} -> tool_call_id={tool_call_id}"
+            )
+
+        # Check if this is a chunk_id that maps to a known tool_call_id
+        if chunk_id in self.id_mapping:
+            # This is a chunk_id - resolve to actual tool_call_id
+            actual_tool_call_id = self.id_mapping[chunk_id]
+            logger.info(
+                f"ToolCallBuffer: Resolved chunk_id={tool_call_id} -> tool_call_id={actual_tool_call_id}"
+            )
+            tool_call_id = actual_tool_call_id
+        if not tool_call_id:
+            logger.error(
+                f"ToolCallBuffer: ToolCallBuffer: No tool_call_id={tool_call_id}"
+            )
+            return
+
         if tool_call_id in self.buffer:
             # Update existing - preserve name if new name is empty/None
             existing = self.buffer[tool_call_id]
-            updated_name = tool_name if tool_name else existing["name"]
-            
+            updated_name = (
+                existing["name"] if not tool_name else existing["name"] + tool_name
+            )
+
             # For arguments, replace (don't append - use append_arguments for that)
-            updated_arguments = arguments if arguments is not None else existing["arguments"]
-            
+            self.append_arguments(tool_call_id, arguments)
+            existing = self.buffer[tool_call_id]
+
             self.buffer[tool_call_id] = {
                 "id": tool_call_id,
                 "name": updated_name,
-                "arguments": updated_arguments,
+                "arguments": existing["arguments"],
                 "type": tool_type,
-                "complete": self._is_arguments_complete(updated_arguments)
+                "complete": existing["complete"],
+                # "complete": self._is_arguments_complete(updated_arguments),
             }
-            
+
             logger.debug(
                 f"ToolCallBuffer: Updated tool_call_id={tool_call_id}, "
                 f"name={updated_name}, complete={self.buffer[tool_call_id]['complete']}"
@@ -180,37 +220,48 @@ class ToolCallBuffer:
                 "name": tool_name,
                 "arguments": arguments,
                 "type": tool_type,
-                "complete": self._is_arguments_complete(arguments)
+                "complete": self._is_arguments_complete(arguments),
             }
-            
+
             logger.debug(
                 f"ToolCallBuffer: Added tool_call_id={tool_call_id}, "
                 f"name={tool_name}, complete={self.buffer[tool_call_id]['complete']}"
             )
-    
+
     def append_arguments(self, tool_call_id: str, additional_arguments: str) -> None:
         """
         Append additional arguments to an existing tool call (STREAMING mode).
-        
+
         In streaming mode, tool call arguments arrive incrementally. This method
         allows appending each chunk's arguments to the existing buffer.
-        
+
+        Handles ID resolution: if tool_call_id is actually a chunk_id that maps
+        to a real tool_call_id, resolves it before appending.
+
         Args:
-            tool_call_id: ID of existing tool call
+            tool_call_id: ID of existing tool call (or chunk_id that maps to one)
             additional_arguments: Additional argument text to append
-            
+
         Raises:
             KeyError: If tool_call_id not found in buffer
         """
+        # Check if this is a chunk_id that maps to a known tool_call_id
+        if tool_call_id in self.id_mapping:
+            actual_tool_call_id = self.id_mapping[tool_call_id]
+            logger.debug(
+                f"ToolCallBuffer: Resolved chunk_id={tool_call_id} -> tool_call_id={actual_tool_call_id} for append"
+            )
+            tool_call_id = actual_tool_call_id
+
         if tool_call_id not in self.buffer:
             raise KeyError(
                 f"Cannot append to unknown tool_call_id: {tool_call_id}. "
                 f"Call add_tool_call() first."
             )
-        
+
         tool_data = self.buffer[tool_call_id]
         current_args = tool_data["arguments"]
-        
+
         # Convert current args to string if needed
         if current_args is None or current_args == "":
             current_args = ""
@@ -223,31 +274,33 @@ class ToolCallBuffer:
             current_args = json.dumps(current_args)
         elif not isinstance(current_args, str):
             current_args = str(current_args)
-        
+
         # Append new arguments
         if additional_arguments:
             updated_args = current_args + additional_arguments
         else:
             updated_args = current_args
-        
+
         # Update buffer
         tool_data["arguments"] = updated_args
-        tool_data["complete"] = self._is_arguments_complete(updated_args)
-        
+        # tool_data["complete"] = self._is_arguments_complete(updated_args)
+
         logger.debug(
             f"ToolCallBuffer: Appended {len(additional_arguments) if additional_arguments else 0} chars "
             f"to tool_call_id={tool_call_id}, total length={len(updated_args)}, "
             f"complete={tool_data['complete']}"
         )
-    
-    def mark_finished_by_finish_reason(self, tool_call_id: Optional[str] = None) -> None:
+
+    def mark_finished_by_finish_reason(
+        self, tool_call_id: Optional[str] = None
+    ) -> None:
         """
         Mark tool call(s) as finished because finish_reason was received.
-        
+
         In STREAMING mode, the last chunk has finish_reason set (not None).
         This is the authoritative signal that a tool call is complete and
         ready for execution.
-        
+
         Args:
             tool_call_id: Specific tool call ID to mark finished.
                          If None, marks ALL buffered tool calls as finished
@@ -273,63 +326,63 @@ class ToolCallBuffer:
                 f"ToolCallBuffer: Marked ALL {len(self.buffer)} tool call(s) as finished "
                 f"(finish_reason received)"
             )
-    
+
     def is_finished(self, tool_call_id: str) -> bool:
         """
         Check if a tool call is finished and ready for execution.
-        
+
         A tool call is "finished" when:
         1. It exists in the buffer
         2. Its arguments are complete (valid JSON or empty)
         3. It has been explicitly marked finished by finish_reason
-        
+
         Args:
             tool_call_id: ID of tool call to check
-            
+
         Returns:
             True if tool call is finished and executable
         """
         if tool_call_id not in self.buffer:
             return False
-        
+
         # Check if arguments are complete (valid JSON)
         if not self.buffer[tool_call_id]["complete"]:
             return False
-        
+
         # Must be explicitly marked finished (finish_reason received)
         return tool_call_id in self.finished_tool_ids
-    
+
     def _is_arguments_complete(self, arguments: Any) -> bool:
         """
         Check if arguments appear complete and parseable.
-        
+
         Handles:
         - None or empty string -> complete (no args needed)
         - Already a dict -> complete
         - String: check if valid JSON
         - Truncated JSON -> incomplete
-        
+
         Args:
             arguments: The arguments to validate
-            
+
         Returns:
             True if arguments are complete and usable
         """
         # Case 1: None or empty string (no arguments needed)
         if arguments is None or arguments == "":
             return True
-            
+
         # Case 2: Already parsed as dict
         if isinstance(arguments, dict):
             return True
-            
+
         # Case 3: String - attempt JSON parse
         if isinstance(arguments, str):
             # Empty string already handled above
             arguments_stripped = arguments.strip()
             if not arguments_stripped:
                 return True
-                
+
             # Try to parse JSON
             try:
                 json.loads(arguments_stripped)
@@ -340,92 +393,94 @@ class ToolCallBuffer:
                     f"Arguments: {arguments_stripped[:100]}..."
                 )
                 return False
-        
+
         # Case 4: Unknown type - log warning but consider complete
         logger.warning(
             f"ToolCallBuffer: Unexpected argument type {type(arguments)}, "
             f"treating as complete"
         )
         return True
-    
+
     def is_complete(self, tool_call_id: str) -> bool:
         """
         Check if a tool call's arguments are complete (valid JSON).
-        
+
         DEPRECATED: Use is_finished() instead, which also checks finish_reason.
-        
+
         This method only checks if arguments are parseable JSON, but does NOT
         check if finish_reason was received (streaming mode). For proper
         execution readiness, use is_finished().
-        
+
         Args:
             tool_call_id: ID of tool call to check
-            
+
         Returns:
             True if tool call exists and arguments are complete
         """
         if tool_call_id not in self.buffer:
             return False
         return self.buffer[tool_call_id]["complete"]
-    
+
     def get_tool_call(self, tool_call_id: str) -> Optional[Dict[str, Any]]:
         """
         Retrieve tool call data by ID.
-        
+
         Args:
             tool_call_id: ID of tool call to retrieve
-            
+
         Returns:
             Tool call data dict or None if not found
         """
         return self.buffer.get(tool_call_id)
-    
+
     def parse_arguments(self, tool_call_id: str) -> Dict[str, Any]:
         """
         Parse and return arguments for a tool call.
-        
+
         This method handles multiple argument formats defensively:
         - None or empty string -> return {}
         - Already a dict -> return as-is
         - Valid JSON string -> parse and return
         - Invalid JSON -> raise ValueError with context
-        
+
         Args:
             tool_call_id: ID of tool call
-            
+
         Returns:
             Parsed arguments as dictionary
-            
+
         Raises:
             KeyError: If tool_call_id not found in buffer
             ValueError: If arguments cannot be parsed
         """
         if tool_call_id not in self.buffer:
             raise KeyError(f"Tool call ID {tool_call_id} not found in buffer")
-            
+
         tool_data = self.buffer[tool_call_id]
         arguments = tool_data["arguments"]
         tool_name = tool_data["name"]
-        
+
         # Case 1: None or empty -> no arguments
         if arguments is None or arguments == "":
             logger.debug(f"Tool {tool_name} ({tool_call_id}): No arguments")
             return {}
-        
+
         # Case 2: Already a dict
         if isinstance(arguments, dict):
             logger.debug(f"Tool {tool_name} ({tool_call_id}): Arguments already parsed")
             return arguments
-        
+
         # Case 3: String - parse JSON
         if isinstance(arguments, str):
             arguments_stripped = arguments.strip()
-            
+
             # Empty after stripping
             if not arguments_stripped:
-                logger.debug(f"Tool {tool_name} ({tool_call_id}): Empty arguments string")
+                logger.debug(
+                    f"Tool {tool_name} ({tool_call_id}): Empty arguments string"
+                )
                 return {}
-            
+
             # Parse JSON
             try:
                 parsed = json.loads(arguments_stripped)
@@ -434,7 +489,7 @@ class ToolCallBuffer:
                     f"Parsed {len(parsed) if isinstance(parsed, dict) else 0} arguments"
                 )
                 return parsed if isinstance(parsed, dict) else {}
-                
+
             except json.JSONDecodeError as e:
                 error_msg = (
                     f"Tool {tool_name} ({tool_call_id}): Failed to parse arguments JSON: {e}\n"
@@ -442,7 +497,7 @@ class ToolCallBuffer:
                 )
                 logger.error(error_msg)
                 raise ValueError(error_msg) from e
-        
+
         # Case 4: Unexpected type
         error_msg = (
             f"Tool {tool_name} ({tool_call_id}): "
@@ -450,14 +505,14 @@ class ToolCallBuffer:
         )
         logger.error(error_msg)
         raise ValueError(error_msg)
-    
+
     def get_all_finished_tool_calls(self) -> Dict[str, Dict[str, Any]]:
         """
         Get all finished tool calls ready for execution.
-        
+
         This respects both argument completeness AND finish_reason status.
         Use this method to get executable tool calls.
-        
+
         Returns:
             Dict mapping tool_call_id -> tool call data for finished calls
         """
@@ -466,16 +521,16 @@ class ToolCallBuffer:
             for call_id, call_data in self.buffer.items()
             if self.is_finished(call_id)
         }
-    
+
     def get_all_complete_tool_calls(self) -> Dict[str, Dict[str, Any]]:
         """
         Get all tool calls with complete arguments (valid JSON).
-        
+
         DEPRECATED: Use get_all_finished_tool_calls() instead.
-        
+
         This method only checks argument completeness, NOT finish_reason.
         For proper execution readiness, use get_all_finished_tool_calls().
-        
+
         Returns:
             Dict mapping tool_call_id -> tool call data for complete calls
         """
@@ -484,11 +539,11 @@ class ToolCallBuffer:
             for call_id, call_data in self.buffer.items()
             if call_data["complete"]
         }
-    
+
     def get_incomplete_tool_calls(self) -> Dict[str, Dict[str, Any]]:
         """
         Get all incomplete tool calls (for debugging/logging).
-        
+
         Returns:
             Dict mapping tool_call_id -> tool call data for incomplete calls
         """
@@ -497,13 +552,13 @@ class ToolCallBuffer:
             for call_id, call_data in self.buffer.items()
             if not call_data["complete"]
         }
-    
+
     def get_unfinished_tool_calls(self) -> Dict[str, Dict[str, Any]]:
         """
         Get all unfinished tool calls (haven't seen finish_reason yet).
-        
+
         Useful for debugging streaming issues.
-        
+
         Returns:
             Dict mapping tool_call_id -> tool call data for unfinished calls
         """
@@ -512,19 +567,109 @@ class ToolCallBuffer:
             for call_id, call_data in self.buffer.items()
             if not self.is_finished(call_id)
         }
-    
+
     def clear(self) -> None:
         """Clear all buffered tool calls."""
         self.buffer.clear()
         logger.debug("ToolCallBuffer: Cleared all tool calls")
-    
+
     def __len__(self) -> int:
         """Return number of tool calls in buffer."""
         return len(self.buffer)
-    
+
     def __contains__(self, tool_call_id: str) -> bool:
         """Check if tool_call_id exists in buffer."""
         return tool_call_id in self.buffer
+
+    def increment_retry_count(self, tool_call_id: str) -> int:
+        """
+        Increment retry count for a tool call.
+
+        Args:
+            tool_call_id: ID of the tool call
+
+        Returns:
+            Current retry count after incrementing
+        """
+        current_count = self.retry_counts.get(tool_call_id, 0)
+        self.retry_counts[tool_call_id] = current_count + 1
+        
+        logger.info(
+            f"ToolCallBuffer: Retry count for {tool_call_id}: {self.retry_counts[tool_call_id]}",
+            extra={
+                "tool_call_id": tool_call_id,
+                "retry_count": self.retry_counts[tool_call_id]
+            }
+        )
+        
+        return self.retry_counts[tool_call_id]
+
+    def get_retry_count(self, tool_call_id: str) -> int:
+        """
+        Get current retry count for a tool call.
+
+        Args:
+            tool_call_id: ID of the tool call
+
+        Returns:
+            Current retry count (0 if never retried)
+        """
+        return self.retry_counts.get(tool_call_id, 0)
+
+    def should_retry(self, tool_call_id: str, max_retries: int = 2) -> bool:
+        """
+        Check if a tool call should be retried based on retry count.
+
+        Args:
+            tool_call_id: ID of the tool call
+            max_retries: Maximum number of retries allowed (default: 2)
+
+        Returns:
+            True if retry count is below max_retries
+        """
+        current_count = self.get_retry_count(tool_call_id)
+        should_retry = current_count < max_retries
+        
+        logger.debug(
+            f"ToolCallBuffer: Retry check for {tool_call_id}: "
+            f"count={current_count}, max={max_retries}, should_retry={should_retry}"
+        )
+        
+        return should_retry
+
+    def record_error(self, tool_call_id: str, error_type: str) -> None:
+        """
+        Record an error for a tool call.
+
+        Args:
+            tool_call_id: ID of the tool call
+            error_type: Type of error that occurred
+        """
+        if tool_call_id not in self.error_history:
+            self.error_history[tool_call_id] = []
+        
+        self.error_history[tool_call_id].append(error_type)
+        
+        logger.info(
+            f"ToolCallBuffer: Recorded error for {tool_call_id}: {error_type}",
+            extra={
+                "tool_call_id": tool_call_id,
+                "error_type": error_type,
+                "error_count": len(self.error_history[tool_call_id])
+            }
+        )
+
+    def get_error_history(self, tool_call_id: str) -> List[str]:
+        """
+        Get error history for a tool call.
+
+        Args:
+            tool_call_id: ID of the tool call
+
+        Returns:
+            List of error types that occurred
+        """
+        return self.error_history.get(tool_call_id, [])
 
 
 # ============================================================================
@@ -581,7 +726,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Resilient len() check for Mock objects in tests
         model_count = (
             len(config.get_all_models())
-            if hasattr(config, "get_all_models") and hasattr(config.get_all_models(), "__len__")
+            if hasattr(config, "get_all_models")
+            and hasattr(config.get_all_models(), "__len__")
             else "unknown"
         )
         logger.info(f"  Loaded {model_count} model configurations:")
@@ -623,11 +769,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                     supermemory_api_key=tool_exec_config.supermemory_api_key,
                     supermemory_base_url=tool_exec_config.supermemory_base_url,
                     timeout=tool_exec_config.timeout_per_tool,
-                    max_results=tool_exec_config_dict.get("max_results", 5) if isinstance(tool_exec_config_dict, dict) else 5,
+                    max_results=(
+                        tool_exec_config_dict.get("max_results", 5)
+                        if isinstance(tool_exec_config_dict, dict)
+                        else 5
+                    ),
                 )
                 app.state.tool_executor = tool_executor
                 app.state.tool_exec_config = tool_exec_config
-                logger.info(f"  ✅ Tool executor initialized (max_iterations={tool_exec_config.max_iterations})")
+                logger.info(
+                    f"  ✅ Tool executor initialized (max_iterations={tool_exec_config.max_iterations})"
+                )
             except Exception as e:
                 logger.warning(f"  ⚠️  Tool executor initialization failed: {e}")
                 app.state.tool_executor = None
@@ -640,10 +792,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info("=" * 70)
         logger.info("STARTUP COMPLETE - Server ready to accept requests")
         logger.info("=" * 70)
-        litellm.logging_callback_manager.add_litellm_success_callback(
-            litellm.logging_callback_manager.post
-        )
 
+        logger.info("STARTUP ENVIRONMENT VARIABLES: %s", dict(os.environ))
         yield  # Application runs here
 
     except Exception as e:
@@ -802,12 +952,16 @@ def should_use_context_retrieval(model_name: str, config: LiteLLMConfig) -> bool
     """
     try:
         # Get context retrieval config - handle both Pydantic models and dicts
-        if hasattr(config.config, 'context_retrieval'):
+        if hasattr(config.config, "context_retrieval"):
             # Pydantic model (production)
             context_retrieval_obj = config.config.context_retrieval
             if context_retrieval_obj is None:
                 return False
-            context_config = context_retrieval_obj.model_dump() if hasattr(context_retrieval_obj, 'model_dump') else context_retrieval_obj
+            context_config = (
+                context_retrieval_obj.model_dump()
+                if hasattr(context_retrieval_obj, "model_dump")
+                else context_retrieval_obj
+            )
         elif isinstance(config.config, dict):
             # Dict (tests)
             context_config = config.config.get("context_retrieval")
@@ -816,7 +970,7 @@ def should_use_context_retrieval(model_name: str, config: LiteLLMConfig) -> bool
         else:
             logger.debug("Context retrieval config not found")
             return False
-        
+
         if not context_config or not context_config.get("enabled", False):
             logger.debug("Context retrieval is disabled globally")
             return False
@@ -875,25 +1029,29 @@ async def apply_context_retrieval(
 
     try:
         # Get context retrieval configuration - handle both Pydantic models and dicts
-        if hasattr(config.config, 'context_retrieval'):
+        if hasattr(config.config, "context_retrieval"):
             # Pydantic model (production)
             context_retrieval_obj = config.config.context_retrieval
             if context_retrieval_obj is None:
                 return messages
-            context_config = context_retrieval_obj.model_dump() if hasattr(context_retrieval_obj, 'model_dump') else context_retrieval_obj
+            context_config = (
+                context_retrieval_obj.model_dump()
+                if hasattr(context_retrieval_obj, "model_dump")
+                else context_retrieval_obj
+            )
         elif isinstance(config.config, dict):
             # Dict (tests)
             context_config = config.config.get("context_retrieval", {})
         else:
             logger.warning("Context retrieval config not found")
             return messages
-        
+
         # Get API key (resolve environment variable if needed)
         api_key = context_config.get("api_key")
         if isinstance(api_key, str) and api_key.startswith("os.environ/"):
             env_var = api_key.split("/", 1)[1]
             api_key = os.getenv(env_var)
-            
+
         if not api_key:
             logger.warning("Context retrieval enabled but SUPERMEMORY_API_KEY not set")
             return messages
@@ -932,7 +1090,9 @@ async def apply_context_retrieval(
         return enhanced_messages
 
     except Exception as e:
-        logger.error(f"Context retrieval failed, using original messages: {e}", exc_info=True)
+        logger.error(
+            f"Context retrieval failed, using original messages: {e}", exc_info=True
+        )
         return messages
 
 
@@ -988,11 +1148,7 @@ async def health_check() -> Dict[str, Any]:
 
     # Resilient len() check for Mock objects in tests
     models = config.get_all_models()
-    models_count = (
-        len(models)
-        if hasattr(models, "__len__")
-        else "unknown"
-    )
+    models_count = len(models) if hasattr(models, "__len__") else "unknown"
 
     return {
         "status": "healthy",
@@ -1055,19 +1211,21 @@ async def list_models(request: Request) -> Dict[str, Any]:
         for model_name in config.get_all_models()
         if (model_config := config.get_model_config(model_name))
     ]
-    
+
+    callbacks_names: list[str] = []
+    callbacks: list[CustomLogger] = []
     litellm_cfg = config.config.litellm_settings
-    if litellm_cfg and  litellm_cfg.otel and litellm_cfg.otel_exporter and litellm_cfg.otel_service_name:
-        os.environ["OTEL_EXPORTER"] = litellm_cfg.otel_exporter
-        os.environ["OTEL_ENDPOINT"] = litellm_cfg.otel_exporter.OTLP_HTTP or ""
-        os.environ["OTEL_SERVICE_NAME"] = litellm_cfg.otel_service_name
-        
+    if litellm_cfg and litellm_cfg.otel:
+        callbacks_names.append("otel")
+
     if litellm_cfg and litellm_cfg.database_url:
-        os.environ["DATABASE_URL"] = litellm_cfg.database_url
-        postgres_logger = PrismaProxyLogger(litellm_cfg.database_url)
-        
-    if litellm_cfg and litellm_cfg.cache_params and litellm_cfg.cache_params.cache:
-    litellm.callbacks = ["otel"]
+        postgres_logger = PrismaProxyLogger(use_redis_buffer=False)
+        callbacks.append(postgres_logger)
+        callbacks_names.append("prisma_proxy")
+
+    litellm.success_callback = callbacks_names
+    litellm.failure_callback = callbacks_names
+    litellm.callbacks = callbacks
 
     return {
         "object": "list",
@@ -1104,7 +1262,7 @@ async def chat_completions(request: Request) -> Response:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid JSON in request body: {e}",
         )
-    
+
     logger.info(f"Request headers: {request.headers.items()}")
     logger.info(f"Request body: {body}")
 
@@ -1185,9 +1343,14 @@ async def chat_completions(request: Request) -> Response:
         enabled=memory_router.should_use_supermemory(model_name),
     )
     if tool_config.enabled:
-        tool_executor = ToolExecutor(tool_config.supermemory_api_key or "", tool_config.supermemory_base_url, tool_config.timeout_per_tool, tool_config.max_iterations)
+        tool_executor = ToolExecutor(
+            tool_config.supermemory_api_key or "",
+            tool_config.supermemory_base_url,
+            tool_config.timeout_per_tool,
+            tool_config.max_iterations,
+        )
         logger.info(f"[{request_id}] Tool execution enabled")
-    
+
     # Handle streaming vs non-streaming
     if stream:
         return await handle_streaming_completion(
@@ -1225,7 +1388,7 @@ async def handle_non_streaming_completion(
     Handle non-streaming completion request with automatic tool execution.
 
     This function implements a robust tool execution loop with defensive handling:
-    
+
     Tool Call Processing:
     1. Extracts tool_calls from LLM response
     2. Buffers tool calls with validation (ToolCallBuffer)
@@ -1277,7 +1440,9 @@ async def handle_non_streaming_completion(
 
         while iteration < max_iterations:
             iteration += 1
-            logger.info(f"[{request_id}] Tool execution iteration {iteration}/{max_iterations}")
+            logger.info(
+                f"[{request_id}] Tool execution iteration {iteration}/{max_iterations}"
+            )
 
             # Call LiteLLM SDK
             response = await litellm.acompletion(
@@ -1289,27 +1454,43 @@ async def handle_non_streaming_completion(
             has_tool_calls = False
             tool_calls = None
 
+            chunk_id: str = getattr(response, "id", "")
+            if chunk_id:
+                logger.info(f"[{request_id}] Chunk ID: {chunk_id}")
+
             # Extract tool_calls from response (defensive extraction)
-            if hasattr(response, 'choices') and response.choices:
+            if hasattr(response, "choices") and response.choices:
                 choice = response.choices[0]
-                if hasattr(choice, 'message') and hasattr(choice.message, 'tool_calls'):
+                if hasattr(choice, "message") and hasattr(choice.message, "tool_calls"):
                     tool_calls = choice.message.tool_calls
                     has_tool_calls = tool_calls is not None and len(tool_calls) > 0
 
             if not has_tool_calls:
                 # No tool calls - return final response
                 elapsed = time.time() - start_time
-                logger.info(f"[{request_id}] Completed in {elapsed:.2f}s (no tool calls)")
+                logger.info(
+                    f"[{request_id}] Completed in {elapsed:.2f}s (no tool calls)"
+                )
 
                 # Return OpenAI-compatible response
-                response_dict = response.model_dump() if hasattr(response, 'model_dump') else dict(response)
+                response_dict = (
+                    response.model_dump()
+                    if hasattr(response, "model_dump")
+                    else dict(response)
+                )
                 return JSONResponse(content=response_dict)
 
             # Check if tool executor is available
             if not tool_executor:
-                logger.warning(f"[{request_id}] Tool calls detected but tool executor not initialized")
+                logger.warning(
+                    f"[{request_id}] Tool calls detected but tool executor not initialized"
+                )
                 # Return response as-is (client needs to handle tool calls)
-                response_dict = response.model_dump() if hasattr(response, 'model_dump') else dict(response)
+                response_dict = (
+                    response.model_dump()
+                    if hasattr(response, "model_dump")
+                    else dict(response) if response else None
+                )
                 return JSONResponse(content=response_dict)
 
             # Initialize tool call buffer for this iteration
@@ -1320,52 +1501,53 @@ async def handle_non_streaming_completion(
             for tool_call in tool_calls:
                 try:
                     # Extract tool call details (defensive attribute access)
-                    tool_call_id = getattr(tool_call, 'id', None)
-                    tool_type = getattr(tool_call, 'type', 'function')
-                    
+                    tool_call_id = getattr(tool_call, "id", None)
+                    tool_type = getattr(tool_call, "type", "function")
+
                     # Get function details
-                    function = getattr(tool_call, 'function', None)
+                    function = getattr(tool_call, "function", None)
                     if not function:
                         logger.warning(
                             f"[{request_id}] Tool call missing 'function' attribute, skipping"
                         )
                         continue
-                    
-                    tool_name = getattr(function, 'name', None)
-                    tool_arguments = getattr(function, 'arguments', None)
-                    
+
+                    tool_name = getattr(function, "name", None)
+                    tool_arguments = getattr(function, "arguments", None)
+
                     # Validate required fields
-                    if not tool_call_id:
+                    if not tool_call_id and not chunk_id:
                         logger.warning(
                             f"[{request_id}] Tool call missing 'id', skipping: {tool_call}"
                         )
                         continue
-                    
-                    if not tool_name:
-                        logger.warning(
-                            f"[{request_id}] Tool call {tool_call_id} missing 'name', skipping"
-                        )
-                        continue
-                    
+
+                    # if not tool_name:
+                    #     logger.warning(
+                    #         f"[{request_id}] Tool call {tool_call_id} missing 'name', skipping"
+                    #     )
+                    #     continue
+
                     # Add to buffer (handles argument validation)
                     tool_buffer.add_tool_call(
                         tool_call_id=tool_call_id,
-                        tool_name=tool_name,
+                        tool_name=tool_name or "",
                         arguments=tool_arguments,
-                        tool_type=tool_type
+                        tool_type=tool_type,
+                        chunk_id=chunk_id,
                     )
-                    
+
                 except Exception as buffer_error:
                     logger.error(
                         f"[{request_id}] Error buffering tool call: {buffer_error}",
-                        exc_info=True
+                        exc_info=True,
                     )
                     continue
 
             # In non-streaming mode, all tool calls arrive at once with finish_reason
             # Mark all buffered tool calls as finished (received with finish_reason)
             tool_buffer.mark_finished_by_finish_reason()
-            
+
             # Check for incomplete tool calls
             incomplete_calls = tool_buffer.get_incomplete_tool_calls()
             if incomplete_calls:
@@ -1376,14 +1558,18 @@ async def handle_non_streaming_completion(
 
             # Get finished tool calls ready for execution
             finished_calls = tool_buffer.get_all_finished_tool_calls()
-            
+
             if not finished_calls:
                 logger.error(
                     f"[{request_id}] No finished tool calls to execute "
                     f"({len(tool_calls)} received, {len(incomplete_calls)} incomplete)"
                 )
                 # Return response as-is - cannot execute incomplete calls
-                response_dict = response.model_dump() if hasattr(response, 'model_dump') else dict(response)
+                response_dict = (
+                    response.model_dump()
+                    if hasattr(response, "model_dump")
+                    else dict(response)
+                )
                 return JSONResponse(content=response_dict)
 
             logger.info(
@@ -1395,7 +1581,11 @@ async def handle_non_streaming_completion(
             # Use original tool_calls for message (preserves exact format)
             assistant_message = {
                 "role": "assistant",
-                "content": response.choices[0].message.content if response.choices[0].message.content else "",
+                "content": (
+                    response.choices[0].message.content
+                    if response.choices[0].message.content
+                    else ""
+                ),
                 "tool_calls": [
                     {
                         "id": tc.id,
@@ -1403,23 +1593,25 @@ async def handle_non_streaming_completion(
                         "function": {
                             "name": tc.function.name,
                             "arguments": tc.function.arguments,
-                        }
+                        },
                     }
                     for tc in tool_calls
-                ]
+                ],
             }
             messages.append(assistant_message)
 
             # Execute each finished tool call
             for tool_call_id, tool_data in finished_calls.items():
                 tool_name = tool_data["name"]
-                
-                logger.info(f"[{request_id}] Executing tool: {tool_name} (id={tool_call_id})")
+
+                logger.info(
+                    f"[{request_id}] Executing tool: {tool_name} (id={tool_call_id})"
+                )
 
                 try:
                     # Parse arguments using buffer (robust parsing)
                     tool_args = tool_buffer.parse_arguments(tool_call_id)
-                    
+
                     logger.debug(
                         f"[{request_id}] Tool {tool_name}: Parsed {len(tool_args)} argument(s)"
                     )
@@ -1431,9 +1623,14 @@ async def handle_non_streaming_completion(
                         user_id=user_id or "default",
                         tool_call_id=tool_call_id,
                     )
+                    logger.info(
+                        f"[{request_id}] Tool {tool_name}({", ".join(tool_args) if tool_args else 'no args'}): {tool_result}"
+                    )
 
                     # Format tool result for LLM
-                    tool_result_content = tool_executor.format_tool_result_for_llm(tool_result)
+                    tool_result_content = tool_executor.format_tool_result_for_llm(
+                        tool_result
+                    )
 
                     logger.info(
                         f"[{request_id}] Tool {tool_name} executed successfully "
@@ -1446,7 +1643,7 @@ async def handle_non_streaming_completion(
                         f"[{request_id}] Tool {tool_name} argument parsing failed: {parse_error}"
                     )
                     tool_result_content = (
-                        f"Tool argument parsing error: {str(parse_error)}\n\n"
+                        f"Tool argument parsing error: {str(parse_error.__dict__)}\n\n"
                         f"The arguments provided could not be parsed. "
                         f"Please check the JSON format and try again."
                     )
@@ -1455,7 +1652,7 @@ async def handle_non_streaming_completion(
                     # Tool execution failed - return error to LLM
                     logger.error(
                         f"[{request_id}] Tool {tool_name} execution failed: {tool_error}",
-                        exc_info=True
+                        exc_info=True,
                     )
                     tool_result_content = (
                         f"Tool execution error: {type(tool_error).__name__}: {str(tool_error)}\n\n"
@@ -1470,14 +1667,20 @@ async def handle_non_streaming_completion(
                 }
                 messages.append(tool_message)
 
-            logger.info(f"[{request_id}] All tools executed, sending results back to LLM")
+            logger.info(
+                f"[{request_id}] All tools executed, sending results back to LLM"
+            )
 
         # Max iterations reached
         elapsed = time.time() - start_time
-        logger.warning(f"[{request_id}] Max iterations ({max_iterations}) reached in {elapsed:.2f}s")
+        logger.warning(
+            f"[{request_id}] Max iterations ({max_iterations}) reached in {elapsed:.2f}s"
+        )
 
         # Return last response even if it has tool_calls
-        response_dict = response.model_dump() if hasattr(response, 'model_dump') else dict(response)
+        response_dict = (
+            response.model_dump() if hasattr(response, "model_dump") else dict(response)
+        )
         return JSONResponse(content=response_dict)
 
     except Exception as e:
@@ -1498,13 +1701,13 @@ async def handle_streaming_completion(
 ) -> StreamingResponse:
     """
     Handle streaming completion request with tool call support.
-    
+
     In streaming mode, tool calls arrive incrementally:
     1. Tool call ID and name arrive in early chunks
     2. Arguments are streamed across multiple chunks
     3. The LAST chunk has finish_reason set (not None)
     4. Tool execution happens AFTER finish_reason is received
-    
+
     Args:
         messages: Chat messages
         litellm_params: Parameters for litellm.acompletion()
@@ -1524,10 +1727,10 @@ async def handle_streaming_completion(
             start_time = time.time()
             iteration = 0
             current_messages = messages.copy()
-            
+
             while iteration < max_iterations:
                 iteration += 1
-                
+
                 # Initialize tool call buffer for this iteration
                 tool_buffer = ToolCallBuffer()
                 has_tool_calls = False
@@ -1540,15 +1743,17 @@ async def handle_streaming_completion(
                     **litellm_params,
                 )
 
-                logger.info(f"[{request_id}] Starting stream (iteration {iteration})...")
+                logger.info(
+                    f"[{request_id}] Starting stream (iteration {iteration})..."
+                )
                 if not isinstance(response_iterator, CustomStreamWrapper):
                     raise ValueError(
                         f"{response_iterator} should be an iterator but is: {type(response_iterator)}"
                     )
-                
+
                 # Track content for assistant message
                 accumulated_content = ""
-                
+
                 # Stream chunks to client AND buffer tool calls
                 async for chunk in response_iterator:
                     if not chunk:
@@ -1559,87 +1764,87 @@ async def handle_streaming_completion(
                     elif hasattr(chunk, "dict"):
                         chunk_dict = chunk.dict()
                     else:
-                        chunk_dict = chunk if isinstance(chunk, dict) else {"data": str(chunk)}
-                    
+                        chunk_dict = (
+                            chunk if isinstance(chunk, dict) else {"data": str(chunk)}
+                        )
+
                     if not isinstance(chunk, ModelResponseStream):
                         raise RuntimeError("invalid chunk type")
                         return
                     logger.debug("Got chunk %s", chunk)
                     id = chunk.id
-                    
+
                     # Check for tool calls in this chunk
                     choices = chunk.choices
                     if not choices:
                         continue
                     if len(choices) > 0:
                         choice = choices[0]
-                        
+
                         # Check for finish_reason
                         if choice.finish_reason is not None:
                             saw_finish_reason = True
                             logger.debug(
                                 f"[{request_id}] Received finish_reason: {choice.finish_reason}"
                             )
-                        
+
                         # Check for tool calls in delta
                         if choice.delta and choice.delta.tool_calls:
                             delta_tool_calls = choice.delta.tool_calls
-                            
+
                             if delta_tool_calls:
                                 has_tool_calls = True
-                                
+
                                 for delta_tc in delta_tool_calls:
-                                    tool_call_id = delta_tc.id if hasattr(delta_tc, "id") and delta_tc.id else id
-                                    tool_call_index = delta_tc.index if hasattr(delta_tc, "index") else None
-                                    
+                                    tool_call_id = (
+                                        delta_tc.id
+                                        if hasattr(delta_tc, "id") and delta_tc.id
+                                        else None
+                                    )
+
                                     # Get tool name (may be None in subsequent chunks)
                                     tool_name = None
-                                    if hasattr(delta_tc, "function") and delta_tc.function:
-                                        tool_name = delta_tc.function.name if hasattr(delta_tc.function, "name") else None
-                                    
+                                    if (
+                                        hasattr(delta_tc, "function")
+                                        and delta_tc.function
+                                    ):
+                                        tool_name = (
+                                            delta_tc.function.name
+                                            if hasattr(delta_tc.function, "name")
+                                            else None
+                                        )
+
                                     # Get arguments (may be partial/incremental)
                                     arguments = None
-                                    if hasattr(delta_tc, "function") and delta_tc.function:
+                                    if (
+                                        hasattr(delta_tc, "function")
+                                        and delta_tc.function
+                                    ):
                                         arguments = (
                                             delta_tc.function.arguments
                                             if hasattr(delta_tc.function, "arguments")
                                             else None
                                         )
-                                    
-                                    # Handle tool call based on whether it's new or update
-                                    if tool_call_id:
-                                        if tool_call_id in tool_buffer:
-                                            # Update existing: append arguments
-                                            if arguments:
-                                                tool_buffer.append_arguments(tool_call_id, arguments)
-                                                logger.debug(
-                                                    f"[{request_id}] Appended {len(arguments)} chars "
-                                                    f"to tool_call_id={tool_call_id}"
-                                                )
-                                        else:
-                                            # New tool call
-                                            tool_buffer.add_tool_call(
-                                                tool_call_id=tool_call_id,
-                                                tool_name=tool_name or "unknown",
-                                                arguments=arguments or "",
-                                                tool_type="function"
-                                            )
-                                            logger.debug(
-                                                f"[{request_id}] New tool call: {tool_call_id}, "
-                                                f"name={tool_name}"
-                                            )
-                                    elif tool_call_index is not None:
-                                        # No ID but has index - log warning
-                                        logger.warning(
-                                            f"[{request_id}] Tool call chunk with index {tool_call_index} "
-                                            f"but no ID - cannot buffer"
+                                        # New tool call
+                                        tool_buffer.add_tool_call(
+                                            tool_call_id=tool_call_id,
+                                            tool_name=tool_name or "",
+                                            arguments=arguments or "",
+                                            tool_type="function",
+                                            chunk_id=id,  # Pass chunk ID for correlation
                                         )
-                        
+                                        logger.debug(
+                                            f"[{request_id}] New tool call: {tool_call_id}, "
+                                            f"name={tool_name}, chunk_id={id}"
+                                        )
+
                         # Accumulate content
-                        if hasattr(choice, "delta") and hasattr(choice.delta, "content"):
+                        if hasattr(choice, "delta") and hasattr(
+                            choice.delta, "content"
+                        ):
                             if choice.delta.content:
                                 accumulated_content += choice.delta.content
-                    
+
                     # Format as SSE and yield to client
                     try:
                         sse_data = f"data: {json.dumps(chunk_dict)}\n\n"
@@ -1649,17 +1854,17 @@ async def handle_streaming_completion(
                             f"[{request_id}] Failed to serialize chunk to JSON: {e}",
                             exc_info=True,
                         )
-                
+
                 # Stream completed - check if we need to execute tools
                 if has_tool_calls and saw_finish_reason:
                     # Mark all buffered tool calls as finished (received finish_reason)
                     tool_buffer.mark_finished_by_finish_reason()
-                    
+
                     logger.info(
                         f"[{request_id}] Stream finished with {len(tool_buffer)} tool call(s). "
                         f"finish_reason received: {saw_finish_reason}"
                     )
-                    
+
                     # Check if tool execution is enabled
                     tool_exec_cfg = get_tool_exec_config()
                     if not tool_exec_cfg:
@@ -1668,23 +1873,27 @@ async def handle_streaming_completion(
                         # Get finished tool calls
                         finished_calls = tool_buffer.get_all_finished_tool_calls()
                         incomplete_calls = tool_buffer.get_incomplete_tool_calls()
-                        
+
                         if incomplete_calls:
                             logger.warning(
                                 f"[{request_id}] {len(incomplete_calls)} incomplete tool calls "
                                 f"(invalid JSON). IDs: {list(incomplete_calls.keys())}"
                             )
-                        
+
                         if finished_calls:
                             logger.info(
-                                f"[{request_id}] Executing {len(finished_calls)} tool call(s)..."
+                                f"[{request_id}] Executing {len(finished_calls)} tool call(s):"
                             )
-                            
+                            for finished_call in finished_calls:
+                                logger.info(f"  - {repr(finished_call)})")
+
                             # Build assistant message with tool calls
                             # (reconstruct from buffer for message history)
                             assistant_message = {
                                 "role": "assistant",
-                                "content": accumulated_content if accumulated_content else "",
+                                "content": (
+                                    accumulated_content if accumulated_content else ""
+                                ),
                                 "tool_calls": [
                                     {
                                         "id": call_data["id"],
@@ -1692,21 +1901,23 @@ async def handle_streaming_completion(
                                         "function": {
                                             "name": call_data["name"],
                                             "arguments": call_data["arguments"],
-                                        }
+                                        },
                                     }
                                     for call_data in tool_buffer.buffer.values()
-                                ]
+                                ],
                             }
                             current_messages.append(assistant_message)
-                            
+
                             # Execute each tool
                             for tool_call_id, tool_data in finished_calls.items():
                                 tool_name = tool_data["name"]
-                                
+
                                 try:
                                     # Parse arguments
-                                    tool_args = tool_buffer.parse_arguments(tool_call_id)
-                                    
+                                    tool_args = tool_buffer.parse_arguments(
+                                        tool_call_id
+                                    )
+
                                     # Execute tool
                                     tool_result = await tool_executor.execute_tool_call(
                                         tool_name=tool_name,
@@ -1714,25 +1925,26 @@ async def handle_streaming_completion(
                                         user_id=user_id or "default",
                                         tool_call_id=tool_call_id,
                                     )
-                                    
+
                                     # Format result
-                                    tool_result_content = tool_executor.format_tool_result_for_llm(
-                                        tool_result
+                                    tool_result_content = (
+                                        tool_executor.format_tool_result_for_llm(
+                                            tool_result
+                                        )
                                     )
-                                    
+
                                     logger.info(
                                         f"[{request_id}] Tool {tool_name} executed successfully"
                                     )
-                                    
+
                                 except Exception as tool_error:
                                     logger.error(
                                         f"[{request_id}] Tool {tool_name} execution failed: {tool_error}",
-                                        exc_info=True
+                                        exc_info=True,
                                     )
-                                    tool_result_content = (
-                                        f"Tool execution error: {type(tool_error).__name__}: {str(tool_error)}"
-                                    )
-                                
+                                    # tool_result_content = f"Tool execution error: {type(tool_error).__name__}: {str(tool_error)}"
+                                    continue
+
                                 # Append tool result message
                                 tool_message = {
                                     "role": "tool",
@@ -1740,7 +1952,7 @@ async def handle_streaming_completion(
                                     "content": tool_result_content,
                                 }
                                 current_messages.append(tool_message)
-                            
+
                             # Continue to next iteration (send results back to LLM)
                             logger.info(
                                 f"[{request_id}] Tools executed, continuing to iteration {iteration + 1}"
@@ -1757,10 +1969,10 @@ async def handle_streaming_completion(
                             f"[{request_id}] Tool execution disabled or not configured, "
                             f"stream complete"
                         )
-                
+
                 # No tool calls or tool execution disabled - stream is complete
                 break
-            
+
             # Send completion signal
             elapsed = time.time() - start_time
             logger.info(f"[{request_id}] Stream completed in {elapsed:.2f}s")

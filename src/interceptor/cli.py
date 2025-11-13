@@ -23,6 +23,8 @@ def cmd_run(args):
     logger.info(f"Forwarding to: {TARGET_LLM_URL}")
     logger.info(f"Custom headers: {CUSTOM_HEADERS}")
     logger.info("=" * 60)
+    from proxy import config_parser
+    config_parser.load_config_with_env_resolution(args.config)
 
     uvicorn.run(app, host=args.host, port=INTERCEPTOR_PORT)
 
@@ -162,6 +164,12 @@ Environment Variables:
         type=str,
         help="Custom registry file path",
     )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Custom config file path",
+        default="config/config.yaml",
+    )
 
     # Subcommands
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
@@ -185,7 +193,6 @@ Environment Variables:
         help="List all project to port mappings",
         description="Display all project to port mappings in the registry",
     )
-    list_parser.set_defaults(func=cmd_list)
 
     # Show command
     show_parser = subparsers.add_parser(

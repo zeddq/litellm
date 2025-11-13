@@ -468,6 +468,7 @@ Examples:
 
 async def main():
     """Main entry point."""
+    os.environ["LITELLM_LOG"] = "DEBUG"
     args = parse_args()
 
     logger.level = logging.DEBUG

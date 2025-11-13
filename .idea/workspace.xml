@@ -5,26 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/PARALLEL_ERROR_FIX_FINAL_REPORT.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RUN_TESTS.sh" beforeDir="false" afterPath="$PROJECT_DIR$/RUN_TESTS.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/conftest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_binary_vs_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_binary_vs_sdk.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_context_retrieval.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_context_retrieval.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_error_handlers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_error_handlers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_interceptor.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_interceptor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_interceptor_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_interceptor_integration.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_interceptor_known_issues.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_interceptor_known_issues.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_litellm_proxy_refactored.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_litellm_proxy_refactored.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_memory_proxy.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_memory_proxy.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_memory_routing.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_memory_routing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_pipeline_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_pipeline_e2e.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_sdk_components.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_sdk_components.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_sdk_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_sdk_e2e.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_sdk_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/test_sdk_integration.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,6 +21,18 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {}
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:zeddq/litellm.git&quot;,
+    &quot;accountId&quot;: &quot;5035f3dc-aa6f-4414-990e-2187a0d18a8b&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/consoles/db/f52b4937-5ca0-4248-a5c7-b59ac53338cf/console.sql" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MaliciousPackageCheckinHandlerState">
     <option name="packageCheck" value="true" />
@@ -62,44 +55,44 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Docker.deploy.otel-collector: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.deploy: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python Debug Server.Unnamed.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.litellm_proxy_with_memory.executor&quot;: &quot;Run&quot;,
-    &quot;Python.upsert_supermemory_doc.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;SHELLCHECK.PATH&quot;: &quot;/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;4d404484&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/cezary/litellm&quot;,
-    &quot;llm.McpServerEditPanel.switcher&quot;: &quot;1&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.33448276&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Docker.deploy.otel-collector: Compose Deployment.executor": "Run",
+    "Docker.deploy: Compose Deployment.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python Debug Server.Unnamed.executor": "Debug",
+    "Python.litellm_proxy_with_memory.executor": "Run",
+    "Python.upsert_supermemory_doc.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
+    "git-widget-placeholder": "b106d441",
+    "last_opened_file_path": "/Users/cezary/litellm",
+    "llm.McpServerEditPanel.switcher": "1",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.33448276",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "ml.llm.LLMThirdPartyAiProvidersConfigurable"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;sqlite&quot;,
-      &quot;postgresql&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql",
+      "sqlite"
     ],
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;Jupyter&quot;,
-      &quot;TEXT&quot;,
-      &quot;HTML&quot;,
-      &quot;JSON&quot;
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "Jupyter",
+      "TEXT",
+      "HTML",
+      "JSON"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
@@ -261,6 +254,11 @@
       <workItem from="1762707930230" duration="15022000" />
       <workItem from="1762796105426" duration="1694000" />
       <workItem from="1762798939259" duration="630000" />
+      <workItem from="1763021454766" duration="18964000" />
+      <workItem from="1763063595802" duration="3335000" />
+      <workItem from="1763068123355" duration="1322000" />
+      <workItem from="1763162851595" duration="6611000" />
+      <workItem from="1763287178805" duration="1779000" />
     </task>
     <servers />
   </component>
@@ -268,6 +266,21 @@
     <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="origin/agor_init" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
@@ -278,7 +291,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="HEAD" />
+                        <option value="main" />
                       </list>
                     </value>
                   </entry>

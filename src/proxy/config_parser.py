@@ -62,6 +62,7 @@ from proxy.schema import (
 )
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Type variable for generic function decoration
 F = TypeVar('F', bound=Callable[..., Any])

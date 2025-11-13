@@ -25,10 +25,14 @@
             "id": "cc6beed66672481c",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "docs/MULTI_ROUND_TOOL_CALL_ERROR_HANDLING.md",
+                "mode": "preview",
+                "source": true
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "MULTI_ROUND_TOOL_CALL_ERROR_HANDLING"
             }
           }
         ],
@@ -153,12 +157,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "docs/MULTI_ROUND_TOOL_CALL_ERROR_HANDLING.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline"
+              "title": "Outline of MULTI_ROUND_TOOL_CALL_ERROR_HANDLING"
             }
           },
           {
@@ -179,8 +184,8 @@
             "state": {
               "type": "advanced-tables-toolbar",
               "state": {},
-              "icon": "spreadsheet",
-              "title": "Advanced Tables"
+              "icon": "lucide-ghost",
+              "title": "advanced-tables-toolbar"
             }
           }
         ],
@@ -192,7 +197,6 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "table-editor-obsidian:Advanced Tables Toolbar": false,
       "workspaces:Manage workspace layouts": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
@@ -204,11 +208,17 @@
       "markdown-importer:Open format converter": false,
       "obsidian-excalidraw-plugin:New drawing": false,
       "templater-obsidian:Templater": false,
-      "omnisearch:Omnisearch": false
+      "omnisearch:Omnisearch": false,
+      "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
   "active": "cc6beed66672481c",
   "lastOpenFiles": [
+    "tests/src/__pycache__/test_tool_executor_errors.cpython-313-pytest-8.3.4.pyc",
+    "tests/fixtures/__pycache__/test_data.cpython-313-pytest-8.3.4.pyc",
+    "tests/src/__pycache__/conftest.cpython-313-pytest-8.3.4.pyc",
+    "PARALLEL_ERROR_FIX_FINAL_REPORT.md",
+    "GROUP6_FIX_REPORT.md",
     "src/interceptor/__pycache__/intercepting_contexter.cpython-313.pyc",
     "src/interceptor/INSTALLATION.md",
     "src/interceptor/__pycache__/port_manager.cpython-313.pyc",
@@ -219,10 +229,7 @@
     "src/interceptor/PORT_COORDINATION_SUMMARY.md",
     "src/interceptor/__pycache__/port_registry.cpython-313.pyc",
     "src/interceptor/__pycache__",
-    "src/interceptor/test_port_registry.py",
     "src/interceptor/README.md",
-    "src/interceptor/port_manager.py",
-    "src/interceptor/port_registry.py",
     "IMPLEMENTATION_SUMMARY.md",
     "imperative.md",
     "docs/architecture/PRISMA_CALLBACK_DESIGN.md",
@@ -244,8 +251,6 @@
     "docs/guides/migration/MIGRATION_GUIDE.md",
     "TESTING_QUICK_REFERENCE.md",
     "SDK_TESTING_SUMMARY.md",
-    "SDK_TESTING_GUIDE.md",
-    "docs/architecture/LITELLM_SDK_INTEGRATION_PATTERNS.md",
-    "SDK_MIGRATION_EXECUTIVE_SUMMARY.md"
+    "SDK_TESTING_GUIDE.md"
   ]
 }

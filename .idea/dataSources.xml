@@ -15,5 +15,13 @@
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/.sugar/sugar.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="mojjaa" uuid="f52b4937-5ca0-4248-a5c7-b59ac53338cf">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <remarks>nowa dobra</remarks>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://localhost:5432/litellm</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
