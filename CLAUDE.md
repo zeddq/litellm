@@ -1,6 +1,6 @@
 # LiteLLM Memory Proxy
 
-**Last Updated**: 2025-11-08
+**Last Updated**: 2025-11-13
 
 ## Overview
 
@@ -284,6 +284,64 @@ litellm_settings:
 ```
 
 **For complete reference**, see: `docs/reference/CONFIGURATION.md`
+
+### Environment Variable Synchronization
+
+LiteLLM proxy supports automatic synchronization of configuration field values to environment variables using the `EnvSyncMixin` pattern. This enables backward compatibility with env-var-based configuration and makes config values available to subprocesses.
+
+**How It Works**:
+
+1. Fields marked with `json_schema_extra={"sync_to_env": "ENV_VAR_NAME"}` automatically sync their values to environment variables after validation
+2. Environment variable references (`os.environ/VAR`) are resolved before syncing
+3. None values are skipped (don't set env vars)
+4. Values are automatically converted to strings
+
+**Example Usage**:
+
+In `src/proxy/schema.py`, the following fields automatically sync to environment variables:
+
+```python
+class GeneralSettings(EnvSyncMixin, BaseModel):
+    database_url: Optional[EnvVarStr] = Field(
+        default=None,
+        json_schema_extra={"sync_to_env": "DATABASE_URL"}  # Auto-syncs to DATABASE_URL
+    )
+
+class RedisCacheParams(EnvSyncMixin, BaseModel):
+    host: str = Field(
+        default="localhost",
+        json_schema_extra={"sync_to_env": "REDIS_HOST"}  # Auto-syncs to REDIS_HOST
+    )
+    port: int = Field(
+        default=6379,
+        json_schema_extra={"sync_to_env": "REDIS_PORT"}  # Auto-syncs to REDIS_PORT (as string)
+    )
+```
+
+**When config is loaded**:
+```python
+# config.yaml contains:
+# general_settings:
+#   database_url: postgresql://localhost:5432/litellm
+
+config = load_config("config.yaml")
+# After instantiation, os.environ["DATABASE_URL"] == "postgresql://localhost:5432/litellm"
+```
+
+**Benefits**:
+- Ensures environment variables match config file values
+- Makes config values available to LiteLLM binary and subprocesses
+- Maintains backward compatibility with env-var-based configuration
+- Declarative - easy to see which fields sync to which env vars
+
+**Currently Synced Fields**:
+- `GeneralSettings.database_url` → `DATABASE_URL`
+- `LiteLLMSettings.database_url` → `DATABASE_URL`
+- `RedisCacheParams.host` → `REDIS_HOST`
+- `RedisCacheParams.port` → `REDIS_PORT`
+- `RedisCacheParams.password` → `REDIS_PASSWORD`
+
+**Testing**: See `tests/test_schema_env_sync.py` for comprehensive test coverage (18 tests).
 
 ---
 
