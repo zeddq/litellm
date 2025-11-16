@@ -1,6 +1,6 @@
 {
   "readableLineLength": true,
-  "livePreview": false,
+  "livePreview": true,
   "showLineNumber": true,
   "showUnsupportedFiles": true,
   "pdfExportSettings": {
@@ -8,5 +8,30 @@
     "landscape": false,
     "margin": "0",
     "downscalePercent": 100
-  }
+  },
+  "userIgnoreFilters": [
+    "litellm/",
+    "tests/",
+    "litellm_server/",
+    ".git/",
+    ".jj/",
+    ".pytest_cache/",
+    "__pycache__/",
+    "node_modules/",
+    ".venv/",
+    "venv/",
+    ".mypy_cache/",
+    ".idea/",
+    "htmlcov/",
+    ".coverage",
+    "*.py",
+    "*.pyc",
+    "*.pyo",
+    "*.pyd",
+    "*.so",
+    "*.egg-info/",
+    "dist/",
+    "build/",
+    "logs/"
+  ]
 }

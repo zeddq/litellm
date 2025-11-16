@@ -1,0 +1,266 @@
+{
+  "main": {
+    "id": "3398b6a2a6d4495b",
+    "type": "split",
+    "children": [
+      {
+        "id": "70b1a62bbe4de790",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ae29c3a8bd4e38b3",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "IMPLEMENTATION_SUMMARY.md",
+                "mode": "source",
+                "source": true
+              },
+              "icon": "lucide-file",
+              "title": "IMPLEMENTATION_SUMMARY"
+            }
+          },
+          {
+            "id": "cc6beed66672481c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "OBSIDIAN_MERMAID_TEST_PLAN.md",
+                "mode": "preview",
+                "source": true,
+                "backlinks": true,
+                "backlinkOpts": {
+                  "collapseAll": false,
+                  "extraContext": false,
+                  "sortOrder": "alphabetical",
+                  "showSearch": false,
+                  "searchQuery": "",
+                  "backlinkCollapsed": false,
+                  "unlinkedCollapsed": true
+                }
+              },
+              "icon": "lucide-file",
+              "title": "OBSIDIAN_MERMAID_TEST_PLAN"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "3046af6e0d58ea32",
+    "type": "split",
+    "children": [
+      {
+        "id": "c54133ba01d42c53",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4cf8e6fd51ab4fda",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": true
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "72588883367617cc",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": true,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "b03a7db2ea9fb8ef",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 237.50260543823242
+  },
+  "right": {
+    "id": "e6641b1a17082839",
+    "type": "split",
+    "children": [
+      {
+        "id": "cc7a84d7c4639e2e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d80d065ca78d8f64",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "MEMORY_ROUTING_README.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for MEMORY_ROUTING_README"
+            }
+          },
+          {
+            "id": "514bd272069ac640",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "MEMORY_ROUTING_README.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from MEMORY_ROUTING_README"
+            }
+          },
+          {
+            "id": "54b7f6755e14f9e5",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "72dcbee21edbde79",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "OBSIDIAN_MERMAID_TEST_PLAN.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of OBSIDIAN_MERMAID_TEST_PLAN"
+            }
+          },
+          {
+            "id": "2e34b3250b8bddcb",
+            "type": "leaf",
+            "state": {
+              "type": "footnotes",
+              "state": {
+                "file": "MEMORY_ROUTING_README.md"
+              },
+              "icon": "lucide-file-signature",
+              "title": "Footnotes"
+            }
+          },
+          {
+            "id": "1a76832e8cf276cc",
+            "type": "leaf",
+            "state": {
+              "type": "advanced-tables-toolbar",
+              "state": {},
+              "icon": "lucide-ghost",
+              "title": "advanced-tables-toolbar"
+            }
+          }
+        ],
+        "currentTab": 3
+      }
+    ],
+    "direction": "horizontal",
+    "width": 299.5
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "workspaces:Manage workspace layouts": false,
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "markdown-importer:Open format converter": false,
+      "obsidian-excalidraw-plugin:New drawing": false,
+      "templater-obsidian:Templater": false,
+      "omnisearch:Omnisearch": false,
+      "table-editor-obsidian:Advanced Tables Toolbar": false
+    }
+  },
+  "active": "cc6beed66672481c",
+  "lastOpenFiles": [
+    "test-mermaid-export.md",
+    "obsidian-export-alert.sh",
+    "obsidian-monitor.sh",
+    "obsidian-export-wrapper.sh",
+    "validate-obsidian-setup.sh",
+    "install-obsidian-export.sh",
+    "logs/console-log.Cezarys-MacBook-Pro.local.2025-11-16.md",
+    "TESTER_AGENT_FINAL_REPORT.md",
+    "TESTING_INDEX.md",
+    "TEST_SUITE_README.md",
+    "TEST_MATRIX.csv",
+    "TESTING_STRATEGY_SUMMARY.md",
+    "run-all-tests.sh",
+    "TEST_CHECKLIST.md",
+    "run-regression-tests.sh",
+    "benchmark-performance.sh",
+    "validate-logs.sh",
+    "OBSIDIAN_MERMAID_TEST_PLAN.md",
+    "docs/MULTI_ROUND_TOOL_CALL_ERROR_HANDLING.md",
+    "console-log.Cezarys-MacBook-Pro.local.md",
+    "PARALLEL_ERROR_FIX_FINAL_REPORT.md",
+    "GROUP6_FIX_REPORT.md",
+    "src/interceptor/INSTALLATION.md",
+    "src/interceptor/PORT_COORDINATION_SUMMARY.md",
+    "src/interceptor/README.md",
+    "IMPLEMENTATION_SUMMARY.md",
+    "imperative.md",
+    "docs/architecture/PRISMA_CALLBACK_DESIGN.md",
+    "docs/architecture/QUEUE_BASED_PERSISTENCE.md",
+    "docs/guides/testing/TESTING_GUIDE.md",
+    "redis_investigation_report.md",
+    "litellm_investigation_report.md",
+    "litellm_code_references.md",
+    "docs/guides/refactoring/REFACTORING_GUIDE.md",
+    "htmlcov/keybd_closed_cb_ce680311.png",
+    "htmlcov/favicon_32_cb_58284776.png",
+    "docs/architecture/SDK_MIGRATION_INDEX.md",
+    "docs/architecture/SDK_MIGRATION_ROLLOUT_ARCHITECTURE.md"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "enabled": true,
+  "logLevel": "debug",
+  "logToFile": true,
+  "logFilePath": "/Users/cezary/obsidian-export/obsidian-console.log",
+  "maxLogFileSize": 10485760,
+  "rotateLogFiles": true,
+  "maxLogFiles": 5,
+  "logFormat": "[{timestamp}] [{level}] {plugin}: {message}",
+  "timestampFormat": "YYYY-MM-DD HH:mm:ss.SSS",
+  "capturePlugins": [
+    "obsidian-pandoc",
+    "mermaid",
+    "dataview",
+    "templater"
+  ],
+  "captureCategories": [
+    "export",
+    "render",
+    "filter",
+    "error",
+    "warning"
+  ],
+  "filterKeywords": [
+    "mermaid",
+    "pandoc",
+    "export",
+    "filter",
+    "diagram"
+  ],
+  "excludeKeywords": [
+    "hot-reload",
+    "css-update"
+  ],
+  "showInStatusBar": true,
+  "showNotifications": true,
+  "notificationLevel": "error",
+  "colorCodeLogs": true,
+  "colors": {
+    "debug": "#808080",
+    "info": "#4A90E2",
+    "warn": "#FF9800",
+    "error": "#F44336"
+  },
+  "clearOnStartup": false,
+  "autoScroll": true
+}

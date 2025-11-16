@@ -110,9 +110,9 @@ echo "✅ Configured pip"
 # --- Configure Poetry ---
 echo "📦 Configuring Poetry..."
 
-# Disable Poetry's modern installer (uses pip underneath, which we've configured)
-poetry config installer.modern-installation false
-poetry config installer.max-workers 1  # Avoid race conditions
+# Configure Poetry installer (compatible with all versions)
+poetry config installer.max-workers 1 2>/dev/null || true  # Avoid race conditions
+poetry config installer.parallel false 2>/dev/null || true  # Disable parallel to avoid issues
 
 # Configure Poetry certificate handling for both PyPI domains
 poetry source add --priority=primary pypi-main https://pypi.org/simple/ 2>/dev/null || true

@@ -68,9 +68,9 @@ echo "✅ Configured pip to use $MIRROR_NAME"
 # --- Configure Poetry ---
 echo "📦 Configuring Poetry..."
 
-# Disable modern installer to use pip
-poetry config installer.modern-installation false
-poetry config installer.max-workers 1
+# Configure Poetry installer (compatible with all versions)
+poetry config installer.max-workers 1 2>/dev/null || true
+poetry config installer.parallel false 2>/dev/null || true
 
 # Add mirror as primary source
 poetry source add --priority=primary "$MIRROR_NAME" "$MIRROR_URL" 2>/dev/null || true

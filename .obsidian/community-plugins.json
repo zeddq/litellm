@@ -1,11 +1,3 @@
 [
-  "obsidian-excalidraw-plugin",
-  "templater-obsidian",
-  "omnisearch",
-  "editing-toolbar",
-  "text-extractor",
-  "table-editor-obsidian",
-  "execute-code",
-  "ai-image-analyzer",
-  "logstravaganza"
+  "obsidian-pandoc"
 ]

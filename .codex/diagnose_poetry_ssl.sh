@@ -122,8 +122,8 @@ echo "  Poetry certificate settings:"
 poetry config --list 2>/dev/null | grep -i cert | sed 's/^/    /' || echo "    No certificate settings"
 echo ""
 echo "  Poetry installer settings:"
-poetry config installer.modern-installation 2>/dev/null | sed 's/^/    modern-installation: /' || echo "    modern-installation: default"
 poetry config installer.max-workers 2>/dev/null | sed 's/^/    max-workers: /' || echo "    max-workers: default"
+poetry config installer.parallel 2>/dev/null | sed 's/^/    parallel: /' || echo "    parallel: default"
 echo ""
 
 # --- Network Connectivity ---

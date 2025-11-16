@@ -1,0 +1,38 @@
+{
+  "pandoc": "/opt/homebrew/bin/pandoc",
+  "pdflatex": "/usr/bin/pdflatex",
+  "extraArguments": [
+    "--standalone",
+    "--verbose",
+    "--log=/Users/cezary/obsidian-export/pandoc.log",
+    "--filter=/opt/homebrew/bin/mermaid-filter",
+    "--resource-path=.",
+    "--embed-resources"
+  ],
+  "customArguments": {
+    "pdf": [
+      "--pdf-engine=pdflatex",
+      "--pdf-engine-opt=-interaction=nonstopmode",
+      "--variable=geometry:margin=1in",
+      "--variable=fontsize:11pt",
+      "--variable=documentclass:article",
+      "--variable=colorlinks:true"
+    ],
+    "html": [
+      "--self-contained",
+      "--mathjax",
+      "--toc",
+      "--toc-depth=3",
+      "--css=/Users/cezary/obsidian-export/mermaid-html.css",
+      "--metadata=title:Documentation"
+    ]
+  },
+  "outputFolder": "/Users/cezary/obsidian-export/",
+  "openExportedFile": true,
+  "displayProgress": true,
+  "debug": true,
+  "logToConsole": true,
+  "mermaidConfig": "/Volumes/code/repos/litellm/.mermaid-config.json",
+  "showCommandPalette": true,
+  "exportFormats": ["pdf", "html", "docx"]
+}
