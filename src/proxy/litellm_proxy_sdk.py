@@ -1942,8 +1942,24 @@ async def handle_streaming_completion(
                                         f"[{request_id}] Tool {tool_name} execution failed: {tool_error}",
                                         exc_info=True,
                                     )
-                                    # tool_result_content = f"Tool execution error: {type(tool_error).__name__}: {str(tool_error)}"
-                                    continue
+
+                                    # Provide structured error feedback to the LLM so it can self-correct
+                                    fallback_result = {
+                                        "tool_call_id": tool_call_id,
+                                        "error": {
+                                            "message": (
+                                                f"Tool execution error: {type(tool_error).__name__}: {str(tool_error)}"
+                                            ),
+                                            "retry_hint": (
+                                                "The tool encountered an error during execution. "
+                                                "Please verify the arguments and try again."
+                                            ),
+                                        },
+                                        "results": [],
+                                    }
+                                    tool_result_content = (
+                                        tool_executor.format_tool_result_for_llm(fallback_result)
+                                    )
 
                                 # Append tool result message
                                 tool_message = {
