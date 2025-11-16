@@ -5,7 +5,42 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.codex/INTEGRATION_EXAMPLE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.codex/QUICK_START.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.codex/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.codex/diagnose_poetry_ssl.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.codex/fixed_setup_poetry.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.codex/setup.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.codex/setup_poetry_mirrors.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.codex/test_ssl_patch.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mermaid-config.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/backlink.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.obsidian/hotkeys.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OBSIDIAN_MERMAID_TEST_PLAN.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TESTER_AGENT_FINAL_REPORT.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TESTING_INDEX.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TESTING_STRATEGY_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TEST_CHECKLIST.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TEST_MATRIX.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TEST_SUITE_README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/benchmark-performance.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/console-log.Cezarys-MacBook-Pro.local.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/install-obsidian-export.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/obsidian-export-alert.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/obsidian-export-wrapper.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/obsidian-monitor.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run-all-tests.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run-regression-tests.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test-all-diagrams.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test-mermaid-export.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/validate-logs.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/validate-obsidian-setup.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.obsidian/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.obsidian/appearance.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/appearance.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.obsidian/community-plugins.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/community-plugins.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.obsidian/plugins/omnisearch/data.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/plugins/omnisearch/data.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.obsidian/workspace.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/workspace.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,7 +103,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
-    "git-widget-placeholder": "b106d441",
+    "git-widget-placeholder": "040c25cb",
     "last_opened_file_path": "/Users/cezary/litellm",
     "llm.McpServerEditPanel.switcher": "1",
     "node.js.detected.package.eslint": "true",
@@ -86,8 +121,8 @@
       "sqlite"
     ],
     "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
-      "Jupyter",
       "TEXT",
+      "Jupyter",
       "HTML",
       "JSON"
     ]
@@ -258,7 +293,7 @@
       <workItem from="1763063595802" duration="3335000" />
       <workItem from="1763068123355" duration="1322000" />
       <workItem from="1763162851595" duration="6611000" />
-      <workItem from="1763287178805" duration="1779000" />
+      <workItem from="1763287178805" duration="11531000" />
     </task>
     <servers />
   </component>
