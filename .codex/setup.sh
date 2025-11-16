@@ -105,12 +105,12 @@ echo ""
 STRATEGY="unknown"
 
 # Strategy 1: Try mirrors first (simplest, no SSL issues)
-if test_mirrors; then
-    print_status "info" "Strategy: Use PyPI mirrors (no SSL complications)"
-    STRATEGY="mirrors"
-elif $IN_CODEX; then
+if $IN_CODEX; then
     print_status "info" "Strategy: SSL patching for MITM proxy"
     STRATEGY="ssl_patch"
+elif test_mirrors; then
+    print_status "info" "Strategy: Use PyPI mirrors (no SSL complications)"
+    STRATEGY="mirrors"
 else
     print_status "info" "Strategy: Standard setup (no special handling needed)"
     STRATEGY="standard"

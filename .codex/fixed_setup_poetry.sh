@@ -66,8 +66,10 @@ if os.getenv("CODEX_PROXY_CERT") or os.getenv("SSL_CERT_FILE"):
     # Also patch SSLContext for direct instantiation
     _original_SSLContext_init = ssl.SSLContext.__init__
 
-    def patched_SSLContext_init(self, protocol=ssl.PROTOCOL_TLS):
-        _original_SSLContext_init(self, protocol)
+    def patched_SSLContext_init(self, *args, **kwargs):
+        # Forward all arguments to the original __init__
+        _original_SSLContext_init(self, *args, **kwargs)
+        # Then apply our verification flag patches
         if hasattr(ssl, 'VERIFY_X509_STRICT'):
             self.verify_flags &= ~ssl.VERIFY_X509_STRICT
         if hasattr(ssl, 'VERIFY_X509_PARTIAL_CHAIN'):
@@ -133,19 +135,22 @@ echo "✅ Poetry configured"
 echo "🔍 Checking lock file..."
 if [ -f poetry.lock ]; then
     if ! poetry check --lock 2>/dev/null; then
-        echo "⚠️  Lock file out of sync, regenerating..."
-        if poetry lock --no-update 2>&1 | tail -5; then
+        echo "⚠️  Lock file out of sync, deleting and regenerating..."
+        # Delete the old lock file to ensure clean regeneration
+        poetry lock --regenerate
+        echo "🗑️  Regenerated old lock file"
+
+        if poetry lock 2>&1 | tail -10; then
             echo "✅ Lock file regenerated"
         else
-            echo "⚠️  Lock regeneration failed, trying full lock..."
-            poetry lock 2>&1 | tail -5 || echo "⚠️  Could not regenerate lock file"
+            echo "⚠️  Could not regenerate lock file, continuing with install..."
         fi
     else
         echo "✅ Lock file is up to date"
     fi
 else
     echo "⚠️  No lock file found, creating one..."
-    poetry lock 2>&1 | tail -5 || echo "⚠️  Could not create lock file"
+    poetry lock 2>&1 | tail -10 || echo "⚠️  Could not create lock file, will try install anyway..."
 fi
 
 # --- Attempt installation ---

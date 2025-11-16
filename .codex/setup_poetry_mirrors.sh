@@ -84,19 +84,22 @@ echo "✅ Poetry configured to use $MIRROR_NAME"
 echo "🔍 Checking lock file..."
 if [ -f poetry.lock ]; then
     if ! poetry check --lock 2>/dev/null; then
-        echo "⚠️  Lock file out of sync, regenerating..."
-        if poetry lock --no-update 2>&1 | tail -5; then
+        echo "⚠️  Lock file out of sync, deleting and regenerating..."
+        # Delete the old lock file to ensure clean regeneration
+        rm -f poetry.lock
+        echo "🗑️  Deleted old lock file"
+
+        if poetry lock 2>&1 | tail -10; then
             echo "✅ Lock file regenerated"
         else
-            echo "⚠️  Lock regeneration failed, trying full lock..."
-            poetry lock 2>&1 | tail -5 || echo "⚠️  Could not regenerate lock file"
+            echo "⚠️  Could not regenerate lock file, continuing with install..."
         fi
     else
         echo "✅ Lock file is up to date"
     fi
 else
     echo "⚠️  No lock file found, creating one..."
-    poetry lock 2>&1 | tail -5 || echo "⚠️  Could not create lock file"
+    poetry lock 2>&1 | tail -10 || echo "⚠️  Could not create lock file, will try install anyway..."
 fi
 
 # --- Install dependencies ---

@@ -130,8 +130,9 @@ python3 .codex/test_ssl_patch.py
 
 ### Poetry lock fails
 ```bash
-# Try regenerating lock file
-poetry lock --no-update
+# Try deleting and regenerating lock file (Poetry 2.x compatible)
+rm -f poetry.lock
+poetry lock
 
 # Or use pip directly
 poetry export -f requirements.txt --output requirements.txt --without-hashes

@@ -1,4 +1,4 @@
-# Lock File Handling Fix (v1.2.0)
+# Lock File Handling Fix (v1.3.0)
 
 ## Problem
 
@@ -15,7 +15,9 @@ This happened in Codex cloud because:
 2. Codex environment might have different system packages
 3. Lock file validation is strict in Poetry 2.2+
 
-## Solution (v1.2.0)
+## Solution (v1.3.0)
+
+**Update**: Poetry 2.x removed the `--no-update` option. We now delete and regenerate the lock file.
 
 Scripts now **automatically** check and fix lock files:
 
@@ -23,10 +25,10 @@ Scripts now **automatically** check and fix lock files:
 # 1. Check if lock file is in sync
 poetry check --lock
 
-# 2. If out of sync, regenerate (preserving versions)
-poetry lock --no-update
+# 2. If out of sync, delete old lock file
+rm -f poetry.lock
 
-# 3. If that fails, do full resolution
+# 3. Regenerate lock file
 poetry lock
 
 # 4. Then proceed with install
@@ -40,15 +42,18 @@ poetry install
 poetry install  # ❌ Fails if lock out of sync
 ```
 
-### After (v1.2.0)
+### After (v1.3.0 - Poetry 2.x compatible)
 ```bash
 # Check lock file
 if ! poetry check --lock; then
-    poetry lock --no-update  # Fix it automatically
+    rm -f poetry.lock      # Delete old lock file
+    poetry lock            # Regenerate fresh lock file
 fi
 
 poetry install  # ✅ Now works
 ```
+
+**Note**: Poetry 2.x removed the `--no-update` option. Deleting and regenerating ensures a clean state.
 
 ## Testing the Fix
 
@@ -150,6 +155,6 @@ Check if you have:
 
 ---
 
-**Version**: 1.2.0
+**Version**: 1.3.0 (Poetry 2.x compatible)
 **Date**: 2025-11-16
 **Status**: ✅ Fixed and tested

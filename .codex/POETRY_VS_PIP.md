@@ -155,7 +155,8 @@ Source (aliyun): Downloading https://mirrors.aliyun.com/pypi/simple/httpx/
 ### Test 3: Check Lock File
 
 ```bash
-poetry lock --no-update -vvv 2>&1 | grep -i "using\|source"
+# Poetry 2.x: Use lock without --no-update (flag was removed)
+poetry lock -vvv 2>&1 | grep -i "using\|source"
 ```
 
 ## Common Pitfalls

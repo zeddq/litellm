@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0] - 2025-11-16
+
+### Fixed
+- **Poetry 2.x Compatibility**: Removed `--no-update` flag which doesn't exist in Poetry 2.2.1+
+- Lock file regeneration now deletes old lock file before regenerating for clean state
+- Updated both `setup_poetry_mirrors.sh` and `fixed_setup_poetry.sh`
+
+### Changed
+- Lock file handling now uses `rm -f poetry.lock && poetry lock` instead of `poetry lock --no-update`
+- Updated documentation to reflect Poetry 2.x compatibility
+- Improved error messages during lock file regeneration
+
 ## [1.2.0] - 2025-11-16
 
 ### Fixed
