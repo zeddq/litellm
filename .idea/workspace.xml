@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,7 +68,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
-    "git-widget-placeholder": "51ef7c2c",
+    "git-widget-placeholder": "a0e4d5c3",
     "last_opened_file_path": "/Volumes/code/repos/litellm",
     "llm.McpServerEditPanel.switcher": "1",
     "node.js.detected.package.eslint": "true",
@@ -258,7 +258,7 @@
       <workItem from="1763063595802" duration="3335000" />
       <workItem from="1763068123355" duration="1322000" />
       <workItem from="1763162851595" duration="6611000" />
-      <workItem from="1763287178805" duration="21940000" />
+      <workItem from="1763287178805" duration="22911000" />
     </task>
     <servers />
   </component>

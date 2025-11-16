@@ -21,7 +21,6 @@ dependencies = [
     "opentelemetry-exporter-otlp (>=1.38.0,<2.0.0)",
     "opentelemetry-sdk (>=1.38.0,<2.0.0)",
     "prisma (>=0.15.0,<0.16.0)",
-    "pydevd-pycharm (>=252.26830.99,<252.26831.0)",
     "pyyaml~=6.0.3",
     "supermemory (>=3.4.0,<4.0.0)",
     "uvicorn>=0.29.0"
