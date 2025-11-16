@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0] - 2025-11-16
+
+### Fixed
+- **Lock File Handling**: Added automatic lock file regeneration when out of sync
+- Scripts now check `poetry check --lock` before installing
+- Automatically runs `poetry lock --no-update` if lock file is stale
+- Prevents "pyproject.toml changed significantly" error
+
+### Changed
+- Both `setup_poetry_mirrors.sh` and `fixed_setup_poetry.sh` now validate lock files
+- Better error messages for lock file issues
+
 ## [1.1.0] - 2025-11-16
 
 ### Fixed

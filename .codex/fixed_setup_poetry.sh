@@ -129,6 +129,25 @@ export PYTHONWARNINGS="ignore:Unverified HTTPS request"
 
 echo "✅ Poetry configured"
 
+# --- Check and update lock file if needed ---
+echo "🔍 Checking lock file..."
+if [ -f poetry.lock ]; then
+    if ! poetry check --lock 2>/dev/null; then
+        echo "⚠️  Lock file out of sync, regenerating..."
+        if poetry lock --no-update 2>&1 | tail -5; then
+            echo "✅ Lock file regenerated"
+        else
+            echo "⚠️  Lock regeneration failed, trying full lock..."
+            poetry lock 2>&1 | tail -5 || echo "⚠️  Could not regenerate lock file"
+        fi
+    else
+        echo "✅ Lock file is up to date"
+    fi
+else
+    echo "⚠️  No lock file found, creating one..."
+    poetry lock 2>&1 | tail -5 || echo "⚠️  Could not create lock file"
+fi
+
 # --- Attempt installation ---
 echo "📦 Installing dependencies with Poetry..."
 
