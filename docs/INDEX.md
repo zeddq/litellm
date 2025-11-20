@@ -171,14 +171,22 @@ docs/
 │   ├── OVERVIEW.md            # System design & architecture
 │   ├── DESIGN_DECISIONS.md    # Architectural choices & migration plans
 │   ├── PRISMA_CALLBACK_DESIGN.md  # Database persistence
-│   └── QUEUE_BASED_PERSISTENCE.md # Alternative persistence (future)
+│   ├── QUEUE_BASED_PERSISTENCE.md # Alternative persistence (future)
+│   └── *IMPLEMENTATION.md     # Feature implementation details
 │
 ├── guides/
 │   ├── CONFIGURATION.md       # Complete config reference
-│   └── TESTING.md             # Comprehensive testing docs
+│   └── TESTING.md             # General testing docs
 │
-└── troubleshooting/
-    └── COMMON_ISSUES.md       # Troubleshooting guide
+├── testing/
+│   ├── INDEX.md               # Testing index
+│   └── TEST_*.md              # Specific test plans and reports
+│
+├── troubleshooting/
+│   └── COMMON_ISSUES.md       # Troubleshooting guide
+│
+└── archive/
+    └── reports/               # Archived analysis and status reports
 ```
 
 ---
@@ -343,7 +351,8 @@ Looking for specific information?
 | API usage | [TUTORIAL.md](getting-started/TUTORIAL.md) |
 | System design | [OVERVIEW.md](architecture/OVERVIEW.md) |
 | Architectural decisions | [DESIGN_DECISIONS.md](architecture/DESIGN_DECISIONS.md) |
-| Testing | [TESTING.md](guides/TESTING.md) |
+| Testing (General) | [TESTING.md](guides/TESTING.md) |
+| Test Plans & Reports | [docs/testing/](testing/INDEX.md) |
 | Configuration | [CONFIGURATION.md](guides/CONFIGURATION.md) |
 | Troubleshooting | [COMMON_ISSUES.md](troubleshooting/COMMON_ISSUES.md) |
 | Examples | [TUTORIAL.md](getting-started/TUTORIAL.md#example-workflows) |

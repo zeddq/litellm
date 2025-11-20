@@ -37,6 +37,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
+import litellm
 from supermemory import Supermemory
 from supermemory.types import SearchExecuteResponse
 
@@ -342,6 +343,7 @@ class ToolExecutor:
         Returns:
             Dict containing search results formatted for LLM
         """
+        litellm.callbacks
         try:
             # Extract query from tool args
             if isinstance(tool_args, str):

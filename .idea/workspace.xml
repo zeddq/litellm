@@ -5,7 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/bashsupport-pro.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.obsidian/workspace.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/workspace.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out" beforeDir="false" afterPath="$PROJECT_DIR$/out" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/config_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/config_parser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/tool_executor.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/tool_executor.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,6 +43,13 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/consoles/db/f52b4937-5ca0-4248-a5c7-b59ac53338cf/console.sql" root0="FORCE_HIGHLIGHTING" />
   </component>
+  <component name="LogFilters">
+    <option name="FILTER_ERRORS" value="false" />
+    <option name="FILTER_WARNINGS" value="false" />
+    <option name="FILTER_INFO" value="true" />
+    <option name="FILTER_DEBUG" value="true" />
+    <option name="CUSTOM_FILTER" />
+  </component>
   <component name="MaliciousPackageCheckinHandlerState">
     <option name="packageCheck" value="true" />
   </component>
@@ -55,44 +71,47 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Docker.deploy.otel-collector: Compose Deployment.executor": "Run",
-    "Docker.deploy: Compose Deployment.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python Debug Server.Unnamed.executor": "Debug",
-    "Python.litellm_proxy_with_memory.executor": "Run",
-    "Python.upsert_supermemory_doc.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
-    "git-widget-placeholder": "a0e4d5c3",
-    "last_opened_file_path": "/Volumes/code/repos/litellm",
-    "llm.McpServerEditPanel.switcher": "1",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.33448276",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "ml.llm.LLMThirdPartyAiProvidersConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;BashSupport Pro..zshrc.executor&quot;: &quot;Debug&quot;,
+    &quot;BashSupport Pro.zshdb.executor&quot;: &quot;Debug&quot;,
+    &quot;Docker.deploy.otel-collector: Compose Deployment.executor&quot;: &quot;Run&quot;,
+    &quot;Docker.deploy: Compose Deployment.executor&quot;: &quot;Run&quot;,
+    &quot;Input arguments&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python Debug Server.Unnamed.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.litellm_proxy_with_memory.executor&quot;: &quot;Run&quot;,
+    &quot;Python.upsert_supermemory_doc.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;SHELLCHECK.PATH&quot;: &quot;/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;00a4ec78&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Volumes/code/repos/litellm&quot;,
+    &quot;llm.McpServerEditPanel.switcher&quot;: &quot;1&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.33448276&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.intellij.mcpserver.settings&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "postgresql",
-      "sqlite"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;postgresql&quot;,
+      &quot;sqlite&quot;
     ],
-    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
-      "TEXT",
-      "Jupyter",
-      "HTML",
-      "JSON"
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;TEXT&quot;,
+      &quot;Jupyter&quot;,
+      &quot;HTML&quot;,
+      &quot;JSON&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
@@ -105,7 +124,25 @@
       <recent name="$PROJECT_DIR$/src/proxy" />
     </key>
   </component>
-  <component name="RunManager" selected="Docker.deploy: Compose Deployment">
+  <component name="RunManager" selected="BashSupport Pro..zshrc">
+    <configuration name=".zshrc" type="BashProRunConfiguration" temporary="true" show_console_on_std_out="true">
+      <option name="defaultInterpreter" value="zsh" />
+      <log_file alias="all" path="$USER_HOME$/autossh.log" show_all="true" />
+      <scriptContent>source .zshrc &amp;&amp; fcs *.lua | head -n 10</scriptContent>
+      <option name="scriptParameters" value="fcs *.lua" />
+      <option name="scriptPath" value="$USER_HOME$/debug_zshrc_function.zsh" />
+      <option name="workingDirectory" value="$USER_HOME$" />
+      <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner" />
+      <method v="2" />
+    </configuration>
+    <configuration name="zshdb" type="BashProRunConfiguration" temporary="true">
+      <option name="defaultInterpreter" value="zsh" />
+      <log_file alias="all" path="$USER_HOME$/all.log" />
+      <option name="scriptParameters" value="fcs .lua" />
+      <option name="scriptPath" value="$USER_HOME$/debug_zshrc_function.zsh" />
+      <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner" />
+      <method v="2" />
+    </configuration>
     <configuration name="Unnamed" type="PyRemoteDebugConfigurationType" factoryName="Python Remote Debug" nameIsGenerated="true">
       <module name="litellm" />
       <option name="PORT" value="4747" />
@@ -117,33 +154,6 @@
       </PathMappingSettings>
       <option name="REDIRECT_OUTPUT" value="true" />
       <option name="SUSPEND_AFTER_CONNECT" value="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="litellm_proxy_with_memory" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="litellm" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <EXTENSION ID="com.fapiko.jetbrains.plugins.better_direnv.runconfigs.PycharmRunConfigurationExtension">
-        <option name="DIRENV_ENABLED" value="false" />
-        <option name="DIRENV_TRUSTED" value="false" />
-      </EXTENSION>
-      <option name="SCRIPT_NAME" value="./litellm_proxy_with_memory.py" />
-      <option name="PARAMETERS" value="--config config.yaml --port 8764 --litellm-url http://localhost:8765" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
     <configuration name="upsert_supermemory_doc" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
@@ -197,18 +207,20 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="BashSupport Pro.zshdb" />
+      <item itemvalue="BashSupport Pro..zshrc" />
       <item itemvalue="Docker.deploy: Compose Deployment" />
       <item itemvalue="Docker.deploy.otel-collector: Compose Deployment" />
       <item itemvalue="Python.upsert_supermemory_doc" />
-      <item itemvalue="Python.litellm_proxy_with_memory" />
       <item itemvalue="Python Debug Server.Unnamed" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Docker.deploy.otel-collector: Compose Deployment" />
         <item itemvalue="Docker.deploy: Compose Deployment" />
         <item itemvalue="Python.upsert_supermemory_doc" />
-        <item itemvalue="Docker.deploy.otel-collector: Compose Deployment" />
-        <item itemvalue="Python.litellm_proxy_with_memory" />
+        <item itemvalue="BashSupport Pro.zshdb" />
+        <item itemvalue="BashSupport Pro..zshrc" />
       </list>
     </recent_temporary>
   </component>
@@ -258,7 +270,12 @@
       <workItem from="1763063595802" duration="3335000" />
       <workItem from="1763068123355" duration="1322000" />
       <workItem from="1763162851595" duration="6611000" />
-      <workItem from="1763287178805" duration="22911000" />
+      <workItem from="1763287178805" duration="24554000" />
+      <workItem from="1763370854728" duration="200000" />
+      <workItem from="1763371069573" duration="914000" />
+      <workItem from="1763374157847" duration="5212000" />
+      <workItem from="1763384619544" duration="20671000" />
+      <workItem from="1763617801900" duration="16713000" />
     </task>
     <servers />
   </component>
@@ -309,12 +326,49 @@
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="bashpro.debug.shLine">
+          <url>file://$USER_HOME$/.zshrc</url>
+          <line>176</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="bashpro.debug.shLine">
+          <url>file://$USER_HOME$/.oh-my-zsh/oh-my-zsh.sh</url>
+          <line>123</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="bashpro.debug.shLine">
+          <url>file://$USER_HOME$/.zshrc</url>
+          <line>11</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="bashpro.debug.shLine">
+          <url>file://$USER_HOME$/.zshrc</url>
+          <line>35</line>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="bashpro.debug.shLine">
+          <url>file://$USER_HOME$/.zshrc</url>
+          <line>21</line>
+          <option name="timeStamp" value="11" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
     <watches-manager>
       <configuration name="PyRemoteDebugConfigurationType">
         <watch expression="traceback.print_tb()" language="Python" custom="import traceback" />
         <watch expression="self.header_patterns" />
       </configuration>
+      <configuration name="BashProRunConfiguration">
+        <watch expression="$arg" language="BashSupport Pro Zsh" />
+        <watch expression="$search_paths" language="BashSupport Pro Zsh" />
+        <watch expression="${~arg}" language="BashSupport Pro Zsh" />
+      </configuration>
     </watches-manager>
+  </component>
+  <component name="bashsupport-pro.workspace">
+    <option name="bashdb.showEnvVars" value="true" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/litellm$litellm_proxy_with_memory.coverage" NAME="litellm_proxy_with_memory Coverage Results" MODIFIED="1761350153212" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

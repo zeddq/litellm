@@ -166,6 +166,8 @@
   },
   "active": "be641654c9b0d6b7",
   "lastOpenFiles": [
+    "scripts/debug_zshrc_function.zsh",
+    "scripts/DEBUG_ZSHRC_FUNCTIONS.md",
     "src/interceptor/INSTALLATION.md.tmp",
     "src/interceptor/PORT_COORDINATION_SUMMARY.md.tmp",
     "src/interceptor/README.md.tmp",
@@ -175,8 +177,6 @@
     "HTTPX_MOCK_ENHANCEMENT_SUMMARY.md.tmp",
     "TESTING_INDEX.md.tmp",
     "console-log.Cezarys-MacBook-Pro.local.md.tmp",
-    "TEST_SUITE_README.md.tmp",
-    "templates/Poetry Debug.md.tmp",
     "test-wide-diagram.md",
     "WIDE_DIAGRAM_TEST.md",
     "test-mermaid-export.md",

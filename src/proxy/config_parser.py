@@ -263,6 +263,7 @@ class ModelConfig:
         timeout: Request timeout in seconds (None for default)
         max_retries: Maximum retry attempts (None for default)
         stream_timeout: Timeout for streaming responses (None for default)
+        reasoning_effort: Reasoning effort (None for default)
 
     Example:
         ```python
@@ -276,6 +277,7 @@ class ModelConfig:
             timeout=600.0,
             max_retries=2,
             stream_timeout=None,
+            reasoning_effort=None,
         )
         ```
     """
@@ -289,6 +291,7 @@ class ModelConfig:
     timeout: Optional[float] = None
     max_retries: Optional[int] = None
     stream_timeout: Optional[float] = None
+    reasoning_effort: Optional[str] = None
 
     def to_litellm_params(self) -> Dict[str, Any]:
         """
@@ -333,6 +336,9 @@ class ModelConfig:
 
         if self.stream_timeout is not None:
             params["stream_timeout"] = self.stream_timeout
+            
+        if self.reasoning_effort is not None:
+            params["reasoning_effort"] = self.reasoning_effort
 
         return params
 

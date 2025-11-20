@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="bashsupport-pro.project">
+    <scriptLibraries>
+      <library name="Library 1">
+        <sources>
+          <source path="/usr/share/man" recursive="true" external="true" />
+          <source path="/opt/homebrew/share/man" recursive="true" external="true" />
+          <source path="$USER_HOME$/.zshrc" external="true" />
+          <source path="$USER_HOME$/.oh-my-zsh" recursive="true" external="true" />
+          <source path="$USER_HOME$/.fzf.zsh" external="true" />
+        </sources>
+        <targets>
+          <target path="$USER_HOME$/debug_zshrc_function.zsh" />
+        </targets>
+      </library>
+    </scriptLibraries>
+    <option name="defaultFileTemplate" value="Zsh" />
+  </component>
+</project>

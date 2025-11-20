@@ -226,6 +226,27 @@ Migrate from binary-based architecture to SDK-based architecture.
 
 ---
 
+### Phase 10: New Features (2025-11-20)
+
+#### Added
+- **Interceptor Proxy (`src/interceptor/`)**:
+    - FastAPI-based proxy for PyCharm/IDEs.
+    - Automatic port management with registry.
+    - Header injection (`x-memory-user-id`, `x-pycharm-instance`).
+- **Context Retrieval (`src/proxy/context_retriever.py`)**:
+    - Automatic retrieval from Supermemory.
+    - Flexible query extraction (`last_user`, `first_user`, etc.).
+    - Configurable injection strategies (`system`, `user_prefix`, etc.).
+- **Project Restructuring**:
+    - Modular `src/` layout (`proxy/`, `interceptor/`, `integrations/`).
+    - Centralized `config/` directory.
+
+#### Documentation
+- Updated `docs/INDEX.md` with new feature links.
+- Added `src/interceptor/README.md`.
+
+---
+
 ## Documentation Structure
 
 ### Current Structure (Post-Consolidation)
