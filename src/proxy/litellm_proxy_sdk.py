@@ -1355,6 +1355,10 @@ async def chat_completions(request: Request) -> Response:
 
     # Initialize tool executor (if tools are configured)
     tool_executor = None
+    # Get global config for defaults
+    global_tool_config = get_tool_exec_config()
+    max_iterations = global_tool_config.max_iterations if global_tool_config else 10
+    
     tool_config = ToolExecutionConfig(
         supermemory_api_key=supermemory_key,
         enabled=memory_router.should_use_supermemory(model_name),
@@ -1364,9 +1368,17 @@ async def chat_completions(request: Request) -> Response:
             tool_config.supermemory_api_key or "",
             tool_config.supermemory_base_url,
             tool_config.timeout_per_tool,
-            tool_config.max_iterations,
+            max_results=5,  # Explicit max_results
         )
-        logger.info(f"[{request_id}] Tool execution enabled")
+        logger.info(f"[{request_id}] Tool execution enabled (max_iterations={max_iterations})")
+        
+        # Inject tool definitions if not already present
+        if "tools" not in litellm_params:
+            litellm_params["tools"] = tool_executor.get_tool_definitions()
+            # Force tool choice to auto if tools are present
+            if "tool_choice" not in litellm_params:
+                litellm_params["tool_choice"] = "auto"
+            logger.debug(f"[{request_id}] Injected {len(litellm_params['tools'])} tool definitions")
 
     # Handle streaming vs non-streaming
     if stream:
@@ -1377,7 +1389,7 @@ async def chat_completions(request: Request) -> Response:
             error_handler=error_handler,
             user_id=user_id,
             tool_executor=tool_executor,
-            max_iterations=5,
+            max_iterations=max_iterations,
         )
     else:
         return await handle_non_streaming_completion(
@@ -1851,8 +1863,8 @@ async def handle_streaming_completion(
                                             chunk_id=id,  # Pass chunk ID for correlation
                                         )
                                         logger.debug(
-                                            f"[{request_id}] New tool call: {tool_call_id}, "
-                                            f"name={tool_name}, chunk_id={id}"
+                                            f"[{request_id}] Appended tool call: {tool_call_id}, "
+                                            f"name={tool_name}, chunk_id={id}, args={arguments}"
                                         )
 
                         # Accumulate content
@@ -1864,8 +1876,34 @@ async def handle_streaming_completion(
 
                     # Format as SSE and yield to client
                     try:
-                        sse_data = f"data: {json.dumps(chunk_dict)}\n\n"
-                        yield sse_data
+                        # Logic to hide tool calls from client if we are handling them internally
+                        should_yield = True
+                        
+                        if tool_executor:
+                            # Check if we need to modify the chunk to hide tool details
+                            choices = chunk_dict.get("choices", [])
+                            if choices:
+                                choice = choices[0]
+                                delta = choice.get("delta", {})
+                                
+                                # 1. Hide tool_calls in delta
+                                if "tool_calls" in delta:
+                                    # We are handling these internally, don't show to client
+                                    del delta["tool_calls"]
+                                    
+                                # 2. Hide finish_reason if we are going to loop (have tool calls)
+                                # If we saw tool calls, we expect to execute them and continue the stream
+                                if has_tool_calls and choice.get("finish_reason"):
+                                    choice["finish_reason"] = None
+                                    
+                                # 3. Check if there is anything left to yield
+                                # If delta is empty (no content) and finish_reason is None, skip yielding
+                                if not delta.get("content") and not choice.get("finish_reason"):
+                                    should_yield = False
+                                    
+                        if should_yield:
+                            sse_data = f"data: {json.dumps(chunk_dict)}\n\n"
+                            yield sse_data
                     except (TypeError, ValueError) as e:
                         logger.error(
                             f"[{request_id}] Failed to serialize chunk to JSON: {e}",
@@ -1930,6 +1968,9 @@ async def handle_streaming_completion(
                                 tool_name = tool_data["name"]
 
                                 try:
+                                    # Send keep-alive to client to prevent timeout during tool execution
+                                    yield ": processing tool execution\n\n"
+                                    
                                     # Parse arguments
                                     tool_args = tool_buffer.parse_arguments(
                                         tool_call_id

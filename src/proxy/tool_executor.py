@@ -231,6 +231,55 @@ class ToolExecutor:
             logger.error(f"Failed to initialize Supermemory client: {e}")
             raise
 
+    def get_tool_definitions(self) -> List[Dict[str, Any]]:
+        """
+        Get the definitions of tools supported by this executor.
+        
+        Returns:
+            List of tool definitions in OpenAI tool format.
+        """
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": "supermemoryToolSearch",
+                    "description": "Search for documents and memories in Supermemory. Use this to find relevant information.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "query": {
+                                "type": "string",
+                                "description": "The search query string."
+                            },
+                            "queries": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                                "description": "Alternative list of search queries."
+                            }
+                        },
+                        "required": ["query"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "supermemoryToolGetDocument",
+                    "description": "Retrieve full details of a specific document by its ID. Use this when you have a document ID and need to read the full content.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "description": "The ID of the document to retrieve."
+                            }
+                        },
+                        "required": ["id"]
+                    }
+                }
+            }
+        ]
+
     async def execute_tool_call(
         self,
         tool_name: str,
@@ -263,8 +312,140 @@ class ToolExecutor:
                 user_id=user_id,
                 tool_call_id=tool_call_id,
             )
+        elif tool_name == "supermemoryToolGetDocument":
+            return await self._execute_supermemory_get_document(
+                tool_args=tool_args,
+                user_id=user_id,
+                tool_call_id=tool_call_id,
+            )
         else:
             raise ValueError(f"Unsupported tool: {tool_name}")
+
+    def _extract_id_argument(
+        self,
+        tool_args: Dict[str, Any],
+    ) -> Tuple[Optional[str], str, Optional["ToolExecutionError"]]:
+        """
+        Normalize supported id parameters.
+
+        Returns:
+            Tuple of (id string or None, parameter name used, error if any)
+        """
+        # 1. Check primary 'id' parameter
+        if "id" in tool_args:
+            return tool_args.get("id"), "id", None
+
+        # 2. Check common aliases
+        for alias in ["document_id", "doc_id", "uuid"]:
+            if alias in tool_args:
+                return tool_args.get(alias), alias, None
+        
+        return None, "id", None
+
+    async def _execute_supermemory_get_document(
+        self,
+        tool_args: Dict[str, Any],
+        user_id: str,
+        tool_call_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Execute Supermemory get document tool.
+        """
+        try:
+            # Extract ID from tool args
+            if isinstance(tool_args, str):
+                tool_args = json.loads(tool_args)
+
+            doc_id, id_param, extraction_error = self._extract_id_argument(tool_args)
+            
+            if extraction_error:
+                return {
+                    "tool_call_id": tool_call_id,
+                    "error": extraction_error.to_dict(),
+                    "results": []
+                }
+
+            # Validate ID parameter exists
+            if doc_id is None:
+                received_keys = list(tool_args.keys())
+                received_str = ", ".join(f"'{k}'" for k in received_keys) if received_keys else "none"
+
+                error = ToolExecutionError(
+                    error_type="missing_parameter",
+                    message=f"Missing required parameter 'id'. Received parameters: {received_str}",
+                    parameter="id",
+                    required_parameters=["id"],
+                    example={"id": "doc-12345"},
+                    retry_hint="Retry ensuring you provide the 'id' parameter."
+                )
+                return {
+                    "tool_call_id": tool_call_id,
+                    "error": error.to_dict(),
+                    "results": []
+                }
+
+            # Validate ID is a string
+            type_error = validate_parameter_type(
+                param_name=id_param,
+                value=doc_id,
+                expected_type=str,
+                example_value="doc-12345"
+            )
+            if type_error:
+                return {
+                    "tool_call_id": tool_call_id,
+                    "error": type_error.to_dict(),
+                    "results": []
+                }
+
+            logger.info(f"Getting Supermemory document: id='{doc_id}', user={user_id}")
+
+            # Execute get using Supermemory SDK
+            # The SDK returns a DocumentGetResponse (or similar object)
+            document = self.supermemory_client.documents.get(id=doc_id)
+
+            # Format result
+            # We wrap the single document in a list to reuse the generic results formatter logic if possible,
+            # or just return it as a single result.
+            # Let's construct a result dict similar to search results for consistency.
+            
+            formatted_result = {
+                "id": getattr(document, 'id', doc_id),
+                "content": getattr(document, 'content', ''),
+                "title": getattr(document, 'title', 'Untitled'),
+                "url": getattr(document, 'url', ''),
+                "type": getattr(document, 'type', 'document'),
+                # Add other fields if available and useful
+                "metadata": getattr(document, 'metadata', {}),
+            }
+
+            logger.info(f"✅ Supermemory document retrieved: {doc_id}")
+
+            return {
+                "tool_call_id": tool_call_id,
+                "query": f"id={doc_id}", # Pseudo-query for logging
+                "results_count": 1,
+                "results": [formatted_result],
+                "user_id": user_id,
+            }
+
+        except Exception as e:
+            logger.error(f"Supermemory get document failed: {e}", exc_info=True)
+            
+            error = ToolExecutionError(
+                error_type="execution_error",
+                message=f"Document retrieval failed: {str(e)}",
+                parameter="id",
+                required_parameters=["id"],
+                example={"id": "doc-12345"},
+                retry_hint="Check if the document ID is correct and exists."
+            )
+            
+            return {
+                "tool_call_id": tool_call_id,
+                "error": error.to_dict(),
+                "results": []
+            }
 
     def _extract_query_argument(
         self,
@@ -276,9 +457,17 @@ class ToolExecutor:
         Returns:
             Tuple of (query string or None, parameter name used, error if any)
         """
+        # 1. Check primary 'query' parameter
         if "query" in tool_args:
             return tool_args.get("query"), "query", None
 
+        # 2. Check common aliases (hallucinations)
+        # LLMs frequently use 'q' or 'search' despite schema definition
+        for alias in ["q", "search", "search_query", "term"]:
+            if alias in tool_args:
+                return tool_args.get(alias), alias, None
+
+        # 3. Check 'queries' list
         if "queries" in tool_args:
             queries_value = tool_args["queries"]
             if isinstance(queries_value, str):
@@ -343,7 +532,6 @@ class ToolExecutor:
         Returns:
             Dict containing search results formatted for LLM
         """
-        litellm.callbacks
         try:
             # Extract query from tool args
             if isinstance(tool_args, str):
@@ -371,16 +559,19 @@ class ToolExecutor:
 
             # Validate query parameter exists
             if query is None:
+                # Construct a helpful message listing what was actually received
+                received_keys = list(tool_args.keys())
+                received_str = ", ".join(f"'{k}'" for k in received_keys) if received_keys else "none"
+
                 error = ToolExecutionError(
                     error_type="missing_parameter",
-                    message="Either 'query' (string) or 'queries' (array of strings) is required for document search",
+                    message=f"Missing required parameter 'query'. Received parameters: {received_str}",
                     parameter="query",
                     required_parameters=["query"],
                     example={
                         "query": "python asyncio patterns",
-                        "queries": ["python docs", "asyncio patterns"],
                     },
-                    retry_hint="Retry the tool call with a single 'query' string or provide 'queries' as a list of related phrases."
+                    retry_hint="Retry ensuring you provide the 'query' parameter. The system received: " + received_str
                 )
                 
                 # Log telemetry for missing parameter error
@@ -390,6 +581,7 @@ class ToolExecutor:
                         "tool_name": "supermemoryToolSearch",
                         "error_type": "missing_parameter",
                         "parameter": "query",
+                        "received_keys": received_keys,
                         "user_id": user_id,
                         "tool_call_id": tool_call_id,
                     }

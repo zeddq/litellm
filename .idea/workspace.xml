@@ -5,15 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a7e79ae-1081-4de3-ab1d-3a1b87e3c6fe" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/bashsupport-pro.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/src/test_tool_executor_get_document.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.obsidian/workspace.json" beforeDir="false" afterPath="$PROJECT_DIR$/.obsidian/workspace.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out" beforeDir="false" afterPath="$PROJECT_DIR$/out" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/proxy/config_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/config_parser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/litellm_proxy_sdk.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/proxy/tool_debug_logger.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/tool_debug_logger.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/proxy/tool_executor.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proxy/tool_executor.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -71,47 +67,47 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;BashSupport Pro..zshrc.executor&quot;: &quot;Debug&quot;,
-    &quot;BashSupport Pro.zshdb.executor&quot;: &quot;Debug&quot;,
-    &quot;Docker.deploy.otel-collector: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.deploy: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Input arguments&quot;: &quot;true&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python Debug Server.Unnamed.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.litellm_proxy_with_memory.executor&quot;: &quot;Run&quot;,
-    &quot;Python.upsert_supermemory_doc.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;SHELLCHECK.PATH&quot;: &quot;/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;00a4ec78&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Volumes/code/repos/litellm&quot;,
-    &quot;llm.McpServerEditPanel.switcher&quot;: &quot;1&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.33448276&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.intellij.mcpserver.settings&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "BashSupport Pro..zshrc.executor": "Debug",
+    "BashSupport Pro.zshdb.executor": "Debug",
+    "Docker.deploy.otel-collector: Compose Deployment.executor": "Run",
+    "Docker.deploy: Compose Deployment.executor": "Run",
+    "Input arguments": "true",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python Debug Server.Unnamed.executor": "Debug",
+    "Python.litellm_proxy_with_memory.executor": "Run",
+    "Python.upsert_supermemory_doc.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "SHELLCHECK.PATH": "/Users/cezary/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
+    "git-widget-placeholder": "ffb5032a",
+    "last_opened_file_path": "/Volumes/code/repos/litellm",
+    "llm.McpServerEditPanel.switcher": "1",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.33448276",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "preferences.externalTools"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;postgresql&quot;,
-      &quot;sqlite&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql",
+      "sqlite"
     ],
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;TEXT&quot;,
-      &quot;Jupyter&quot;,
-      &quot;HTML&quot;,
-      &quot;JSON&quot;
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "Mermaid",
+      "AsciiDoc",
+      "TEXT",
+      "Jupyter"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
@@ -276,6 +272,7 @@
       <workItem from="1763374157847" duration="5212000" />
       <workItem from="1763384619544" duration="20671000" />
       <workItem from="1763617801900" duration="16713000" />
+      <workItem from="1763668502927" duration="21969000" />
     </task>
     <servers />
   </component>
