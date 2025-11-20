@@ -97,25 +97,23 @@ Use the provided `RUN_TESTS.sh` script for all testing needs.
 
 ## 🏗️ Architecture Overview
 
-**Pattern:** External Binary Proxy
+**Pattern:** Self-Contained SDK Gateway
 
-The system consists of two main components running as separate processes:
+The system uses an in-process SDK approach to ensure persistent HTTP sessions (critical for Cloudflare compatibility).
 
-1.  **Memory Proxy (FastAPI, Port 8764)**:
-    *   Handles client connections.
-    *   Detects client identity via `User-Agent` or `x-memory-user-id`.
-    *   Routes requests to LiteLLM.
-    *   Injects memory context.
+1.  **Client Interceptor (Edge)**:
+    *   Runs locally (e.g., port 8888).
+    *   Tags requests with `x-memory-user-id`.
 
-2.  **LiteLLM Binary (External, Port 8765)**:
-    *   Manages LLM provider connections (OpenAI, Anthropic, etc.).
-    *   Handles rate limiting and caching.
+2.  **Memory Proxy (Core)**:
+    *   FastAPI app using `litellm` Python SDK.
+    *   **Session Manager**: Maintains persistent `httpx.AsyncClient` per user to preserve cookies.
+    *   **Zero-Hop**: No external binary process; direct SDK calls.
 
 ### Key Files
-*   `config.yaml`: Main configuration (models, routing, memory).
-*   `litellm_proxy_with_memory.py`: FastAPI app entry point.
-*   `memory_router.py`: Client detection and routing logic.
-*   `start_proxies.py`: Orchestrator script.
+*   `src/proxy/litellm_proxy_sdk.py`: Main FastAPI app (SDK implementation).
+*   `src/proxy/session_manager.py`: Persistent session handling.
+*   `src/interceptor/intercepting_contexter.py`: Edge interceptor.
 
 ---
 
