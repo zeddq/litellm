@@ -748,14 +748,46 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
         # 5. Configure LiteLLM settings
         logger.info("Step 5/6: Configuring LiteLLM settings...")
-        litellm.set_verbose = config.get_litellm_settings().get("set_verbose", True)
-        litellm.drop_params = config.get_litellm_settings().get("drop_params", True)
+        litellm_cfg = config.get_litellm_settings()
+        
+        litellm.set_verbose = litellm_cfg.get("set_verbose", True)
+        litellm.drop_params = litellm_cfg.get("drop_params", True)
         logger.info(f"  Verbose logging: {litellm.set_verbose}")
         logger.info(f"  Drop unknown params: {litellm.drop_params}")
 
+        # Initialize Callbacks (OTel, Prisma, Debug)
+        logger.info("  Initializing callbacks...")
+        callbacks = []
+        callback_names = []
+
+        # 1. Tool Debug Logger (Always enabled for debugging)
+        from proxy.tool_debug_logger import ToolDebugLogger
+        tool_debug = ToolDebugLogger()
+        callbacks.append(tool_debug)
+        # Custom loggers don't need to be in callback_names for success_callback list if passed in 'callbacks'
+        # but for clarity we manage the global list
+        
+        # 2. OpenTelemetry
+        if litellm_cfg.get("otel", False):
+            logger.info("  + Enabling OpenTelemetry callback")
+            callback_names.append("otel")
+            
+        # 3. Prisma/Postgres
+        if litellm_cfg.get("database_url"):
+            logger.info("  + Enabling Prisma/Postgres callback")
+            postgres_logger = PrismaProxyLogger(use_redis_buffer=False)
+            callbacks.append(postgres_logger)
+            callback_names.append("prisma_proxy")
+
+        # Register callbacks globally
+        litellm.callbacks = callbacks
+        litellm.success_callback = callback_names
+        litellm.failure_callback = callback_names
+        logger.info(f"  Active callbacks: {callback_names} + ToolDebugLogger")
+
         # Initialize error handler
         app.state.error_handler = LiteLLMErrorHandler(
-            include_debug_info=config.get_litellm_settings().get("set_verbose", False)
+            include_debug_info=litellm_cfg.get("set_verbose", False)
         )
 
         # 6. Initialize tool executor
@@ -1211,21 +1243,6 @@ async def list_models(request: Request) -> Dict[str, Any]:
         for model_name in config.get_all_models()
         if (model_config := config.get_model_config(model_name))
     ]
-
-    callbacks_names: list[str] = []
-    callbacks: list[CustomLogger] = []
-    litellm_cfg = config.config.litellm_settings
-    if litellm_cfg and litellm_cfg.otel:
-        callbacks_names.append("otel")
-
-    if litellm_cfg and litellm_cfg.database_url:
-        postgres_logger = PrismaProxyLogger(use_redis_buffer=False)
-        callbacks.append(postgres_logger)
-        callbacks_names.append("prisma_proxy")
-
-    litellm.success_callback = callbacks_names
-    litellm.failure_callback = callbacks_names
-    litellm.callbacks = callbacks
 
     return {
         "object": "list",
