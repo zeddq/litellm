@@ -123,16 +123,46 @@ The system consists of two main components running as separate processes:
 
 ```text
 litellm/
-├── config.yaml             # Core configuration
-├── litellm_proxy_with_memory.py # Main proxy application
-├── memory_router.py        # Routing logic
-├── start_proxies.py        # Startup script
-├── RUN_TESTS.sh            # Test runner
-├── CLAUDE.md               # Context for Claude agents
-├── GEMINI.md               # Context for Gemini agents (This file)
+├── config/                 # Configuration files
+│   ├── config.yaml         # Core configuration
+│   └── config-schema.json  # Validation schema
+├── deploy/                 # Deployment and startup scripts
+│   └── start_proxies.py    # Orchestrator script
 ├── docs/                   # Comprehensive documentation
 │   ├── architecture/       # Design docs
 │   ├── guides/             # User guides
 │   └── troubleshooting/    # Common issues
-└── tests/                  # Test suite
+├── src/                    # Source code
+│   ├── interceptor/        # CLI Interceptor component
+│   └── proxy/              # Core Memory Proxy logic
+│       ├── litellm_proxy_with_memory.py # Main FastAPI app
+│       ├── memory_router.py             # Routing logic
+│       └── config_parser.py             # Configuration handling
+├── tests/                  # Test suite
+│   └── src/                # Source tests
+├── RUN_TESTS.sh            # Test runner
+├── CLAUDE.md               # Context for Claude agents
+└── GEMINI.md               # Context for Gemini agents (This file)
 ```
+
+---
+
+## 🗺️ Modernization Roadmap
+
+The following tasks are identified to modernize the codebase and align documentation with reality:
+
+1.  **Documentation Sync:**
+    *   Update `docs/architecture/OVERVIEW.md` to reflect the `src/` directory structure.
+    *   Update `README.md` and `CLAUDE.md` with correct file paths.
+
+2.  **Root Cleanup:**
+    *   Move root-level utility scripts (e.g., `add_context_config.py`, `diagnose_503.py`) to a dedicated `scripts/` directory or `archive/`.
+    *   Remove obsolete backup files (`pyproject.toml.b`).
+    *   Move root-level tests (`test_*.py`) to `tests/`.
+
+3.  **Entry Point Standardization:**
+    *   Formalize `deploy/start_proxies.py` as a proper CLI entry point (e.g., `litellm-memory start`).
+    *   Ensure `pyproject.toml` scripts correctly point to reachable modules.
+
+4.  **Dependency Management:**
+    *   Verify `pyproject.toml` dependencies against actual imports (some root scripts might have unlisted deps).
