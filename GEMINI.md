@@ -24,21 +24,26 @@ This document serves as the primary context and instruction manual for Gemini ag
 
 You have access to advanced codebase analysis tools. Use them instead of basic shell commands whenever possible.
 
+**PRIORITY INSTRUCTION:** Always prioritize JetBrains MCP tools for file operations, code generation, and refactoring.
+
 | Task | Preferred Tool | ❌ Avoid |
 |------|----------------|----------|
+| **Code Generation** | `create_new_file` | `write_file`, `touch` |
+| **Edit Code** | `replace_text_in_file` | `replace`, `sed`, `write_file` |
+| **Refactor** | `rename_refactoring` | Manual search/replace |
+| **Code Analysis** | `get_file_problems`, `get_symbol_info` | Manual linting |
 | **Explore Codebase** | `codebase_investigator(objective="...")` | Manual `ls -R` |
 | **Find Files** | `find_files_by_glob`, `find_files_by_name_keyword` | `find . -name ...` |
-| **Read Code** | `get_file_text_by_path` | `cat`, `less` |
+| **Read Code** | `get_file_text_by_path` | `cat`, `less`, `read_file` |
 | **Search Content** | `search_in_files_by_text`, `search_in_files_by_regex` | `grep`, `ripgrep` |
-| **Analyze Structure** | `list_directory_tree`, `get_symbol_info` | `tree` |
-| **Edit Code** | `replace_text_in_file` | `sed`, `write_file` (for small edits) |
-| **Refactor** | `rename_refactoring` | Manual search/replace |
+| **Analyze Structure** | `list_directory_tree` | `tree` |
 | **Run Tests** | `execute_run_configuration` or `run_shell_command("./RUN_TESTS.sh ...")` | `pytest` directly |
 
 ### Best Practices
 1.  **Investigate First:** Use `codebase_investigator` for complex requests to understand dependencies and architecture.
 2.  **Precise Edits:** Use `replace_text_in_file` for targeted changes to preserve formatting.
 3.  **Verify:** Always run related tests after changes.
+4.  **Refactor Safely:** Use `rename_refactoring` to ensure all references are updated atomically.
 
 ---
 
