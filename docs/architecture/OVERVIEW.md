@@ -79,6 +79,62 @@ This project uses an **external LiteLLM binary** approach instead of SDK imports
 
 ---
 
+## Microservices & API Gateway Strategy
+
+### Decomposition Criteria
+The system follows a domain-driven decomposition strategy, separating concerns based on volatility and scalability requirements.
+
+1.  **Client Interceptor (Edge Service)**
+    *   **Responsibility:** Environment integration (IDE ports, OS signals), identity tagging.
+    *   **Boundary Criteria:** Code that *must* run on the client machine or within a specific process namespace.
+    *   **Volatility:** High (IDE updates, OS changes).
+2.  **Memory Gateway (Core Service)**
+    *   **Responsibility:** Context aggregation, user identity resolution, routing policy enforcement.
+    *   **Boundary Criteria:** Business logic that applies across *all* clients.
+    *   **Volatility:** Medium (Feature additions like new memory retrieval strategies).
+3.  **LLM Provider (Downstream Service)**
+    *   **Responsibility:** Protocol translation, connection pooling, error handling for upstream APIs.
+    *   **Boundary Criteria:** Generic infrastructure provided by LiteLLM.
+    *   **Volatility:** Low (Stable OpenAI-compatible interface).
+
+### API Gateway Implementation
+The **Memory Proxy** functions as a specialized **API Gateway** using the **Gateway Aggregation** pattern.
+
+*   **Pattern:** Centralized Gateway for AI traffic.
+*   **Technology:** FastAPI (Async Python) with `httpx`.
+*   **Communication Protocol:**
+    *   **External:** REST (HTTP/1.1) over JSON.
+    *   **Streaming:** Server-Sent Events (SSE) for chat completions.
+    *   **Internal:** REST (HTTP/1.1) to LiteLLM binary.
+
+#### Data Consistency Mechanisms
+*   **Memory Context:** Eventual consistency. Writes to the memory store (Post-Completion) are fire-and-forget non-blocking tasks.
+*   **Configuration:** Strong consistency. Changes to `config.yaml` require a service restart/reload to ensure atomic updates across the cluster.
+
+#### Security & Auth Flow
+1.  **Authentication:** Pass-through Bearer Token validation. The Gateway validates the structure but delegates signature verification to the Downstream Service or configured Identity Provider.
+2.  **Authorization:** Context-aware RBAC. The Gateway checks if the `user_id` (resolved from headers) has access to the requested `model`.
+3.  **Network:** Internal traffic between Gateway and LiteLLM is localhost-bound (or VPC-peered).
+
+#### Observability Strategy
+*   **Distributed Tracing:** OpenTelemetry. A generic `trace-id` is generated at the Interceptor (or Gateway ingress) and propagated via HTTP headers to all downstream services.
+*   **Logging:** Structured JSON logs. All services output to stdout/stderr, aggregated by a collector (e.g., Fluentd).
+*   **KPIs:**
+    *   **Gateway Overhead:** < 20ms (excluding LLM latency).
+    *   **Availability:** 99.9%.
+    *   **Throughput:** Linear scaling with CPU cores (target: 500 RPS/core).
+
+### API Boundaries & Contract Evolution
+Strict adherence to the **OpenAI Chat Completions API** schema defines the inter-service contracts.
+
+| Interface | Source | Target | Protocol | Contract Definition | Evolution Strategy |
+|-----------|--------|--------|----------|---------------------|--------------------|
+| **Ingress** | Interceptor/Client | Memory Proxy | HTTP/1.1 | OpenAI OpenAPI Spec + Custom Headers (`x-memory-user-id`) | **Additive Only**. New headers/params are optional. Versioning via URL (`/v1/`, `/v2/`). |
+| **Core** | Memory Proxy | LiteLLM Binary | HTTP/1.1 | OpenAI OpenAPI Spec | **Strict Sync**. Proxy must support LiteLLM's supported spec version. |
+| **Egress** | LiteLLM | Upstream API | HTTPS | Provider Specific | **Adapter Pattern**. LiteLLM handles provider schema changes internally. |
+
+---
+
 ## Architecture Evolution: SDK to Binary
 
 ### Before (SDK-based):
