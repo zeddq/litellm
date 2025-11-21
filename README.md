@@ -153,7 +153,7 @@ print(response.choices[0].message.content)
 | **[Configuration](docs/guides/CONFIGURATION.md)** | Complete config reference |
 | **[Testing](docs/guides/TESTING.md)** | Test suite and strategies |
 | **[Troubleshooting](docs/troubleshooting/COMMON_ISSUES.md)** | Common issues and fixes |
-| **[CHANGELOG](CHANGELOG.md)** | Project history and evolution |
+| **[CHANGELOG](docs/CHANGELOG.md)** | Project history and evolution |
 
 ---
 
@@ -309,7 +309,7 @@ MIT License - see LICENSE file for details.
 - **Documentation**: [`docs/INDEX.md`](docs/INDEX.md)
 - **Quick Start**: [`docs/getting-started/QUICKSTART.md`](docs/getting-started/QUICKSTART.md)
 - **Architecture**: [`docs/architecture/OVERVIEW.md`](docs/architecture/OVERVIEW.md)
-- **CHANGELOG**: [`CHANGELOG.md`](CHANGELOG.md)
+- **CHANGELOG**: [`docs/CHANGELOG.md`](docs/CHANGELOG.md)
 
 ---
 

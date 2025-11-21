@@ -38,6 +38,14 @@ Welcome to the LiteLLM Memory Proxy documentation. This index provides quick acc
 
 **Perfect for**: Understanding system design, planning deployments
 
+### Memory Proxy Snapshot
+**[Memory Proxy Architecture](architecture/LITELLM_ARCHITECTURE_OVERVIEW.md)**
+- Current binary-based memory routing model
+- Proxy composition and request flow
+- Key processes and configuration entry points
+
+**Perfect for**: Quickly understanding how the memory proxy, router, and LiteLLM binary interact
+
 ### Design Decisions
 **[Design Decisions](architecture/DESIGN_DECISIONS.md)**
 - Binary to SDK migration rationale
@@ -81,6 +89,18 @@ Welcome to the LiteLLM Memory Proxy documentation. This index provides quick acc
 
 ---
 
+## Modules
+
+### Interceptor Module
+**[Interceptor Guide](modules/interceptor.md)**
+- Port registry responsibilities and defaults
+- Running the interceptor proxy
+- Port manager CLI usage
+
+**Perfect for**: JetBrains users who need stable proxy ports and CLI management tools
+
+---
+
 ## Troubleshooting
 
 ### Common Issues
@@ -102,7 +122,7 @@ Welcome to the LiteLLM Memory Proxy documentation. This index provides quick acc
 
 ### Main Documentation
 - **[README.md](../README.md)** - Project overview and quick reference
-- **[CHANGELOG.md](../CHANGELOG.md)** - Project history and evolution (9 phases documented)
+- **[CHANGELOG.md](CHANGELOG.md)** - Project history and evolution (9 phases documented)
 - **[CLAUDE.md](../CLAUDE.md)** - Development instructions and codebase guide
 
 ---
@@ -287,7 +307,7 @@ Every file includes:
 
 ### Documentation Issues
 - Unclear instructions? Check [Common Issues](troubleshooting/COMMON_ISSUES.md)
-- Missing information? Review [CHANGELOG.md](../CHANGELOG.md) for recent changes
+- Missing information? Review [CHANGELOG.md](CHANGELOG.md) for recent changes
 - Found an error? Report it
 
 ### Support Channels
@@ -356,7 +376,7 @@ Looking for specific information?
 | Configuration | [CONFIGURATION.md](guides/CONFIGURATION.md) |
 | Troubleshooting | [COMMON_ISSUES.md](troubleshooting/COMMON_ISSUES.md) |
 | Examples | [TUTORIAL.md](getting-started/TUTORIAL.md#example-workflows) |
-| Project history | [CHANGELOG.md](../CHANGELOG.md) |
+| Project history | [CHANGELOG.md](CHANGELOG.md) |
 
 ---
 

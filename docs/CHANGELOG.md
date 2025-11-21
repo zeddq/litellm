@@ -32,8 +32,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Architecture evolution documentation (SDK to Binary)
 
 #### Documentation
-- `ARCHITECTURE_CONSOLIDATED.md` - Comprehensive architecture overview
-- `MEMORY_ROUTING_README.md` - Memory routing patterns
+- `docs/architecture/OVERVIEW.md` - Comprehensive architecture overview
+- `docs/architecture/LITELLM_ARCHITECTURE_OVERVIEW.md` - Memory routing snapshot
 - Initial documentation structure with `docs/` directory
 
 ---

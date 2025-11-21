@@ -456,7 +456,7 @@ git reset --hard HEAD
 - [ ] Coverage remains > 80%
 - [ ] Manual testing (PyCharm, Claude Code, curl)
 - [ ] Documentation updated (TESTING.md)
-- [ ] CHANGELOG.md updated
+- [ ] docs/CHANGELOG.md updated
 - [ ] Code reviewed
 - [ ] Merged to main
 
