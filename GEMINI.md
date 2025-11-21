@@ -68,9 +68,9 @@ export SUPERMEMORY_API_KEY="sm_..."
 ```
 
 ### Running the Project
-Start both the Memory Proxy (port 8764) and LiteLLM (port 8765):
+Start the Memory Proxy (SDK mode, port 8764):
 ```bash
-poetry run start-proxies
+poetry run python deploy/run_unified_proxy.py --mode sdk
 ```
 
 ---

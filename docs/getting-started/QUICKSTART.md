@@ -17,11 +17,6 @@ LiteLLM Memory Proxy is a lightweight memory routing proxy for LiteLLM with dyna
 python --version
 
 # Install dependencies
-pip install litellm[proxy] fastapi uvicorn httpx pyyaml pydantic openai anthropic
-```
-
-Or using Poetry:
-```bash
 poetry install
 ```
 
@@ -39,10 +34,6 @@ export OPENAI_API_KEY="sk-your-openai-key-here"
 export ANTHROPIC_API_KEY="sk-ant-your-anthropic-key-here"
 export SUPERMEMORY_API_KEY="sm-your-supermemory-key-here"
 export REDIS_URL="redis://localhost:6379/0"  # For persistence
-
-# Proxy Configuration
-export LITELLM_BASE_URL="http://localhost:8765"
-export LITELLM_CONFIG="./config.yaml"
 ```
 
 Load environment:
@@ -89,39 +80,18 @@ user_id_mappings:
 
 ---
 
-## 3. Start the Proxies
+## 3. Start the Proxy
 
-### Option A: Start Both Proxies (Recommended)
+We recommended using the unified launcher in **SDK mode**. This runs everything in a single process for better performance and memory persistence.
 
 ```bash
-poetry run start-proxies
-# or with custom ports
-poetry run start-proxies --litellm-port 8765 --memoryproxy-port 8764
-# or with custom config
-poetry run start-proxies --config ./config.yaml
+poetry run python deploy/run_unified_proxy.py --mode sdk
 ```
 
 This will:
-1. Start LiteLLM as an external binary process on port 8765
-2. Start Memory Proxy on port 8764 (forwarding to LiteLLM)
-3. Provide automatic memory routing and user isolation
-
-### Option B: Start Memory Proxy Only
-
-If LiteLLM is already running:
-
-```bash
-poetry run python litellm_proxy_with_memory.py \
-  --config config.yaml \
-  --port 8764 \
-  --litellm-url http://localhost:8765
-```
-
-### Option C: Start LiteLLM Binary Manually
-
-```bash
-litellm --config config.yaml --port 8765 --host 0.0.0.0
-```
+1. Start the Memory Proxy (FastAPI) on port 8764.
+2. Initialize the embedded LiteLLM SDK.
+3. Provide automatic memory routing and user isolation.
 
 ---
 
@@ -134,12 +104,13 @@ curl -X POST http://localhost:8764/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-1234" \
   -H "x-session-id: my-session" \
-  -d '{
+  -d 
+    "{
     "model": "gpt-4",
     "messages": [
       {"role": "user", "content": "My name is Alice"}
     ]
-  }'
+  }"
 ```
 
 ### Second Message - Memory Maintained!
@@ -149,12 +120,13 @@ curl -X POST http://localhost:8764/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-1234" \
   -H "x-session-id: my-session" \
-  -d '{
+  -d 
+    "{
     "model": "gpt-4",
     "messages": [
       {"role": "user", "content": "What is my name?"}
     ]
-  }'
+  }"
 
 # Response will include: "Your name is Alice" (from memory!)
 ```
@@ -213,27 +185,6 @@ curl -X DELETE http://localhost:8764/v1/sessions/demo-session
 
 ---
 
-## Common Commands
-
-```bash
-# Run tutorial examples
-python tutorial_proxy_with_memory.py --examples
-
-# View tutorial documentation
-python tutorial_proxy_with_memory.py
-
-# Start server on custom port
-python tutorial_proxy_with_memory.py --serve --port 8080
-
-# Run tests
-python test_tutorial.py
-
-# Check health
-curl http://localhost:8764/health
-```
-
----
-
 ## Key Features
 
 - **Memory Persistence** - Conversations maintained across requests
@@ -254,10 +205,7 @@ Client (OpenAI SDK, Anthropic SDK, curl, etc.)
 Memory Proxy (Port 8764) - FastAPI Application
     • Client Detection via User-Agent patterns
     • Dynamic x-sm-user-id injection
-    • HTTP request forwarding
-    ↓
-LiteLLM Binary Process (Port 8765)
-    • External process: litellm --config config.yaml
+    • Embedded LiteLLM SDK (In-Process)
     ↓
 OpenAI / Anthropic / Gemini APIs
 ```
@@ -266,15 +214,14 @@ OpenAI / Anthropic / Gemini APIs
 
 ## Troubleshooting
 
-### LiteLLM binary not found
+### LiteLLM package not found
 ```bash
-pip install litellm
+pip install 'litellm[proxy]'
 # Verify installation
-which litellm
+pip show litellm
 ```
 
-### Memory Proxy can't connect to LiteLLM
-- Ensure LiteLLM is running: `curl http://localhost:8765/health`
+### Memory Proxy can't connect
 - Check port configuration
 - Review logs for connection errors
 
@@ -287,18 +234,11 @@ which litellm
 
 ## Next Steps
 
-1. Read the comprehensive [Tutorial Guide](../TUTORIAL.md)
-2. Review the [Architecture Overview](../../architecture/OVERVIEW.md)
-3. Explore [Testing Documentation](../../guides/testing/TESTING_GUIDE.md)
-4. Learn about [Production Deployment](../../guides/migration/MIGRATION_GUIDE.md)
-5. Run examples: `python example_complete_workflow.py`
+1. Review the [Architecture Overview](../../architecture/OVERVIEW.md)
+2. Explore [Testing Documentation](../../guides/TESTING.md)
+3. Learn about [Configuration](../../guides/CONFIGURATION.md)
+4. Run examples: `python src/example_complete_workflow.py`
 
 ---
 
 **Happy Building!**
-
----
-
-**Sources**: TUTORIAL_QUICKSTART.md, TUTORIAL_README.md (intro), README.md (quick start)
-**Created**: 2025-10-24
-**Updated**: 2025-10-24

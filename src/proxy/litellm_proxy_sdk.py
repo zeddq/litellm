@@ -44,6 +44,7 @@ import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, AsyncIterator, Dict, List, Optional
+from pydantic import BaseModel
 
 import litellm
 from fastapi import FastAPI, HTTPException, Request, Response, status
@@ -67,6 +68,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+class ChatCompletionRequest(BaseModel):
+    """
+    Pydantic model for chat completion request validation.
+    Allows extra fields to pass through to LiteLLM.
+    """
+    model: str
+    messages: List[Dict[str, Any]]
+    stream: Optional[bool] = False
+
+    model_config = {"extra": "allow"}
 
 
 # ============================================================================
@@ -866,6 +879,45 @@ app = FastAPI(
     debug=True,
 )
 
+
+@app.middleware("http")
+async def validate_content_length(request: Request, call_next):
+    """
+    Middleware to validate Content-Length header against actual request body size.
+    """
+    content_length = request.headers.get("content-length")
+    if content_length and content_length.isdigit():
+        expected_length = int(content_length)
+        
+        # We need to be careful here. Reading the body consumes the stream.
+        # But Starlette/FastAPI Request.body() caches the result, so it's safe to read.
+        try:
+            body_bytes = await request.body()
+            actual_length = len(body_bytes)
+
+            if actual_length != expected_length:
+                logger.warning(
+                    f"Content-Length mismatch: expected {expected_length}, got {actual_length}. "
+                    f"Path: {request.url.path}, Method: {request.method}"
+                )
+                return JSONResponse(
+                    content={
+                        "error": {
+                            "message": f"Content-Length mismatch: expected {expected_length}, got {actual_length}",
+                            "type": "invalid_request_error",
+                            "code": "content_length_mismatch",
+                        }
+                    },
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
+        except Exception as e:
+            logger.error(f"Error validating Content-Length: {e}")
+            # If we can't read the body, we let it pass and let downstream handlers fail if needed
+            pass
+
+    return await call_next(request)
+
+
 # Register error handlers
 register_exception_handlers(app, include_debug_info=bool(os.getenv("DEBUG", False)))
 
@@ -1251,7 +1303,10 @@ async def list_models(request: Request) -> Dict[str, Any]:
 
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: Request) -> Response:
+async def chat_completions(
+    request: Request,
+    request_data: ChatCompletionRequest,
+) -> Response:
     """
     OpenAI-compatible chat completions endpoint.
 
@@ -1260,6 +1315,7 @@ async def chat_completions(request: Request) -> Response:
 
     Args:
         request: FastAPI request object
+        request_data: Validated request body
 
     Returns:
         JSONResponse for non-streaming, StreamingResponse for streaming
@@ -1270,17 +1326,10 @@ async def chat_completions(request: Request) -> Response:
     # Verify API key
     await verify_api_key(request)
 
-    # Parse request body
-    try:
-        body = await request.json()
-    except Exception as e:
-        logger.error(f"Failed to parse request body: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid JSON in request body: {e}",
-        )
-
     logger.info(f"Request headers: {request.headers.items()}")
+    
+    # Use validated data
+    body = request_data.model_dump()
     logger.info(f"Request body: {body}")
 
     # Extract parameters

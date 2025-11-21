@@ -1,18 +1,8 @@
 # LiteLLM Proxy with Memory - Complete Tutorial
 
-A comprehensive, production-ready tutorial for building an intelligent LiteLLM proxy with advanced conversation memory management.
+A comprehensive tutorial for building an intelligent LiteLLM proxy with advanced conversation memory management.
 
----
-
-## Overview
-
-This tutorial demonstrates how to build a proxy server that:
-- Routes requests to multiple LLM providers (OpenAI, Anthropic, etc.)
-- Maintains conversation memory across requests
-- Detects clients and isolates memory by user
-- Implements rate limiting and security features
-- Supports both in-memory and Redis-based persistence
-- Handles streaming and non-streaming responses
+> **Note**: This tutorial uses a standalone educational implementation (`tutorial/tutorial_proxy_with_memory.py`) to demonstrate core concepts. For the production implementation, see `src/proxy/litellm_proxy_sdk.py`.
 
 ---
 
@@ -20,15 +10,15 @@ This tutorial demonstrates how to build a proxy server that:
 
 ### For Beginners
 1. Start with **QUICKSTART.md**
-2. Run **test_tutorial.py** to see components in action
-3. Run **example_complete_workflow.py** for practical examples
-4. Read through **tutorial_proxy_with_memory.py** Module 1-3
+2. Run **tutorial/test_tutorial.py** to see components in action
+3. Run **src/example_complete_workflow.py** for practical examples
+4. Read through **tutorial/tutorial_proxy_with_memory.py** Module 1-3
 
 ### For Intermediate Users
 1. Review architecture sections below
-2. Study **tutorial_proxy_with_memory.py** all modules
+2. Study **tutorial/tutorial_proxy_with_memory.py** all modules
 3. Customize **config.yaml** for your needs
-4. Start the proxy: `python tutorial_proxy_with_memory.py --serve`
+4. Start the proxy: `python tutorial/tutorial_proxy_with_memory.py --serve`
 5. Test with your clients
 
 ### For Advanced Users
@@ -501,9 +491,9 @@ model_list:
 ## Next Steps
 
 1. ✅ Read [QUICKSTART.md](QUICKSTART.md)
-2. 🧪 Run `python test_tutorial.py`
-3. 📝 Run `python example_complete_workflow.py`
-4. 📖 Study [tutorial_proxy_with_memory.py](/Users/cezary/litellm/tutorial_proxy_with_memory.py)
+2. 🧪 Run `python tutorial/test_tutorial.py`
+3. 📝 Run `python src/example_complete_workflow.py`
+4. 📖 Study [tutorial/tutorial_proxy_with_memory.py](../../tutorial/tutorial_proxy_with_memory.py)
 5. 🚀 Deploy to production
 
 ---

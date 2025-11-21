@@ -337,7 +337,7 @@ uvx install 'litellm[proxy]'
 
 ### Start Services
 ```bash
-poetry run start-proxies
+poetry run python deploy/run_unified_proxy.py --mode sdk
 ```
 
 ### Run Tests

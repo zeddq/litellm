@@ -50,7 +50,7 @@ SDK Instances                 Queue Layer              Consumer Layer           
 └──────────┘                  │  - Partitioned  │    ┌──────────────┐
                               │  - Replicated   │    │  Consumer #2 │
 ┌──────────┐                  │  - Durable      │    │  (Analytics  │
-│ SDK #N   │  Write events    │  - Ordered      │───>│   Pipeline)  │
+│ SDK [[N]]   │  Write events    │  - Ordered      │───>│   Pipeline)  │
 │ Instance │  (~1-5ms)        │                 │    │              │
 │          ├─────────────────>│                 │    └──────────────┘
 └──────────┘                  └─────────────────┘

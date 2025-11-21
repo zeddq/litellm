@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class PortRegistry:
     """Manages persistent port assignments for projects."""
 
-    DEFAULT_PORT_MIN = 8888
+    DEFAULT_PORT_MIN = 8895
     DEFAULT_PORT_MAX = 9999
     REGISTRY_DIR = Path.home() / ".config" / "litellm"
     REGISTRY_FILE = REGISTRY_DIR / "port_registry.json"

@@ -180,7 +180,7 @@ pytest tests/test_sdk_integration.py::TestChatCompletionsNonStreaming -v
 
 ```bash
 # Single test method
-pytest tests/test_memory_proxy.py::TestMemoryRouter::test_detect_from_pycharm_user_agent -v
+pytest tests/test_memory_proxy.py==TestMemoryRouter==test_detect_from_pycharm_user_agent -v
 
 # Multiple methods matching pattern
 pytest tests/ -k "detect_user_id" -v

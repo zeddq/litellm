@@ -1904,9 +1904,9 @@ cat > "$REPORT_FILE" << 'EOF'
         body { font-family: Arial, sans-serif; margin: 20px; }
         h1 { color: #333; }
         table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #4CAF50; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
+        th, td { border: 1px solid [[ddd]]; padding: 12px; text-align: left; }
+        th { background-color: [[4CAF50]]; color: white; }
+        tr:nth-child(even) { background-color: [[f2f2f2]]; }
         .pass { color: green; font-weight: bold; }
         .fail { color: red; font-weight: bold; }
         .warn { color: orange; font-weight: bold; }

@@ -17,6 +17,7 @@ dependencies = [
     "litellm-types (>=0.0.16,<0.0.17)",
     "litellm[proxy] (>=1.79.0,<2.0.0)",
     "opentelemetry-api (>=1.38.0,<2.0.0)",
+    "opentelemetry-distro (>=0.59b0,<0.60)",
     "opentelemetry-exporter-otlp (>=1.38.0,<2.0.0)",
     "opentelemetry-sdk (>=1.38.0,<2.0.0)",
     "prisma (>=0.15.0,<0.16.0)",

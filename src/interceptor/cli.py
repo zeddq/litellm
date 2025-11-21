@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+2#!/usr/bin/env python3
 """
 Interceptor CLI - Unified command-line interface for PyCharm/IntelliJ interceptor
 
@@ -105,7 +105,7 @@ def cmd_reset(args):
     registry = PortRegistry(
         port_min=args.port_min,
         port_max=args.port_max,
-        registry_file=Path(args.registry) if args.registry else None,
+registry_file=Path(args.registry) if args.registry else None,
     )
     reset_registry(registry)
 
@@ -193,6 +193,7 @@ Environment Variables:
         help="List all project to port mappings",
         description="Display all project to port mappings in the registry",
     )
+    list_parser.set_defaults(func=cmd_list)
 
     # Show command
     show_parser = subparsers.add_parser(

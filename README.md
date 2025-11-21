@@ -26,8 +26,8 @@ LiteLLM Memory Proxy solves critical pain points for developers working with mul
 # Install project dependencies
 poetry install
 
-# Install LiteLLM binary
-uvx install 'litellm[proxy]'
+# Install LiteLLM (required for SDK usage)
+pip install 'litellm[proxy]'
 ```
 
 ### 2. Configure Environment
@@ -40,15 +40,17 @@ export SUPERMEMORY_API_KEY="sm_..."  # Optional
 
 ### 3. Start the Proxy
 
+We recommend using the SDK-based mode for best performance and memory persistence.
+
 ```bash
-# Start both Memory Proxy (8764) and LiteLLM (8765)
-poetry run start-proxies
+# Start the unified proxy in SDK mode
+poetry run python deploy/run_unified_proxy.py --mode sdk
 ```
 
 ### 4. Test It Works
 
 ```bash
-# Check routing info
+# Check routing info (Port 8764 by default)
 curl http://localhost:8764/memory-routing/info \
   -H "User-Agent: PyCharm/2024.1"
 
@@ -56,7 +58,7 @@ curl http://localhost:8764/memory-routing/info \
 curl http://localhost:8764/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-1234" \
-  -d '{
+  -d '{ 
     "model": "claude-sonnet-4.5",
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
@@ -104,6 +106,10 @@ print(response.choices[0].message.content)
 
 ## Architecture
 
+**Pattern:** Self-Contained SDK Gateway
+
+The system uses an in-process SDK approach to ensure persistent HTTP sessions (critical for Cloudflare compatibility).
+
 ```
 ┌─────────────────────────────────────┐
 │ AI Clients (PyCharm, CLI, Custom)  │
@@ -114,14 +120,16 @@ print(response.choices[0].message.content)
 │ Memory Proxy (Port 8764) - FastAPI │
 │ • Client detection                  │
 │ • User ID injection                 │
+│ • Embedded LiteLLM SDK              │
 └─────────────┬───────────────────────┘
-              │ Forward requests
+              │ Direct SDK Calls (In-Process)
               ▼
 ┌─────────────────────────────────────┐
-│ LiteLLM Binary (Port 8765)         │
-│ External process                    │
+│ LiteLLM Python SDK                 │
+│ • Persistent Sessions               │
+│ • Cookie Management                 │
 └─────────────┬───────────────────────┘
-              │
+              │ HTTPS
      ┌────────┴────────┬──────────┐
      ▼                 ▼          ▼
 ┌─────────┐      ┌──────────┐  ┌────────┐
@@ -130,11 +138,10 @@ print(response.choices[0].message.content)
 └─────────┘      └──────────┘  └────────┘
 ```
 
-**Binary Approach Benefits**:
-- Separation of concerns
-- Independent scaling
-- No SDK conflicts
-- Production-ready isolation
+**SDK Approach Benefits**:
+- **Cookie Persistence**: Critical for Supermemory integration.
+- **Performance**: Zero-hop in-process calls (~10ms savings).
+- **Simplicity**: Single process to manage.
 
 ---
 
@@ -212,7 +219,7 @@ user_id_mappings:
 ## Requirements
 
 - **Python**: 3.13+ (required)
-- **LiteLLM CLI**: Standalone binary (`uvx install litellm`)
+- **LiteLLM**: Installed via `pip install 'litellm[proxy]'`
 - **Package Manager**: Poetry (preferred)
 
 ### API Keys
@@ -242,7 +249,7 @@ jj log                       # View history
 ```bash
 # Add a new model
 # Edit config.yaml, then:
-poetry run start-proxies
+poetry run python deploy/run_unified_proxy.py --mode sdk
 
 # Run tests
 ./RUN_TESTS.sh
@@ -268,22 +275,17 @@ curl http://localhost:8764/memory-routing/info \
 
 ## Troubleshooting
 
-### LiteLLM binary not found
+### LiteLLM package not found
 
 ```bash
-uvx install 'litellm[proxy]'
-litellm --version
+pip install 'litellm[proxy]'
 ```
 
 ### Memory Proxy can't connect
 
 ```bash
-# Check LiteLLM is running
-curl http://localhost:8765/health
-
-# Check ports
+# Check if port is in use
 lsof -i :8764
-lsof -i :8765
 ```
 
 ### Client not detected
@@ -320,5 +322,5 @@ Get started in 5 minutes with the [Quick Start Guide](docs/getting-started/QUICK
 ---
 
 **Created**: 2025-10-24
-**Updated**: 2025-11-04
-**Documentation**: v2.0.0 (Consolidated)
+**Updated**: 2025-11-21
+**Documentation**: v2.1.0 (SDK Architecture Update)

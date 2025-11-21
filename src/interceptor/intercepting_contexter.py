@@ -47,6 +47,8 @@ CUSTOM_HEADERS = {
     "x-source": "pycharm-ai-chat",
 }
 
+http_client = httpx.AsyncClient(timeout=300.0)
+
 logger.info(f"Instance ID: {INSTANCE_ID}")
 logger.info(f"Target URL: {TARGET_LLM_URL}")
 logger.info(f"Inject into content: {INJECT_INTO_CONTENT}")
@@ -67,6 +69,29 @@ async def proxy_request(request: Request, path: str):
     """Forward requests with custom headers and instance identification."""
     target_url = f"{TARGET_LLM_URL}/{path}"
 
+    # Validate Content-Length if present
+    content_length = request.headers.get("content-length")
+    if content_length and content_length.isdigit():
+        expected_length = int(content_length)
+        body_bytes = await request.body()
+        actual_length = len(body_bytes)
+
+        if actual_length != expected_length:
+            logger.warning(
+                f"Content-Length mismatch: expected {expected_length}, got {actual_length}. "
+                f"Path: {path}, Method: {request.method}"
+            )
+            return JSONResponse(
+                content={
+                    "error": {
+                        "message": f"Content-Length mismatch: expected {expected_length}, got {actual_length}",
+                        "type": "invalid_request_error",
+                        "code": "content_length_mismatch",
+                    }
+                },
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
     # Copy headers and add custom ones
     headers = request.headers.mutablecopy()
     del headers["host"]
@@ -74,7 +99,7 @@ async def proxy_request(request: Request, path: str):
     
     if not "chat/completions" in path:
         # Standard response
-        async with httpx.AsyncClient(timeout=300.0) as client:
+        async with  as client:
             response = await client.request(
                 method=request.method,
                 url=target_url,

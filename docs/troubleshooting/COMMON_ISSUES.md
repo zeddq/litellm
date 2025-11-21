@@ -10,12 +10,12 @@ Solutions to common problems encountered when running LiteLLM Memory Proxy.
 2. [Rate Limiting & Cloudflare Issues](#2-rate-limiting--cloudflare-issues)
 3. [Redis Connection Issues](#3-redis-connection-issues)
 4. [Cookie Persistence Problems](#4-cookie-persistence-problems)
-5. [LiteLLM Binary Issues](#5-litellm-binary-issues)
+5. [LiteLLM SDK Issues](#5-litellm-sdk-issues)
 6. [Configuration Issues](#6-configuration-issues)
 7. [Memory Routing Issues](#7-memory-routing-issues)
 8. [Performance Issues](#8-performance-issues)
-9. [Interceptor Issues](#9-interceptor-issues) 🔥 NEW
-10. [Context Retrieval Issues](#10-context-retrieval-issues) 🔥 NEW
+9. [Interceptor Issues](#9-interceptor-issues)
+10. [Context Retrieval Issues](#10-context-retrieval-issues)
 
 ---
 
@@ -48,7 +48,7 @@ The proxy uses `ProxySessionManager` to maintain persistent `httpx.AsyncClient` 
 **Verification**:
 ```bash
 # Check proxy logs for cookie persistence
-tail -f proxy.log | grep "Session cookies"
+grep "Session cookies" proxy.log
 
 # Should see: [Session cookies: 1] or higher
 ```
@@ -58,29 +58,26 @@ tail -f proxy.log | grep "Session cookies"
 2. Check that sessions aren't being recreated per request
 3. Confirm Cloudflare cookies (`cf_clearance`) are being stored
 
-#### Cause B: LiteLLM Binary Not Running
+#### Cause B: LiteLLM SDK Initialization Failed
 
 **Symptoms**:
 - Connection refused errors
 - 503 from Memory Proxy
-- Error: "Connection error: http://localhost:4000"
+- Error: "LiteLLM not ready"
 
 **Root Cause**:
-The LiteLLM binary process is not running (only applicable in binary mode).
+The internal LiteLLM SDK failed to initialize properly, likely due to configuration errors or missing dependencies.
 
 **Solution**:
 ```bash
-# Start both proxies
-poetry run start-proxies
-
-# Or manually
-litellm --config config.yaml --port 4000
+# Check logs for initialization errors
+poetry run python deploy/run_unified_proxy.py --mode sdk --debug
 ```
 
 **Verification**:
 ```bash
-# Check LiteLLM binary is running
-curl http://localhost:4000/health
+# Check Proxy is running
+curl http://localhost:8764/health
 
 # Should return: {"status": "healthy"}
 ```
@@ -116,16 +113,6 @@ Cloudflare Error 1200 is a bot detection mechanism that blocks requests that don
 3. Subsequent requests must include these cookies
 4. Without cookies, each request appears as a new bot → rate limiting
 
-### Why Simple Retry Doesn't Work
-
-```
-Attempt 1: New httpx client → 429 + cf_clearance cookie → Client closed ❌
-Attempt 2: New httpx client → 429 + NEW cf_clearance → Client closed ❌
-Attempt 3: New httpx client → 429 + NEW cf_clearance → FAIL ❌
-```
-
-Each retry creates a fresh client with no cookies, so Cloudflare treats every attempt as a new bot!
-
 ### The Solution: Persistent HTTP Sessions
 
 **Implementation**: `ProxySessionManager`
@@ -140,19 +127,6 @@ class ProxySessionManager:
     - Automatic cookie storage and reuse
     - Thread-safe with asyncio.Lock
     """
-    
-    _clients: Dict[str, httpx.AsyncClient] = {}
-    
-    @classmethod
-    async def get_client(cls, base_url: str) -> httpx.AsyncClient:
-        """Get or create persistent client for endpoint."""
-        if base_url not in cls._clients:
-            cls._clients[base_url] = httpx.AsyncClient(
-                base_url=base_url,
-                timeout=httpx.Timeout(600.0),
-                follow_redirects=True
-            )
-        return cls._clients[base_url]
 ```
 
 **Why it works**:
@@ -168,28 +142,7 @@ class ProxySessionManager:
 export LOG_LEVEL=DEBUG
 
 # Start proxy and check logs
-tail -f proxy.log | grep -i cookie
-```
-
-**Test Cloudflare directly**:
-```bash
-# This will likely fail with 503
-curl -v https://api.supermemory.ai/v3/api.anthropic.com/v1/messages
-
-# Check for Cloudflare headers
-# Look for: Server: cloudflare
-# Look for: Set-Cookie: cf_clearance=...
-```
-
-**Verify ProxySessionManager is active**:
-```python
-# In code, check session manager state
-from proxy.session_manager import ProxySessionManager
-
-clients = ProxySessionManager._clients
-print(f"Active sessions: {len(clients)}")
-for url, client in clients.items():
-    print(f"  {url}: {len(client.cookies)} cookies")
+grep -i cookie proxy.log
 ```
 
 ---
@@ -215,19 +168,6 @@ redis-cli ping
 # Should return: PONG
 ```
 
-#### Check Redis Connectivity
-
-```bash
-# Test connection
-redis-cli -h localhost -p 6379 ping
-
-# With password
-redis-cli -h localhost -p 6379 -a your-password ping
-
-# Check Redis info
-redis-cli -h localhost -p 6379 INFO server
-```
-
 ### Common Issues & Solutions
 
 #### Issue: NOAUTH Authentication Required
@@ -238,17 +178,6 @@ redis-cli -h localhost -p 6379 INFO server
 ```bash
 # Set Redis password in environment
 export REDIS_PASSWORD=your-password
-
-# Or in config.yaml
-litellm_settings:
-  cache_params:
-    type: redis
-    password: os.environ/REDIS_PASSWORD
-```
-
-**Test**:
-```bash
-redis-cli -h localhost -p 6379 -a your-password ping
 ```
 
 #### Issue: Connection Refused
@@ -260,69 +189,8 @@ redis-cli -h localhost -p 6379 -a your-password ping
 # Start Redis with Docker
 docker-compose up -d redis
 
-# Or start Redis locally
-redis-server
-
 # Check Redis is listening
 lsof -i :6379
-```
-
-#### Issue: Authentication Failed
-
-**Cause**: Wrong password or conflicting configuration.
-
-**Solution**:
-```bash
-# Check Redis password requirement
-redis-cli -h localhost -p 6379 CONFIG GET requirepass
-
-# Check environment variables
-env | grep REDIS
-
-# Verify password in config.yaml matches Redis
-```
-
-#### Issue: Environment Variables Overriding Config
-
-**Cause**: Environment variables take precedence over config.yaml.
-
-**Solution**:
-```bash
-# Check for conflicting env vars
-env | grep -E "(REDIS|CACHE)"
-
-# Unset conflicting vars
-unset REDIS_HOST
-unset REDIS_PORT
-unset REDIS_PASSWORD
-
-# Or set them correctly
-export REDIS_HOST=localhost
-export REDIS_PORT=6379
-export REDIS_PASSWORD=your-password
-```
-
-### Redis Health Check
-
-```bash
-# Complete health check script
-echo "=== Redis Health Check ==="
-
-# 1. Container status
-echo "1. Container status:"
-docker ps | grep redis
-
-# 2. Connection test
-echo "2. Connection test:"
-redis-cli -h localhost -p 6379 -a ${REDIS_PASSWORD} ping
-
-# 3. Info
-echo "3. Redis info:"
-redis-cli -h localhost -p 6379 -a ${REDIS_PASSWORD} INFO stats
-
-# 4. Memory usage
-echo "4. Memory usage:"
-redis-cli -h localhost -p 6379 -a ${REDIS_PASSWORD} INFO memory | grep used_memory_human
 ```
 
 ---
@@ -340,10 +208,7 @@ redis-cli -h localhost -p 6379 -a ${REDIS_PASSWORD} INFO memory | grep used_memo
 **Check session cookie count**:
 ```bash
 # Should see increasing cookie counts
-tail -f proxy.log | grep "Session cookies"
-
-# Good: [Session cookies: 1] or higher
-# Bad: [Session cookies: 0] consistently
+grep "Session cookies" proxy.log
 ```
 
 ### Common Issues
@@ -353,107 +218,70 @@ tail -f proxy.log | grep "Session cookies"
 **Cause**: ProxySessionManager not being used correctly.
 
 **Solution**:
-```python
-# ❌ Wrong - creates new client
-async def make_request(url):
-    client = httpx.AsyncClient()  # New client, no cookies!
-    response = await client.post(url, ...)
-    await client.aclose()
-
-# ✅ Correct - reuses persistent client
-async def make_request(url):
-    client = await ProxySessionManager.get_client(url)
-    response = await client.post(url, ...)
-    # Don't close! Keep client alive for next request
-```
+Ensure you are using the SDK mode which enforces `ProxySessionManager` usage.
 
 #### Issue: Cookies for Wrong Domain
 
 **Cause**: Using wrong base_url for session manager.
 
 **Solution**:
-```python
-# ❌ Wrong - localhost doesn't set Cloudflare cookies
-client = await ProxySessionManager.get_client("http://localhost:4000")
-
-# ✅ Correct - use actual Cloudflare-protected domain
-client = await ProxySessionManager.get_client("https://api.supermemory.ai")
-```
-
-#### Issue: Binary Mode Can't Control Cookies
-
-**Cause**: When using LiteLLM binary, the Memory Proxy can't control the binary's HTTP client.
-
-**Explanation**:
-```
-Memory Proxy ← → LiteLLM Binary ← → Supermemory (Cloudflare)
-                        ↑
-                   Cookies needed HERE
-                   But we can't control binary's HTTP client!
-```
-
-**Solution**: Migrate to SDK mode (see `docs/architecture/DESIGN_DECISIONS.md`)
+Use actual Cloudflare-protected domain (e.g. `https://api.supermemory.ai`) instead of localhost.
 
 ---
 
-## 5. LiteLLM Binary Issues
+## 5. LiteLLM SDK Issues
 
 ### Symptoms
 
-- "LiteLLM binary not found" errors
+- "LiteLLM not found" errors
 - "Command not found: litellm"
-- Binary exits unexpectedly
+- Initialization failures
 
 ### Solutions
 
-#### Issue: Binary Not Installed
+#### Issue: Package Not Installed
 
 **Diagnosis**:
 ```bash
-which litellm
-# If empty, binary not in PATH
+pip show litellm
 ```
 
 **Solution**:
 ```bash
-# Install with uvx (recommended)
-uvx install 'litellm[proxy]'
+# Install with poetry
+poetry install
 
-# Or with pipx
-pipx install 'litellm[proxy]'
-
-# Verify
-litellm --version
+# Or pip
+pip install 'litellm[proxy]'
 ```
 
-#### Issue: Binary Port Already in Use
+#### Issue: Port Already in Use
 
 **Symptoms**:
 - "Address already in use" error
-- Binary fails to start
-- Port 4000 (or configured port) occupied
+- Proxy fails to start
 
 **Diagnosis**:
 ```bash
-# Check what's using port 4000
-lsof -i :4000
+# Check what's using port 8764
+lsof -i :8764
 ```
 
 **Solution**:
 ```bash
 # Kill process using port
-lsof -i :4000 | grep LISTEN | awk '{print $2}' | xargs kill
+lsof -i :8764 | grep LISTEN | awk '{print $2}' | xargs kill
 
 # Or use different port
-litellm --config config.yaml --port 4001
+poetry run python deploy/run_unified_proxy.py --mode sdk --sdk-port 8766
 ```
 
-#### Issue: Binary Crashes Silently
+#### Issue: Silent Crashes
 
 **Diagnosis**:
 ```bash
-# Run binary in foreground to see errors
-litellm --config config.yaml --port 4000
+# Run in debug mode
+poetry run python deploy/run_unified_proxy.py --mode sdk --debug
 ```
 
 **Common causes**:
@@ -465,12 +293,6 @@ litellm --config config.yaml --port 4000
 ```bash
 # Validate config
 poetry run python src/proxy/schema.py config/config.yaml
-
-# Check API keys
-env | grep API_KEY
-
-# Check logs
-tail -f litellm.log
 ```
 
 ---
@@ -495,9 +317,6 @@ ls -l config.yaml
 
 # Use absolute path
 export LITELLM_CONFIG=/absolute/path/to/config.yaml
-
-# Or specify in command
-python litellm_proxy_with_memory.py --config /path/to/config.yaml
 ```
 
 #### Issue: Environment Variables Not Resolving
@@ -510,8 +329,6 @@ python litellm_proxy_with_memory.py --config /path/to/config.yaml
 ```bash
 # Check env var is set
 echo $OPENAI_API_KEY
-
-# Should not be empty
 ```
 
 **Solution**:
@@ -534,9 +351,6 @@ source .env
 ```bash
 # Validate YAML syntax
 python -c "import yaml; yaml.safe_load(open('config.yaml'))"
-
-# Or use online validator
-# Copy config to: http://www.yamllint.com/
 ```
 
 **Common YAML mistakes**:
@@ -552,20 +366,6 @@ model_list:
   - model_name: gpt-4
     litellm_params:
       model: openai/gpt-4
-```
-
-#### Issue: Model Format Invalid
-
-**Symptoms**:
-- "Model must be in format 'provider/model-name'"
-
-**Solution**:
-```yaml
-# ❌ Wrong
-model: gpt-4
-
-# ✅ Correct
-model: openai/gpt-4
 ```
 
 ---
@@ -616,36 +416,6 @@ test_string = "OpenAIClientImpl/Java unknown"
 print(pattern.search(test_string))  # Should match
 ```
 
-**Common regex mistakes**:
-```yaml
-# ❌ Wrong - need to escape dots
-pattern: "MyApp/1.0"
-
-# ✅ Correct - escaped dot for literal match
-pattern: "MyApp/1\\.0"
-
-# ✅ Or - use .* for any version
-pattern: "MyApp/.*"
-```
-
-#### Issue: First Match Wins
-
-**Cause**: Patterns are evaluated in order, first match wins.
-
-**Solution**: Put more specific patterns first:
-```yaml
-header_patterns:
-  # ✅ More specific first
-  - header: "user-agent"
-    pattern: "MyApp/2\\.0"
-    user_id: "myapp-v2"
-  
-  # More general last
-  - header: "user-agent"
-    pattern: "MyApp/.*"
-    user_id: "myapp-general"
-```
-
 #### Issue: Default User ID Always Used
 
 **Cause**: No patterns matching.
@@ -653,8 +423,8 @@ header_patterns:
 **Diagnosis**:
 ```bash
 curl http://localhost:8764/memory-routing/info \
-  -H "User-Agent: YourApp" | jq '.is_default'
-# If true, no pattern matched
+  -H "User-Agent: YourApp"
+# Check if result is default
 ```
 
 **Solution**:
@@ -679,9 +449,6 @@ curl http://localhost:8764/memory-routing/info \
 # Memory
 ps aux | grep litellm
 
-# CPU
-top -p $(pgrep -f litellm)
-
 # Network
 netstat -an | grep :8764
 ```
@@ -698,54 +465,16 @@ netstat -an | grep :8764
 ```bash
 # Increase file descriptor limit
 ulimit -n 4096
-
-# Check current limit
-ulimit -n
-```
-
-**In code**:
-```python
-# Limit connection pool size
-httpx.AsyncClient(
-    limits=httpx.Limits(
-        max_connections=100,
-        max_keepalive_connections=20
-    )
-)
 ```
 
 #### Issue: Memory Leaks
 
 **Symptoms**:
 - Memory usage grows over time
-- Eventually crashes or slows down
-
-**Diagnosis**:
-```bash
-# Monitor memory over time
-watch -n 5 'ps aux | grep litellm'
-```
 
 **Solution**:
-- Ensure HTTP clients are properly closed
-- Use ProxySessionManager correctly
+- Ensure HTTP clients are properly closed (handled by SessionManager)
 - Implement cleanup in FastAPI lifespan
-
-#### Issue: Slow Database Queries
-
-**Symptoms**:
-- High latency on requests
-- Database connection pool exhausted
-
-**Solution**:
-```yaml
-# Increase connection pool limit
-general_settings:
-  database_connection_pool_limit: 100
-
-# Add database indexes
-# (See database documentation)
-```
 
 ---
 
@@ -757,47 +486,6 @@ general_settings:
 - Connection reset by peer
 - "Address already in use" errors
 - Wrong port assigned to project
-
-### 🚨 CRITICAL KNOWN ISSUE: Crash with Supermemory Endpoints
-
-**Symptoms**:
-- Interceptor crashes immediately when forwarding requests
-- "Connection reset by peer" errors
-- Works fine without interceptor
-
-**Root Cause**:
-Interceptors are not yet hardened and crash when used together with supermemory-proxied model endpoints (`api_base: https://api.supermemory.ai/...`).
-
-**Affected Configuration**:
-```yaml
-model_list:
-  - model_name: claude-sonnet-4.5
-    litellm_params:
-      api_base: https://api.supermemory.ai/v3/api.anthropic.com  # ❌ CRASHES WITH INTERCEPTOR
-      model: anthropic/claude-sonnet-4-5-20250929
-```
-
-**Workarounds**:
-1. **Use direct endpoints** (no supermemory proxy):
-   ```yaml
-   model_list:
-     - model_name: claude-sonnet-4.5
-       litellm_params:
-         model: anthropic/claude-sonnet-4-5-20250929  # ✅ Works with interceptor
-         api_key: os.environ/ANTHROPIC_API_KEY
-   ```
-
-2. **Skip interceptor**: Connect PyCharm directly to Memory Proxy:
-   ```
-   PyCharm → http://localhost:8764 (Memory Proxy directly)
-   ```
-
-3. **Use LiteLLM binary directly**: Bypass both proxies:
-   ```
-   PyCharm → http://localhost:8765 (LiteLLM binary)
-   ```
-
-**Status**: Under active investigation. Track progress in `src/interceptor/README.md`.
 
 ### Common Interceptor Issues
 
@@ -824,74 +512,7 @@ lsof -i :8888 | grep LISTEN | awk '{print $2}' | xargs kill
 # Option 2: Get a new port assignment
 python -m src.interceptor.cli remove
 python -m src.interceptor.cli show  # Will assign new port
-
-# Option 3: Use explicit port override
-INTERCEPTOR_PORT=9000 python -m src.interceptor.cli run
 ```
-
-#### Issue: Wrong Port Assigned
-
-**Symptoms**:
-- PyCharm connects but requests fail
-- Port doesn't match what's in registry
-
-**Diagnosis**:
-```bash
-# Check current port assignment
-python -m src.interceptor.cli show
-
-# Verify interceptor is actually running on that port
-lsof -i :8888 | grep Python
-```
-
-**Solution**:
-```bash
-# Remove stale mapping
-python -m src.interceptor.cli remove /path/to/old/project
-
-# Allocate new port
-python -m src.interceptor.cli allocate
-```
-
-#### Issue: Registry File Corrupted
-
-**Symptoms**:
-- "JSON decode error" when accessing registry
-- Interceptor can't start
-
-**Solution**:
-```bash
-# Backup exists automatically at:
-# ~/.config/litellm/port_registry.json.backup
-
-# Option 1: Restore from backup
-cp ~/.config/litellm/port_registry.json.backup \
-   ~/.config/litellm/port_registry.json
-
-# Option 2: Reset registry (loses all mappings)
-python -m src.interceptor.cli reset
-```
-
-#### Issue: Headers Not Being Injected
-
-**Symptoms**:
-- Requests work but user ID not detected
-- Memory not isolated per project
-
-**Diagnosis**:
-```bash
-# Check if headers are being added
-curl -v http://localhost:8888/v1/chat/completions \
-  -H "Authorization: Bearer sk-1234" \
-  -d '{"model": "gpt-4", "messages": [...]}'
-
-# Look for x-memory-user-id and x-pycharm-instance headers in output
-```
-
-**Solution**:
-- Verify interceptor is actually running (not bypassed)
-- Check interceptor logs for header injection
-- Ensure TARGET_LLM_URL points to Memory Proxy (not LiteLLM binary)
 
 ---
 
@@ -915,9 +536,6 @@ curl -v http://localhost:8888/v1/chat/completions \
 ```bash
 # Check configuration
 grep -A 10 "context_retrieval:" config/config.yaml
-
-# Verify enabled
-python -c "import yaml; print(yaml.safe_load(open('config/config.yaml'))['context_retrieval']['enabled'])"
 ```
 
 **Solution**:
@@ -927,165 +545,17 @@ context_retrieval:
   api_key: os.environ/SUPERMEMORY_API_KEY
 ```
 
-#### Issue: Model Not in Whitelist
-
-**Symptoms**:
-- Context retrieval works for some models but not others
-
-**Cause**: Model filtering excludes the model you're using.
-
-**Diagnosis**:
-```python
-# Check if model is enabled
-import yaml
-config = yaml.safe_load(open('config/config.yaml'))
-cr = config.get('context_retrieval', {})
-enabled_models = cr.get('enabled_for_models')
-disabled_models = cr.get('disabled_for_models')
-
-print(f"Enabled: {enabled_models}")
-print(f"Disabled: {disabled_models}")
-print(f"Your model: claude-sonnet-4.5")
-```
-
-**Solution**:
-```yaml
-context_retrieval:
-  enabled: true
-  enabled_for_models:
-    - claude-sonnet-4.5  # Add your model
-    - claude-haiku-4.5
-  
-  # Don't use both enabled_for_models AND disabled_for_models
-```
-
 #### Issue: API Key Missing or Invalid
 
 **Symptoms**:
 - "api_key is required when context_retrieval.enabled=true" error
 - 401 Unauthorized from Supermemory API
 
-**Diagnosis**:
-```bash
-# Check if API key is set
-echo $SUPERMEMORY_API_KEY
-
-# Should start with "sm_"
-```
-
 **Solution**:
 ```bash
 # Set API key
 export SUPERMEMORY_API_KEY="sm_..."
-
-# Or use .env file
-echo "SUPERMEMORY_API_KEY=sm_..." >> .env
-source .env
-
-# Restart proxy
-poetry run start-proxies
 ```
-
-#### Issue: Supermemory API Timeout
-
-**Symptoms**:
-- Requests timeout
-- "Request timeout" errors
-- Slow response times
-
-**Solution**:
-```yaml
-context_retrieval:
-  enabled: true
-  timeout: 30.0  # Increase from default 10.0
-```
-
-#### Issue: Context Too Large
-
-**Symptoms**:
-- Requests rejected by LLM provider
-- "Token limit exceeded" errors
-- Response truncation
-
-**Solution**:
-```yaml
-context_retrieval:
-  enabled: true
-  max_context_length: 2000  # Reduce from default 4000
-  max_results: 3  # Reduce from default 5
-```
-
-#### Issue: Wrong Query Strategy
-
-**Symptoms**:
-- Irrelevant context being retrieved
-- Context doesn't match user's question
-
-**Cause**: Query strategy doesn't fit your use case.
-
-**Solution - Try different strategies**:
-```yaml
-context_retrieval:
-  enabled: true
-  
-  # For single-turn questions
-  query_strategy: last_user  # Use latest user message
-  
-  # For maintaining topic context
-  query_strategy: first_user  # Use initial user message
-  
-  # For complex multi-turn conversations
-  query_strategy: all_user  # Use all user messages
-  
-  # For context-aware follow-ups
-  query_strategy: last_assistant  # Use last AI response
-```
-
-#### Issue: Wrong Injection Strategy
-
-**Symptoms**:
-- Context not being used by model
-- Model ignores retrieved context
-
-**Solution - Try different injection strategies**:
-```yaml
-context_retrieval:
-  enabled: true
-  
-  # Best for Claude, GPT-4 (recommended)
-  injection_strategy: system
-  
-  # For models without system message support
-  injection_strategy: user_prefix
-  
-  # To emphasize recent context
-  injection_strategy: user_suffix
-```
-
-#### Issue: Empty Context Retrieved
-
-**Symptoms**:
-- Context retrieval succeeds but returns no results
-- "No relevant context found" in logs
-
-**Cause**: Supermemory container is empty or query doesn't match any documents.
-
-**Diagnosis**:
-```bash
-# Test Supermemory API directly
-curl -X POST https://api.supermemory.ai/v4/profile \
-  -H "Authorization: Bearer $SUPERMEMORY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "test query",
-    "container_tag": "supermemory"
-  }'
-```
-
-**Solution**:
-1. Verify documents are uploaded to Supermemory
-2. Check container_tag matches your data
-3. Try broader search queries
 
 ---
 
@@ -1095,8 +565,7 @@ If you're still experiencing issues after trying these solutions:
 
 1. **Enable Debug Logging**:
    ```bash
-   export LOG_LEVEL=DEBUG
-   python litellm_proxy_with_memory.py
+   poetry run python deploy/run_unified_proxy.py --mode sdk --debug
    ```
 
 2. **Collect Diagnostic Info**:
@@ -1108,24 +577,15 @@ If you're still experiencing issues after trying these solutions:
    # Configuration
    cat config.yaml
    
-   # Environment
-   env | grep -E "(API_KEY|REDIS|DATABASE)"
-   
    # Logs
-   tail -100 proxy.log
+   # Check terminal output or configured log file
    ```
 
 3. **Check Related Documentation**:
    - [Architecture Overview](../architecture/OVERVIEW.md)
-   - [Design Decisions](../architecture/DESIGN_DECISIONS.md)
    - [Configuration Guide](../guides/CONFIGURATION.md)
-   - [Testing Guide](../guides/TESTING.md)
-
-4. **Search Existing Issues**:
-   - Check if similar issues have been reported
-   - Look for solutions in closed issues
 
 ---
 
-**Last Updated**: 2025-11-08  
-**Status**: Added interceptor and context retrieval troubleshooting sections
+**Last Updated**: 2025-11-21
+**Status**: Updated for SDK Architecture

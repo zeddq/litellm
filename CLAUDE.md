@@ -1,6 +1,6 @@
 # LiteLLM Memory Proxy
 
-**Last Updated**: 2025-11-13
+**Last Updated**: 2025-11-21
 
 ## Overview
 
@@ -14,7 +14,7 @@ LiteLLM Memory Proxy is a developer-focused proxy service that bridges various A
 
 **Target Audience**: Developers using multiple AI clients (PyCharm, Claude Code, VS Code, custom apps)
 
-**Architecture Pattern**: External binary proxy approach - memory routing proxy (FastAPI) forwards to standalone LiteLLM binary process for better separation of concerns and deployment flexibility.
+**Architecture Pattern**: Self-Contained SDK Gateway - FastAPI proxy with embedded LiteLLM SDK. This eliminates the need for an external binary process and ensures persistent sessions (cookies) for Supermemory integration.
 
 ---
 
@@ -27,26 +27,26 @@ LiteLLM Memory Proxy is a developer-focused proxy service that bridges various A
 
 ```bash
 # Start new work - create bookmark before making changes
-jj new && jj bookmark new <TOPIC>
+ الاصلاحjj new && jj bookmark create <TOPIC>
 
 # Check status
-jj status
+ الاصلاحjj status
 
 # Stage and commit changes
-jj commit -m "Add feature X"
+ الاصلاحjj commit -m "Add feature X"
 
 # Undo last jj operation
-jj undo
+ الاصلاحjj undo
 
 # Restore files (discard changes)
-jj restore <file>              # restore specific file
-jj restore --from=@- <file>    # restore from parent change
+ الاصلاحjj restore <file>              # restore specific file
+ الاصلاحjj restore --from=@- <file>    # restore from parent change
 
 # Merge into main (prefer merges over rebases)
-jj new @ main && jj bookmark set -r @ <TOPIC> 
+ الاصلاحjj new @ main && jj bookmark set -r @ <TOPIC> 
 
 # Push to remote (when configured)
-jj git push
+ الاصلاحjj git push
 ```
 
 ### jj Workflow Philosophy
@@ -62,6 +62,7 @@ Ask Claude: "Get me jj documentation about [topic]"
 ```
 
 ---
+
 
 ## 🔧 CRITICAL: Use JetBrains MCP Server
 
@@ -88,52 +89,22 @@ Ask Claude: "Get me jj documentation about [topic]"
 | **Run tests** | `execute_run_configuration` | Manual bash commands |
 | **File operations** | `create_new_file` | `touch`, `mkdir` |
 
-### Example Workflows
-
-**Note**: These are pseudocode examples showing JetBrains MCP tool usage patterns.
-
-```text
-# ✅ CORRECT: Find all test files
-find_files_by_glob(globPattern="test_*.py")
-
-# ❌ WRONG: Using bash
-bash("find . -name 'test_*.py'")
-
-# ✅ CORRECT: Search for a function
-search_in_files_by_text(searchText="def memory_router")
-
-# ❌ WRONG: Using grep
-bash("grep -r 'def memory_router' .")
-
-# ✅ CORRECT: Refactor/rename
-rename_refactoring(
-    pathInProject="memory_router.py",
-    symbolName="old_function_name",
-    newName="new_function_name"
-)
-
-# ❌ WRONG: Text replacement
-edit("memory_router.py", old_string="old_function_name", new_string="new_function_name")
-```
-
 ---
+
 
 ## Requirements
 
 ### System Requirements
 - **Python**: 3.13+ (required)
-- **LiteLLM CLI**: Standalone binary
+- **LiteLLM SDK**: Installed via pip/poetry
   ```bash
-  # Install with uvx (recommended)
-  uvx install 'litellm[proxy]'
+  # Install with pip
+  pip install 'litellm[proxy]'
 
-  # Or with pipx
-  pipx install 'litellm[proxy]'
-
-  # Verify installation
-  litellm --version
+  # Or with poetry
+  poetry install
   ```
-- **Package Manager**: Poetry (preferred, but any pyproject.toml-compatible manager works)
+- **Package Manager**: Poetry (preferred)
 
 ### API Keys
 Set these environment variables:
@@ -149,33 +120,36 @@ All managed via Poetry:
 poetry install --all-groups
 ```
 
-Key dependencies: FastAPI, Uvicorn, httpx, PyYAML, pytest
+Key dependencies: FastAPI, Uvicorn, httpx, PyYAML, pytest, litellm
 
 ---
+
 
 ## Project Structure
 
 ```
 litellm/
 ├── config.yaml                          # Main configuration (models, routing, memory)
-├── litellm_proxy_with_memory.py         # Memory routing proxy (FastAPI app)
-├── memory_router.py                     # Client detection & routing logic
-├── start_proxies.py                     # Launch script (starts both proxies)
-├── example_complete_workflow.py         # Usage examples
-├── test_memory_proxy.py                 # Main test suite
-├── test_tutorial.py                     # Tutorial tests
+├── deploy/
+│   └── run_unified_proxy.py             # Unified launcher script (SDK & Binary modes)
+├── src/
+│   ├── proxy/
+│   │   ├── litellm_proxy_sdk.py         # Main SDK-based Proxy (FastAPI app)
+│   │   ├── session_manager.py           # Persistent Session Manager (Cookies)
+│   │   └── memory_router.py             # Client detection & routing logic
+│   └── interceptor/
+│       └── intercepting_contexter.py    # Edge Interceptor
+├── tests/                               # Test suites
 ├── RUN_TESTS.sh                         # Test runner script
 ├── verify_setup.sh                      # Setup verification
-├── CHANGELOG.md                         # Project history (9 phases documented)
-├── README.md                            # Project overview and quick reference
+├── CHANGELOG.md                         # Project history
+├── README.md                            # Project overview
 ├── CLAUDE.md                            # This file - development guide
-├── docs/
+├── docs/                                # Documentation Hub
 │   ├── INDEX.md                         # Documentation hub
 │   ├── architecture/
 │   │   ├── OVERVIEW.md                  # System design & patterns
-│   │   ├── DESIGN_DECISIONS.md          # Architectural choices & migration plans
-│   │   ├── PRISMA_CALLBACK_DESIGN.md    # Database persistence
-│   │   └── QUEUE_BASED_PERSISTENCE.md   # Alternative persistence (future)
+│   │   └── DESIGN_DECISIONS.md          # Architectural choices
 │   ├── getting-started/
 │   │   ├── QUICKSTART.md                # 5-minute quick start
 │   │   └── TUTORIAL.md                  # Step-by-step tutorial
@@ -184,11 +158,10 @@ litellm/
 │   │   └── TESTING.md                   # Comprehensive testing docs
 │   └── troubleshooting/
 │       └── COMMON_ISSUES.md             # Troubleshooting guide
-└── archive/
-    └── agent-reports/                   # Agent artifacts and pre-consolidation files
 ```
 
 ---
+
 
 ## Quick Start
 
@@ -210,21 +183,16 @@ export SUPERMEMORY_API_KEY="sm_..."
 ./verify_setup.sh
 ```
 
-### 4. Start Proxies
+### 4. Start Proxy (SDK Mode)
 ```bash
-# Recommended: Start both proxies together
-poetry run start-proxies
+# Recommended: Start unified proxy in SDK mode
+poetry run python deploy/run_unified_proxy.py --mode sdk
 
-# Custom ports
-poetry run start-proxies --litellm-port 8765 --memoryproxy-port 8764
-
-# Custom config
-poetry run start-proxies --config ./config.yaml
+# Or directly via uvicorn (development)
+poetry run uvicorn src.proxy.litellm_proxy_sdk:app --port 8764 --reload
 ```
 
-This starts:
-- **LiteLLM binary** on port 8765 (external process)
-- **Memory Proxy** on port 8764 (FastAPI app, forwards to LiteLLM)
+This starts the **Memory Proxy** on port 8764, which internally loads the LiteLLM SDK.
 
 ### 5. Test It Works
 ```bash
@@ -242,6 +210,7 @@ curl http://localhost:8764/v1/chat/completions \
 **For detailed walkthrough**, see: `docs/getting-started/QUICKSTART.md`
 
 ---
+
 
 ## Configuration
 
@@ -283,67 +252,16 @@ litellm_settings:
   drop_params: true
 ```
 
-**For complete reference**, see: `docs/reference/CONFIGURATION.md`
+**For complete reference**, see: `docs/guides/CONFIGURATION.md`
 
 ### Environment Variable Synchronization
 
 LiteLLM proxy supports automatic synchronization of configuration field values to environment variables using the `EnvSyncMixin` pattern. This enables backward compatibility with env-var-based configuration and makes config values available to subprocesses.
 
-**How It Works**:
-
-1. Fields marked with `json_schema_extra={"sync_to_env": "ENV_VAR_NAME"}` automatically sync their values to environment variables after validation
-2. Environment variable references (`os.environ/VAR`) are resolved before syncing
-3. None values are skipped (don't set env vars)
-4. Values are automatically converted to strings
-
-**Example Usage**:
-
-In `src/proxy/schema.py`, the following fields automatically sync to environment variables:
-
-```python
-class GeneralSettings(EnvSyncMixin, BaseModel):
-    database_url: Optional[EnvVarStr] = Field(
-        default=None,
-        json_schema_extra={"sync_to_env": "DATABASE_URL"}  # Auto-syncs to DATABASE_URL
-    )
-
-class RedisCacheParams(EnvSyncMixin, BaseModel):
-    host: str = Field(
-        default="localhost",
-        json_schema_extra={"sync_to_env": "REDIS_HOST"}  # Auto-syncs to REDIS_HOST
-    )
-    port: int = Field(
-        default=6379,
-        json_schema_extra={"sync_to_env": "REDIS_PORT"}  # Auto-syncs to REDIS_PORT (as string)
-    )
-```
-
-**When config is loaded**:
-```python
-# config.yaml contains:
-# general_settings:
-#   database_url: postgresql://localhost:5432/litellm
-
-config = load_config("config.yaml")
-# After instantiation, os.environ["DATABASE_URL"] == "postgresql://localhost:5432/litellm"
-```
-
-**Benefits**:
-- Ensures environment variables match config file values
-- Makes config values available to LiteLLM binary and subprocesses
-- Maintains backward compatibility with env-var-based configuration
-- Declarative - easy to see which fields sync to which env vars
-
-**Currently Synced Fields**:
-- `GeneralSettings.database_url` → `DATABASE_URL`
-- `LiteLLMSettings.database_url` → `DATABASE_URL`
-- `RedisCacheParams.host` → `REDIS_HOST`
-- `RedisCacheParams.port` → `REDIS_PORT`
-- `RedisCacheParams.password` → `REDIS_PASSWORD`
-
-**Testing**: See `tests/test_schema_env_sync.py` for comprehensive test coverage (18 tests).
+See `docs/guides/CONFIGURATION.md` for details on `EnvSyncMixin`.
 
 ---
+
 
 ## Development Workflow
 
@@ -358,7 +276,7 @@ model_list:
       model: provider/model-name
       api_key: os.environ/MY_API_KEY
 ```
-Test: `poetry run start-proxies`
+Test: `poetry run python deploy/run_unified_proxy.py --mode sdk`
 
 #### 2. Add Client Detection Pattern
 Edit `config.yaml`:
@@ -373,14 +291,14 @@ Test: `curl http://localhost:8764/memory-routing/info -H "User-Agent: MyApp/1.0"
 
 #### 3. Modify Memory Routing Logic
 1. Use JetBrains MCP to search: `search_in_files_by_text("memory_router")`
-2. Edit `memory_router.py` using JetBrains MCP: `replace_text_in_file(...)`
+2. Edit `src/proxy/memory_router.py` using JetBrains MCP.
 3. Run tests: `./RUN_TESTS.sh unit`
 4. Commit: `jj commit -m "Update memory routing logic"`
 
 #### 4. Test with Different Providers
 ```bash
 # Edit config.yaml to add provider
-poetry run start-proxies
+poetry run python deploy/run_unified_proxy.py --mode sdk
 
 # Test endpoint
 curl http://localhost:8764/v1/chat/completions \
@@ -388,12 +306,8 @@ curl http://localhost:8764/v1/chat/completions \
   -d '{"model": "your-model", "messages": [...]}'
 ```
 
-#### 5. Maintain Backward Compatibility
-- Run full test suite: `./RUN_TESTS.sh all`
-- Test with existing clients (PyCharm, Claude Code)
-- Check integration tests: `./RUN_TESTS.sh integration`
-
 ---
+
 
 ## Testing
 
@@ -408,7 +322,6 @@ curl http://localhost:8764/v1/chat/completions \
 ./RUN_TESTS.sh e2e            # End-to-end tests
 ./RUN_TESTS.sh coverage       # With coverage report
 ./RUN_TESTS.sh fast           # Skip slow tests
-./RUN_TESTS.sh parallel       # Parallel execution
 
 # Debug mode
 ./RUN_TESTS.sh debug
@@ -417,106 +330,20 @@ curl http://localhost:8764/v1/chat/completions \
 ### Alternative Methods (Discouraged)
 ```bash
 # Direct pytest (if you must)
-poetry run pytest test_memory_proxy.py -v
-
-# Specific test file
-poetry run python test_tutorial.py
+poetry run pytest tests/src/test_memory_proxy.py -v
 ```
 
 ### Test Structure
-- `test_memory_proxy.py` - Main test suite (routing, FastAPI, integration)
-- `test_tutorial.py` - Tutorial examples (will be deleted)
-- `tests/test_set_env_vars_decorator.py` - Decorator tests (23 test cases, thread-safety validated)
-- Coverage reports: `htmlcov/index.html` (after `./RUN_TESTS.sh coverage`)
-
-### Environment Variable Testing with @set_env_vars
-
-The `@set_env_vars` decorator in `src/proxy/config_parser.py` enables dynamic environment variable injection for testing and development. This is particularly useful for testing with different database connections, Redis settings, or API keys without modifying your actual environment.
-
-**Key Features**:
-- **Thread-safe**: Uses `threading.RLock()` for concurrent execution
-- **Temporary scope** (default): Automatically restores original values after function execution
-- **Persistent mode**: Option to leave changes in place with `persist=True`
-- **Type validation**: Ensures all values are strings at decorator application time
-- **Exception-safe**: Guarantees cleanup even if function raises exceptions
-
-**Basic Usage**:
-```python
-from proxy.config_parser import set_env_vars, LiteLLMConfig
-
-# Temporary scope (auto-restore) - recommended for tests
-@set_env_vars(
-    DATABASE_URL="postgresql://test:pass@localhost:5432/test_db",
-    REDIS_HOST="localhost",
-    REDIS_PORT="6379"
-)
-def test_config_with_custom_settings():
-    config = LiteLLMConfig("config/config.yaml")
-    # Test logic here - uses injected env vars
-    # Original values automatically restored after function completes
-
-# Persistent mode - leaves changes in place
-@set_env_vars(
-    persist=True,
-    OPENAI_API_KEY="sk-test-key"
-)
-def setup_test_environment():
-    # OPENAI_API_KEY remains set after function completes
-    pass
-```
-
-**Pytest Integration**:
-```python
-import pytest
-from proxy.config_parser import set_env_vars
-
-@pytest.fixture
-@set_env_vars(DATABASE_URL="postgresql://localhost/test")
-def test_config():
-    return LiteLLMConfig("config/config.yaml")
-
-def test_database_connection(test_config):
-    # test_config uses injected DATABASE_URL
-    assert test_config.get_litellm_settings()["database_url"]
-```
-
-**Thread-Safe Concurrent Testing**:
-```python
-import threading
-
-@set_env_vars(USER_ID="user-1")
-def test_user_1():
-    config = LiteLLMConfig("config/config.yaml")
-    # User 1 specific tests
-
-@set_env_vars(USER_ID="user-2")
-def test_user_2():
-    config = LiteLLMConfig("config/config.yaml")
-    # User 2 specific tests
-
-# Safe to run concurrently - decorator serializes env var modifications
-threading.Thread(target=test_user_1).start()
-threading.Thread(target=test_user_2).start()
-```
-
-**When to Use**:
-- ✅ **Testing with different configurations**: DATABASE_URL, REDIS_HOST, API keys
-- ✅ **Integration tests**: Isolate test environments per test case
-- ✅ **CI/CD pipelines**: Inject credentials without environment pollution
-- ✅ **Concurrent test execution**: Thread-safe environment isolation
-- ❌ **Production code**: Use proper configuration management instead
-- ❌ **Performance-critical paths**: Has ~17x overhead due to lock (acceptable for tests)
-
-**Implementation Location**: `src/proxy/config_parser.py:78-240`
-**Test Suite**: `tests/test_set_env_vars_decorator.py` (23 tests, full thread-safety validation)
-
-**For detailed testing strategies**, see: `docs/guides/testing/TESTING_GUIDE.md`
+- `tests/src/test_memory_proxy.py` - Main test suite (routing, FastAPI, integration)
+- `tests/test_schema_env_sync.py` - Configuration sync tests
+- `tests/src/test_interceptor.py` - Interceptor tests
 
 ---
 
+
 ## Architecture
 
-### High-Level Overview
+### High-Level Overview (SDK Approach)
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -528,15 +355,17 @@ threading.Thread(target=test_user_2).start()
 │ Memory Proxy (Port 8764) - FastAPI         │
 │ • Detects client via User-Agent            │
 │ • Injects x-sm-user-id header              │
-│ • Routes to LiteLLM                        │
+│ • Loads LiteLLM SDK internally             │
+│ • Manages Persistent Sessions (Cookies)    │
 └─────────────────┬───────────────────────────┘
-                  │ HTTP forward
+                  │ Direct SDK Calls
                   ▼
 ┌─────────────────────────────────────────────┐
-│ LiteLLM Binary (Port 8765)                 │
-│ External process: litellm --config ...     │
+│ LiteLLM Python SDK (In-Process)            │
+│ • Provider Routing                         │
+│ • Supermemory Integration                  │
 └─────────────────┬───────────────────────────┘
-                  │
+                  │ HTTPS
          ┌────────┴────────┬──────────┐
          ▼                 ▼          ▼
    ┌─────────┐      ┌──────────┐  ┌────────┐
@@ -545,36 +374,15 @@ threading.Thread(target=test_user_2).start()
    └─────────┘      └──────────┘  └────────┘
 ```
 
-### Key Components
-
-1. **Memory Proxy (`litellm_proxy_with_memory.py`)**
-   - FastAPI application
-   - Client detection and user ID assignment
-   - Header injection for memory isolation
-   - Request forwarding to LiteLLM
-
-2. **Memory Router (`memory_router.py`)**
-   - Pattern matching engine
-   - User-Agent parsing
-   - Custom header detection
-   - Configurable routing rules
-
-3. **LiteLLM Binary**
-   - External process (subprocess)
-   - Multi-provider routing
-   - Rate limiting, caching, logging
-   - Supermemory integration
-
-### Benefits of Binary Approach
-- **Separation of concerns**: Memory logic separate from LiteLLM
-- **Independent scaling**: Scale components separately
-- **Version management**: Upgrade LiteLLM without code changes
-- **No SDK conflicts**: Pure HTTP communication
-- **Production ready**: Process isolation, better error handling
+### Benefits of SDK Approach
+- **Cookie Persistence**: Solves Cloudflare challenges for Supermemory.
+- **Performance**: No local network hop (~10ms faster).
+- **Simplicity**: Single process to manage and debug.
 
 **For detailed architecture**, see: `docs/architecture/OVERVIEW.md`
 
 ---
+
 
 ## API Documentation
 
@@ -583,51 +391,8 @@ threading.Thread(target=test_user_2).start()
 #### GET /memory-routing/info
 Get routing information for current request.
 
-**Headers**:
-- `User-Agent`: Client identifier (optional)
-- `x-memory-user-id`: Explicit user ID (optional)
-
-**Response**:
-```json
-{
-  "routing": {
-    "user_id": "pycharm-ai",
-    "matched_pattern": {
-      "header": "user-agent",
-      "pattern": "OpenAIClientImpl/Java",
-      "user_id": "pycharm-ai"
-    },
-    "custom_header_present": false,
-    "is_default": false
-  },
-  "request_headers": {
-    "user-agent": "OpenAIClientImpl/Java",
-    "host": "localhost:8764"
-  }
-}
-```
-
 #### POST /v1/chat/completions
 OpenAI-compatible chat completions endpoint with automatic memory routing.
-
-**Headers**:
-- `Authorization`: Bearer token (required)
-- `Content-Type`: application/json
-- `User-Agent`: Client identifier (auto-detected)
-- `x-memory-user-id`: Explicit user ID (optional, overrides detection)
-
-**Request Body**:
-```json
-{
-  "model": "claude-sonnet-4.5",
-  "messages": [
-    {"role": "user", "content": "Hello!"}
-  ],
-  "max_tokens": 100
-}
-```
-
-**Response**: Standard OpenAI chat completion format
 
 #### GET /health
 Health check endpoint.
@@ -636,72 +401,21 @@ Health check endpoint.
 
 ---
 
-## Client Configuration Examples
-
-### PyCharm AI Assistant
-1. Settings → AI Assistant → OpenAI Service
-2. URL: `http://localhost:8764/v1`
-3. API Key: `sk-1234` (from config.yaml master_key)
-4. Model: `claude-sonnet-4.5`
-
-Auto-detected as `pycharm-ai` user.
-
-### Claude Code
-```bash
-# In your shell config
-export ANTHROPIC_BASE_URL="http://localhost:8764"
-```
-
-Auto-detected as `claude-cli` user.
-
-### Custom Application
-```python
-from openai import OpenAI
-
-client = OpenAI(
-    base_url="http://localhost:8764/v1",
-    api_key="sk-1234"
-)
-
-# Option 1: Auto-detection via User-Agent
-# (set User-Agent in your HTTP client)
-
-# Option 2: Explicit user ID
-response = client.chat.completions.create(
-    model="claude-sonnet-4.5",
-    messages=[{"role": "user", "content": "Hello"}],
-    extra_headers={"x-memory-user-id": "my-project"}
-)
-```
-
----
 
 ## Troubleshooting
 
-### LiteLLM binary not found
+### LiteLLM package not found
 ```bash
-# Install with uvx
-uvx install litellm
-
-# Or pipx
-pipx install litellm
-
-# Verify
-which litellm
-litellm --version
+# Install with poetry
+poetry install
 ```
 
-### Memory Proxy can't connect to LiteLLM
+### Memory Proxy can't connect
 ```bash
-# Check LiteLLM is running
-curl http://localhost:8765/health
-
 # Check ports in use
 lsof -i :8764
-lsof -i :8765
 
-# Check logs
-# (in Memory Proxy terminal output)
+# Check logs in terminal
 ```
 
 ### Client not detected correctly
@@ -709,34 +423,10 @@ lsof -i :8765
 # Debug routing
 curl http://localhost:8764/memory-routing/info \
   -H "User-Agent: YourClient/1.0"
-
-# Check config.yaml patterns
-# Ensure pattern matches your User-Agent
-```
-
-### Tests failing
-```bash
-# Ensure in venv
-poetry shell
-
-# Run with verbose output
-./RUN_TESTS.sh debug
-
-# Check test dependencies
-poetry install --with test
-```
-
-### Import errors
-```bash
-# Reinstall dependencies
-poetry install
-
-# Clear cache
-rm -rf __pycache__
-poetry cache clear --all pypi
 ```
 
 ---
+
 
 ## Documentation Hub
 
@@ -745,26 +435,17 @@ This project has extensive documentation organized by topic:
 - **📚 [Documentation Index](docs/INDEX.md)** - Start here for all docs
 - **🏗️ [Architecture Overview](docs/architecture/OVERVIEW.md)** - System design & patterns
 - **🎯 [Design Decisions](docs/architecture/DESIGN_DECISIONS.md)** - Architectural choices & migration plans
-- **🗄️ [Database Persistence](docs/architecture/PRISMA_CALLBACK_DESIGN.md)** - Prisma callback design
 - **🚀 [Quick Start](docs/getting-started/QUICKSTART.md)** - 5-minute setup guide
 - **📖 [Tutorial](docs/getting-started/TUTORIAL.md)** - Step-by-step walkthrough
 - **⚙️ [Configuration Guide](docs/guides/CONFIGURATION.md)** - Complete config reference
 - **🧪 [Testing Guide](docs/guides/TESTING.md)** - Comprehensive testing strategies
 - **🔧 [Troubleshooting](docs/troubleshooting/COMMON_ISSUES.md)** - Common issues and fixes
-- **📜 [CHANGELOG](CHANGELOG.md)** - Project history (9 phases documented)
+- **📜 [CHANGELOG](docs/CHANGELOG.md)** - Project history
 
 ---
 
+
 ## Important Notes
-
-### Current Status
-- **Phase**: Early development (v0.x)
-- **Stability**: Dev only (no production deployments yet)
-- **Remote**: No remote git repository yet (local only)
-
-### Known Issues / TODOs
-- `.envrc` is in-progress (ignore for now)
-- `tutorial_proxy_with_memory.py` will be removed eventually
 
 ### Development Philosophy
 1. **Use JetBrains MCP** for all file/code operations
@@ -773,83 +454,6 @@ This project has extensive documentation organized by topic:
 4. **Maintain backward compatibility** for existing clients
 5. **Document as you go** - update relevant docs/ files
 
-### Getting Help
-- Check docs/ for detailed guides
-- Use Context7 MCP for jj documentation
-- Use JetBrains MCP for codebase exploration
-- Review test files for usage examples
-
----
-
-## Recent Updates
-
-**2025-11-04** - Documentation consolidation (v2.0)
-- Consolidated 30+ scattered documentation files into 11 organized files
-- Flattened nested directories (max 2 levels: docs/subdirectory/)
-- Created CHANGELOG.md with 9 phases of project history
-- Created DESIGN_DECISIONS.md (consolidated 8 SDK migration docs)
-- Created CONFIGURATION.md (merged config reference + schema)
-- Created TESTING.md (consolidated 4 testing guides)
-- Created COMMON_ISSUES.md (merged 3 diagnostic reports)
-- Updated README.md with project summary and examples
-- Cleaned root directory: 18 .md files → 3 core files
-- Zero information loss, ~60% redundancy eliminated
-
-**2025-10-24** - Major cleanup and documentation
-- Added comprehensive documentation structure (docs/)
-- Created QUICKSTART.md and full tutorial
-- Added test suite with RUN_TESTS.sh
-- Organized project structure
-- Added this CLAUDE.md file
-
-**2025-10-22** - Initial project setup
-- Core memory routing implementation
-- FastAPI proxy with client detection
-- LiteLLM binary integration
-- Basic test coverage
-- Poetry configuration
-
----
-
-## Contributing Workflow
-
-### Before You Start
-1. Create a new bookmark: `jj new && jj bookmark create <TOPIC>`
-2. Verify tests pass: `./RUN_TESTS.sh`
-
-### Development Process
-1. Use JetBrains MCP for code exploration and editing
-2. Make changes to relevant files
-3. Run tests frequently: `./RUN_TESTS.sh fast`
-4. Commit with clear messages: `jj commit -m "Clear description"`
-
-### Before Merging
-1. Run full test suite: `./RUN_TESTS.sh all`
-2. Update documentation if needed (docs/)
-3. Test with actual clients (PyCharm, Claude Code)
-4. Merge into main: `jj new @ main && jj bookmark set -r @ <TOPIC>`
-
-### Best Practices
-- **Small commits**: Commit early and often
-- **Clear messages**: Describe what and why, not how
-- **Test coverage**: Add tests for new features
-- **Backward compatibility**: Don't break existing clients
-- **Documentation**: Update docs/ when adding features
-
 ---
 
 **Happy coding! 🚀**
-
-For questions or issues, use JetBrains MCP to explore the codebase or check the documentation in `docs/`.
-
----
-
-## Agor Session Context
-
-You are currently running within **Agor** (https://agor.live), a multiplayer canvas for orchestrating AI coding agents.
-
-**Your current Agor session ID is: `a89e536a-38e9-4687-be96-4d536dfd4adf`** (short: `a89e536a`)
-
-When you see this ID referenced in prompts or tool calls, it refers to THIS session you're currently in.
-
-For more information about Agor, visit https://agor.live

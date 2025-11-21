@@ -11,10 +11,24 @@
             "id": "be641654c9b0d6b7",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "scripts/sup_project_doc.md",
+                "mode": "source",
+                "source": false,
+                "backlinks": true,
+                "backlinkOpts": {
+                  "collapseAll": false,
+                  "extraContext": false,
+                  "sortOrder": "alphabetical",
+                  "showSearch": false,
+                  "searchQuery": "",
+                  "backlinkCollapsed": false,
+                  "unlinkedCollapsed": true
+                }
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "sup_project_doc"
             }
           }
         ]
@@ -166,17 +180,21 @@
   },
   "active": "be641654c9b0d6b7",
   "lastOpenFiles": [
-    "scripts/debug_zshrc_function.zsh",
-    "scripts/DEBUG_ZSHRC_FUNCTIONS.md",
-    "src/interceptor/INSTALLATION.md.tmp",
-    "src/interceptor/PORT_COORDINATION_SUMMARY.md.tmp",
-    "src/interceptor/README.md.tmp",
     "CLAUDE.md.tmp",
-    "STREAMING_TOOL_CALL_BUFFER_IMPLEMENTATION.md.tmp",
-    "BATCH_2A_GROUPS_1_2_REPORT.md.tmp",
-    "HTTPX_MOCK_ENHANCEMENT_SUMMARY.md.tmp",
-    "TESTING_INDEX.md.tmp",
-    "console-log.Cezarys-MacBook-Pro.local.md.tmp",
+    "GEMINI.md.tmp",
+    "scripts/sup_project_doc.md.tmp",
+    "scripts/README.md.tmp",
+    "scripts/DEBUG_ZSHRC_FUNCTIONS.md.tmp",
+    "README.md.tmp",
+    "docs/modules/interceptor.md.tmp",
+    "docs/templates/Poetry_Debug.md.tmp",
+    "docs/templates/Poetry_Note.md.tmp",
+    "docs/guides/CONFIGURATION.md.tmp",
+    "docs/guides/TESTING.md.tmp",
+    "docs/guides/TESTING.md",
+    "docs/troubleshooting/CONTENT_LENGTH_MISMATCH.md",
+    "docs/guides/CONFIGURATION.md",
+    "scripts/DEBUG_ZSHRC_FUNCTIONS.md",
     "test-wide-diagram.md",
     "WIDE_DIAGRAM_TEST.md",
     "test-mermaid-export.md",
