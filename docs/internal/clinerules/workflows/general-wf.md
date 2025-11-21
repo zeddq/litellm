@@ -164,7 +164,7 @@ litellm/
 ├── test_tutorial.py                     # Tutorial tests
 ├── RUN_TESTS.sh                         # Test runner script
 ├── verify_setup.sh                      # Setup verification
-├── CHANGELOG.md                         # Project history (9 phases documented)
+├── docs/CHANGELOG.md                         # Project history (9 phases documented)
 ├── README.md                            # Project overview and quick reference
 ├── CLAUDE.md                            # This file - development guide
 ├── docs/
@@ -603,7 +603,7 @@ This project has extensive documentation organized by topic:
 - **⚙️ [Configuration Guide](docs/guides/CONFIGURATION.md)** - Complete config reference
 - **🧪 [Testing Guide](docs/guides/TESTING.md)** - Comprehensive testing strategies
 - **🔧 [Troubleshooting](docs/troubleshooting/COMMON_ISSUES.md)** - Common issues and fixes
-- **📜 [CHANGELOG](CHANGELOG.md)** - Project history (9 phases documented)
+- **📜 [CHANGELOG](docs/CHANGELOG.md)** - Project history (9 phases documented)
 
 ---
 
@@ -638,7 +638,7 @@ This project has extensive documentation organized by topic:
 **2025-11-04** - Documentation consolidation (v2.0)
 - Consolidated 30+ scattered documentation files into 11 organized files
 - Flattened nested directories (max 2 levels: docs/subdirectory/)
-- Created CHANGELOG.md with 9 phases of project history
+- Created docs/CHANGELOG.md with 9 phases of project history
 - Created DESIGN_DECISIONS.md (consolidated 8 SDK migration docs)
 - Created CONFIGURATION.md (merged config reference + schema)
 - Created TESTING.md (consolidated 4 testing guides)

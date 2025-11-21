@@ -1170,7 +1170,7 @@ After all fixes complete:
 **Update After Completion**:
 - [ ] `docs/guides/TESTING.md` - Add new mock fixtures
 - [ ] `tests/README.md` - Document test structure
-- [ ] `CHANGELOG.md` - Record fix completion
+- [ ] `docs/CHANGELOG.md` - Record fix completion
 - [ ] `CLAUDE.md` - Update if API changed
 
 ---

@@ -4,7 +4,7 @@
 
 -   Update relevant documentation in /docs when modifying features
 -   Keep README.md in sync with new capabilities
--   Maintain changelog entries in CHANGELOG.md
+-   Maintain changelog entries in docs/CHANGELOG.md
 
 ## Architecture Decision Records
 

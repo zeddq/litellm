@@ -769,7 +769,7 @@ pytest tests/ --tb=no | grep -E "(PASSED|FAILED)" | wc -l
   - [ ] Update test structure section
   - [ ] Add mock usage examples
 
-- [ ] **Update CHANGELOG.md**
+- [ ] **Update docs/CHANGELOG.md**
   ```markdown
   ## [Unreleased] - 2025-11-09
 
