@@ -38,115 +38,62 @@ This document specifies the design for implementing a Prisma-based database pers
 
 ### High-Level Data Flow
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│ User Application (SDK Client)                                │
-└────────────────────┬─────────────────────────────────────────┘
-                     │
-                     │ litellm.completion(...)
-                     ▼
-┌──────────────────────────────────────────────────────────────┐
-│ LiteLLM SDK                                                  │
-│ ┌──────────────────────────────────────────────────────────┐ │
-│ │ Completion Logic → LLM Provider API Call                 │ │
-│ └────────────────────┬─────────────────────────────────────┘ │
-│                      │                                        │
-│                      │ Triggers callbacks on success/failure │
-│                      ▼                                        │
-│ ┌──────────────────────────────────────────────────────────┐ │
-│ │ Callback Manager (litellm.success_callback list)         │ │
-│ └────────────────────┬─────────────────────────────────────┘ │
-└──────────────────────┼──────────────────────────────────────┘
-                       │
-                       │ Parallel execution (async)
-        ┌──────────────┼──────────────┬──────────────────┐
-        ▼              ▼              ▼                  ▼
-┌────────────┐  ┌──────────────┐  ┌──────────┐  ┌─────────────┐
-│ Prisma     │  │ OpenTelemetry│  │ Langfuse │  │ Prometheus  │
-│ Callback   │  │ Callback     │  │ Callback │  │ Callback    │
-└──────┬─────┘  └──────────────┘  └──────────┘  └─────────────┘
-       │
-       │ Async write (fire-and-forget)
-       ▼
-┌──────────────────────────────────────────────────────────────┐
-│ DBSpendUpdateWriter                                          │
-│ ┌──────────────────────────────────────────────────────────┐ │
-│ │ In-Memory Queues (SpendUpdateQueue, DailySpendQueue)    │ │
-│ └────────────────────┬─────────────────────────────────────┘ │
-│                      │                                        │
-│                      │ Batch writes every N seconds          │
-│                      ▼                                        │
-│ ┌──────────────────────────────────────────────────────────┐ │
-│ │ Optional: Redis Buffer (for multi-instance coordination) │ │
-│ └────────────────────┬─────────────────────────────────────┘ │
-│                      │                                        │
-│                      │ PodLockManager (distributed lock)     │
-│                      ▼                                        │
-│ ┌──────────────────────────────────────────────────────────┐ │
-│ │ Batch Transaction Commit (Prisma ORM)                    │ │
-│ └────────────────────┬─────────────────────────────────────┘ │
-└──────────────────────┼──────────────────────────────────────┘
-                       │
-                       │ SQL INSERT/UPDATE/UPSERT
-                       ▼
-┌──────────────────────────────────────────────────────────────┐
-│ PostgreSQL Database                                          │
-│ ┌──────────────────────────────────────────────────────────┐ │
-│ │ Entity Tables:                                           │ │
-│ │ • litellm_usertable (users)                              │ │
-│ │ • litellm_teamtable (teams)                              │ │
-│ │ • litellm_verificationtoken (API keys)                   │ │
-│ │ • litellm_endusertable (end users)                       │ │
-│ │ • litellm_organizationtable (organizations)              │ │
-│ │ • litellm_tagtable (tags)                                │ │
-│ │                                                          │ │
-│ │ Daily Aggregate Tables:                                  │ │
-│ │ • litellm_dailyuserspend                                 │ │
-│ │ • litellm_dailyteamspend                                 │ │
-│ │ • litellm_dailytagspend                                  │ │
-│ └──────────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────┘
-                       ▲
-                       │ SQL SELECT queries
-                       │
-┌──────────────────────────────────────────────────────────────┐
-│ LiteLLM Proxy (Read-Only UI)                                │
-│ • Dashboard endpoints                                        │
-│ • Spend analytics                                            │
-│ • Usage reports                                              │
-└──────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    User[User Application<br>SDK Client] -->|litellm.completion| SDK[LiteLLM SDK]
+    
+    subgraph SDK_Process[LiteLLM SDK Process]
+        SDK -->|Completion Logic| API[LLM Provider API]
+        SDK -->|Trigger Callbacks| Manager[Callback Manager]
+        
+        Manager -->|Parallel Execution| Prisma[Prisma Callback]
+        Manager -->|Parallel Execution| OTel[OpenTelemetry Callback]
+        Manager -->|Parallel Execution| Langfuse[Langfuse Callback]
+        Manager -->|Parallel Execution| Prom[Prometheus Callback]
+        
+        Prisma -->|Async Write| Writer[DBSpendUpdateWriter]
+        
+        subgraph Writer_Logic[DBSpendUpdateWriter]
+            Writer --> Queue[In-Memory Queues]
+            Queue -->|Batch Writes| Buffer[Optional: Redis Buffer]
+            Buffer -->|Distributed Lock| Lock[PodLockManager]
+            Lock -->|Transaction| Commit[Batch Transaction Commit]
+        end
+    end
+    
+    Commit -->|SQL INSERT/UPDATE| DB[(PostgreSQL Database)]
+    
+    subgraph Database[PostgreSQL Database]
+        Entities[Entity Tables<br>Users, Teams, Keys]
+        Aggregates[Daily Aggregate Tables<br>Spend, Usage]
+    end
+    
+    Proxy[LiteLLM Proxy<br>Read-Only UI] -->|SQL SELECT| DB
 ```
 
 ### Component Interaction
 
-```
-User Code                  LiteLLM SDK                Prisma Callback            Database
-────────                   ───────────                ───────────────            ────────
-    │                           │                           │                        │
-    │ completion(...)           │                           │                        │
-    ├──────────────────────────>│                           │                        │
-    │                           │                           │                        │
-    │                           │ API call to LLM provider  │                        │
-    │                           │ (500-2000ms)              │                        │
-    │                           │                           │                        │
-    │                           │                           │                        │
-    │<──────────────────────────┤ Response                  │                        │
-    │                           │                           │                        │
-    │                           │ Trigger callbacks (async) │                        │
-    │                           ├──────────────────────────>│                        │
-    │                           │                           │                        │
-    │                           │                           │ Queue update (1-5ms)   │
-    │                           │                           │                        │
-    │                           │<──────────────────────────┤ Callback returns       │
-    │                           │   (non-blocking)          │                        │
-    │                           │                           │                        │
-    │                           │                           │ Background batch write │
-    │                           │                           │ (every 10-30s)         │
-    │                           │                           ├───────────────────────>│
-    │                           │                           │                        │
-    │                           │                           │<───────────────────────┤
-    │                           │                           │   Write confirmed      │
-    │                           │                           │   (10-50ms batch)      │
+```mermaid
+sequenceDiagram
+    participant User as User Code
+    participant SDK as LiteLLM SDK
+    participant Callback as Prisma Callback
+    participant Database as Database
+
+    User->>SDK: completion(...)
+    SDK->>SDK: API call to LLM provider<br>(500-2000ms)
+    SDK-->>User: Response
+    
+    par Async Execution
+        SDK->>Callback: Trigger callbacks (async)
+        Callback->>Callback: Queue update (1-5ms)
+        Callback-->>SDK: Callback returns<br>(non-blocking)
+    end
+    
+    loop Background Process (every 10-30s)
+        Callback->>Database: Batch write
+        Database-->>Callback: Write confirmed<br>(10-50ms batch)
+    end
 ```
 
 **Key Characteristics:**
@@ -1208,21 +1155,43 @@ Move old daily aggregate rows to cold storage (S3, Glacier)
 
 ### C. Database Schema Diagram
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Entity Hierarchy                                            │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  PROXY (global)                                             │
-│    └── ORGANIZATION                                         │
-│          └── TEAM                                           │
-│                ├── USER                                     │
-│                │    └── END_USER                            │
-│                └── API_KEY                                  │
-│                                                             │
-│  TAG (orthogonal, can apply to any entity)                  │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+classDiagram
+    class PROXY {
+        +Global Scope
+    }
+    class ORGANIZATION {
+        +org_id
+        +spend
+    }
+    class TEAM {
+        +team_id
+        +spend
+    }
+    class USER {
+        +user_id
+        +spend
+    }
+    class END_USER {
+        +end_user_id
+        +spend
+    }
+    class API_KEY {
+        +token
+        +spend
+    }
+    class TAG {
+        +tag_name
+        +spend
+    }
+
+    PROXY *-- ORGANIZATION
+    ORGANIZATION *-- TEAM
+    TEAM *-- USER
+    TEAM *-- API_KEY
+    USER *-- END_USER
+    TAG .. TEAM : Orthogonal
+    TAG .. USER : Orthogonal
 ```
 
 ---

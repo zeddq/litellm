@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "scripts/sup_project_doc.md",
+                "file": "docs/testing/test-mermaid-export.md",
                 "mode": "source",
                 "source": false,
                 "backlinks": true,
@@ -28,7 +28,7 @@
                 }
               },
               "icon": "lucide-file",
-              "title": "sup_project_doc"
+              "title": "test-mermaid-export"
             }
           }
         ]
@@ -104,6 +104,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "docs/testing/test-mermaid-export.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -113,7 +114,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks"
+              "title": "Backlinks for test-mermaid-export"
             }
           },
           {
@@ -162,8 +163,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -180,6 +180,23 @@
   },
   "active": "be641654c9b0d6b7",
   "lastOpenFiles": [
+    "docs/testing/TEST_FIX_IMPLEMENTATION_CHECKLIST.md",
+    "docs/testing/TEST_FAILURE_FIX_STRATEGY.md",
+    "docs/testing/OBSIDIAN_MERMAID_TEST_PLAN.md",
+    "docs/modules/interceptor.md",
+    "docs/guides/TESTING.md",
+    "docs/guides/CONFIGURATION.md",
+    "docs/getting-started/TUTORIAL.md",
+    "docs/getting-started/QUICKSTART.md",
+    "docs/architecture/TOOL_CALL_HANDLING_IMPLEMENTATION.md",
+    "docs/architecture/STREAMING_TOOL_CALL_BUFFER_IMPLEMENTATION.md",
+    "docs/architecture/QUEUE_BASED_PERSISTENCE.md",
+    "docs/architecture/LITELLM_ARCHITECTURE_OVERVIEW.md",
+    "docs/architecture/DESIGN_DECISIONS.md",
+    "docs/architecture/PRISMA_CALLBACK_DESIGN.md",
+    "docs/architecture/OVERVIEW.md",
+    "README.md",
+    "scripts/sup_project_doc.md",
     "CLAUDE.md.tmp",
     "GEMINI.md.tmp",
     "scripts/sup_project_doc.md.tmp",
@@ -190,10 +207,7 @@
     "docs/templates/Poetry_Debug.md.tmp",
     "docs/templates/Poetry_Note.md.tmp",
     "docs/guides/CONFIGURATION.md.tmp",
-    "docs/guides/TESTING.md.tmp",
-    "docs/guides/TESTING.md",
     "docs/troubleshooting/CONTENT_LENGTH_MISMATCH.md",
-    "docs/guides/CONFIGURATION.md",
     "scripts/DEBUG_ZSHRC_FUNCTIONS.md",
     "test-wide-diagram.md",
     "WIDE_DIAGRAM_TEST.md",

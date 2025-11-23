@@ -33,32 +33,37 @@ This document provides a high-level architecture for a queue-based persistence s
 
 ## High-Level Architecture
 
-```
-SDK Instances                 Queue Layer              Consumer Layer            Database
-─────────────                 ───────────              ──────────────            ────────
+```mermaid
+graph LR
+    subgraph SDKs[SDK Instances]
+        SDK1[SDK #1]
+        SDK2[SDK #2]
+        SDKN[SDK #N]
+    end
 
-┌──────────┐                                          ┌──────────────┐
-│ SDK #1   │  Write events                            │  Consumer #1 │
-│ Instance │  (~1-5ms)        ┌─────────────────┐    │  (Batch      │
-│          ├─────────────────>│                 │    │   Processor) │
-└──────────┘                  │  Redis Streams  │    │              │         ┌─────────┐
-                              │  or             ├───>│ Reads batches├────────>│ Postgres│
-┌──────────┐                  │  Apache Kafka   │    │ Commits to DB│         │ Database│
-│ SDK #2   │  Write events    │                 │    │              │         └─────────┘
-│ Instance │  (~1-5ms)        │  (Message Queue)│    └──────────────┘
-│          ├─────────────────>│                 │
-└──────────┘                  │  - Partitioned  │    ┌──────────────┐
-                              │  - Replicated   │    │  Consumer #2 │
-┌──────────┐                  │  - Durable      │    │  (Analytics  │
-│ SDK [[N]]   │  Write events    │  - Ordered      │───>│   Pipeline)  │
-│ Instance │  (~1-5ms)        │                 │    │              │
-│          ├─────────────────>│                 │    └──────────────┘
-└──────────┘                  └─────────────────┘
-                                                       ┌──────────────┐
-                                                       │  Consumer #3 │
-                                                       │  (Archival   │
-                                                       │   to S3)     │
-                                                       └──────────────┘
+    subgraph Queue[Queue Layer]
+        MQ[Message Queue<br>Redis Streams / Kafka]
+    end
+
+    subgraph Consumers[Consumer Layer]
+        C1[Consumer #1<br>Batch Processor]
+        C2[Consumer #2<br>Analytics Pipeline]
+        C3[Consumer #3<br>Archival to S3]
+    end
+
+    subgraph Storage[Storage]
+        DB[(Postgres Database)]
+    end
+
+    SDK1 -->|Write events| MQ
+    SDK2 -->|Write events| MQ
+    SDKN -->|Write events| MQ
+
+    MQ -->|Read batches| C1
+    MQ -->|Stream events| C2
+    MQ -->|Stream events| C3
+
+    C1 -->|Commit| DB
 ```
 
 ---
@@ -173,25 +178,27 @@ class CompletionEventConsumer:
 
 ## Data Flow & Timing
 
-```
-Time   SDK          Queue        Consumer      Database
-────   ───          ─────        ────────      ────────
-T+0    Write event
-       (1-5ms) ────>
-       
-T+0    ← Ack
-       
-T+10               Read batch
-                   (100 events)
-                   ─────────────>
-                   
-T+20                             Commit batch
-                                 (10-50ms) ───>
-                                 
-T+30                             ← Success
-                   
-T+30               Ack messages
-                   (commit offset)
+```mermaid
+sequenceDiagram
+    participant SDK
+    participant Queue
+    participant Consumer
+    participant DB as Database
+
+    Note over SDK, Queue: T+0
+    SDK->>Queue: Write event (1-5ms)
+    Queue-->>SDK: Ack
+
+    Note over Queue, Consumer: T+10
+    Consumer->>Queue: Read batch (100 events)
+    Queue-->>Consumer: Events
+
+    Note over Consumer, DB: T+20
+    Consumer->>DB: Commit batch (10-50ms)
+    DB-->>Consumer: Success
+
+    Note over Consumer, Queue: T+30
+    Consumer->>Queue: Ack messages (commit offset)
 ```
 
 **Total Latency**: ~30-100ms (from SDK write to database commit)  

@@ -35,10 +35,24 @@ The current binary-based proxy architecture cannot persist Cloudflare cookies, c
 
 #### Root Cause
 
-```
-Request 1 → New httpx.AsyncClient → Cloudflare challenge → Cookie set → Client closed ❌
-Request 2 → New httpx.AsyncClient → Cloudflare challenge → Cookie set → Client closed ❌
-Request 3 → New httpx.AsyncClient → Fails with Error 1200 ❌
+```mermaid
+graph TD
+    Req1[Request 1] --> Client1[New httpx.AsyncClient]
+    Client1 --> Challenge1[Cloudflare Challenge]
+    Challenge1 --> Cookie1[Cookie Set]
+    Cookie1 --> Close1[Client Closed ❌]
+    
+    Req2[Request 2] --> Client2[New httpx.AsyncClient]
+    Client2 --> Challenge2[Cloudflare Challenge]
+    Challenge2 --> Cookie2[Cookie Set]
+    Cookie2 --> Close2[Client Closed ❌]
+    
+    Req3[Request 3] --> Client3[New httpx.AsyncClient]
+    Client3 --> Error[Fails with Error 1200 ❌]
+    
+    style Close1 fill:#ffcccc,stroke:#ff0000
+    style Close2 fill:#ffcccc,stroke:#ff0000
+    style Error fill:#ffcccc,stroke:#ff0000
 ```
 
 The binary proxy creates and destroys HTTP clients for each request, making cookie persistence impossible.
@@ -49,21 +63,17 @@ The binary proxy creates and destroys HTTP clients for each request, making cook
 
 #### Current: Binary Architecture
 
-```
-┌─────────────┐     HTTP      ┌──────────────┐     HTTP        ┌────────────┐
-│   Clients   │ ───────────> │ Memory Proxy │ ─────────────> │  LiteLLM   │
-│ (PyCharm,   │   port 8764   │  (FastAPI)   │  localhost:4000 │   Binary   │
-│ Claude Code)│               │              │                 │ (External) │
-└─────────────┘               └──────────────┘                 └────────────┘
-                                     ↓                                ↓
-                              Memory Routing                    Multi-Provider
-                              User ID Detection                 Routing, Caching
-                                                                       ↓
-                                                              ┌────────────────┐
-                                                              │   Supermemory  │
-                                                              │   Anthropic    │
-                                                              │   OpenAI       │
-                                                              └────────────────┘
+```mermaid
+graph LR
+    Clients[Clients<br>PyCharm, Claude Code] -->|HTTP :8764| Proxy[Memory Proxy<br>FastAPI]
+    Proxy -->|HTTP localhost:4000| Binary[LiteLLM Binary<br>External]
+    
+    Proxy --> Routing[Memory Routing<br>User ID Detection]
+    Binary --> Provider[Multi-Provider<br>Routing, Caching]
+    
+    Provider --> Supermemory[Supermemory]
+    Provider --> Anthropic[Anthropic]
+    Provider --> OpenAI[OpenAI]
 ```
 
 **Problems**:
@@ -76,21 +86,21 @@ The binary proxy creates and destroys HTTP clients for each request, making cook
 
 #### Proposed: SDK Architecture
 
-```
-┌─────────────┐     HTTP      ┌──────────────────────────────────┐
-│   Clients   │ ───────────> │   Memory Proxy (FastAPI)          │
-│ (PyCharm,   │   port 8764   │   + LiteLLM SDK (in-process)     │
-│ Claude Code)│               │   + Persistent httpx Sessions     │
-└─────────────┘               └──────────────┬───────────────────┘
-                                             │
-                              ┌──────────────┴──────────────┐
-                              │                             │
-                              ▼                             ▼
-                    ┌──────────────────┐        ┌──────────────────┐
-                    │  Supermemory     │        │  OpenAI, Gemini  │
-                    │  + Anthropic     │        │  Other Providers │
-                    │  (with cookies)  │        │                  │
-                    └──────────────────┘        └──────────────────┘
+```mermaid
+graph LR
+    Clients[Clients<br>PyCharm, Claude Code] -->|HTTP :8764| Proxy[Memory Proxy<br>FastAPI]
+    
+    subgraph Proxy[Memory Proxy Process]
+        SDK[LiteLLM SDK<br>In-Process]
+        Sessions[Persistent httpx Sessions]
+        Proxy --> SDK
+        SDK --> Sessions
+    end
+    
+    Sessions -->|HTTPS| Supermemory[Supermemory<br>+ Anthropic]
+    Sessions -->|HTTPS| Providers[OpenAI, Gemini<br>Other Providers]
+    
+    style Sessions fill:#d1c4e9,stroke:#673ab7
 ```
 
 **Benefits**:
@@ -273,10 +283,24 @@ This caused a critical problem:
 5. Next request looks like a brand new bot → triggers rate limiting again
 
 **Why Retry Logic Alone Failed**:
-```
-Attempt 1: New client → 429 + cf_clearance cookie → Client closed (cookie lost)
-Attempt 2: New client → 429 + NEW cf_clearance → Client closed (cookie lost)
-Attempt 3: New client → 429 + NEW cf_clearance → FAIL
+
+```mermaid
+graph TD
+    Attempt1[Attempt 1] --> Client1[New Client]
+    Client1 --> Fail1[429 + cf_clearance]
+    Fail1 --> Close1[Client Closed - Cookie Lost ❌]
+    
+    Attempt2[Attempt 2] --> Client2[New Client]
+    Client2 --> Fail2[429 + NEW cf_clearance]
+    Fail2 --> Close2[Client Closed - Cookie Lost ❌]
+    
+    Attempt3[Attempt 3] --> Client3[New Client]
+    Client3 --> Fail3[429 + NEW cf_clearance]
+    Fail3 --> FinalFail[FAIL ❌]
+    
+    style Close1 fill:#ffcccc
+    style Close2 fill:#ffcccc
+    style FinalFail fill:#ff0000,color:#fff
 ```
 
 Each retry created a fresh client with no cookies, so Cloudflare treated every attempt as a new bot!
@@ -377,24 +401,29 @@ async def proxy_request(upstream_url: str, headers: dict, body: dict):
 
 ### 2.5 Cookie Lifecycle
 
-```
-First Request:
-Client → Memory Proxy → Supermemory (Cloudflare)
-                          ↓
-                    Challenge + Set-Cookie: cf_clearance=abc123
-                          ↓
-                    httpx.AsyncClient stores cookie
-                          ↓
-                    Return response
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Proxy as Memory Proxy
+    participant SM as Supermemory (Cloudflare)
+    participant Session as httpx.AsyncClient
 
-Second Request:
-Client → Memory Proxy → Supermemory (Cloudflare)
-                          ↓
-                    httpx.AsyncClient auto-includes Cookie: cf_clearance=abc123
-                          ↓
-                    Cloudflare validates → Success ✅
-                          ↓
-                    Return response (no challenge)
+    Note over Client, SM: First Request
+    Client->>Proxy: Request
+    Proxy->>Session: Get Client
+    Session->>SM: Request
+    SM-->>Session: Challenge + Set-Cookie: cf_clearance=...
+    Session-->>Session: Store Cookie
+    Session-->>Proxy: Return Response
+    Proxy-->>Client: Return Response
+
+    Note over Client, SM: Second Request
+    Client->>Proxy: Request
+    Proxy->>Session: Get Client
+    Session->>SM: Request (Cookie: cf_clearance=...)
+    SM-->>Session: Success (200 OK)
+    Session-->>Proxy: Return Response
+    Proxy-->>Client: Return Response
 ```
 
 ---
@@ -440,14 +469,14 @@ We evaluated two primary approaches:
 **Approach**: Use LiteLLM's callback system to log to existing Proxy database.
 
 **Architecture**:
-```
-LiteLLM SDK
-    ↓ success_callback
-PrismaProxyLogger (CustomLogger)
-    ↓ wraps
-DBSpendUpdateWriter (from Proxy)
-    ↓ writes to
-PostgreSQL (Prisma-managed)
+```mermaid
+graph TD
+    SDK[LiteLLM SDK] -->|success_callback| Logger[PrismaProxyLogger]
+    Logger -->|wraps| Writer[DBSpendUpdateWriter]
+    Writer -->|writes to| DB[(PostgreSQL)]
+    
+    style SDK fill:#e1f5fe
+    style DB fill:#e8f5e9
 ```
 
 **Pros**:
@@ -476,14 +505,14 @@ PostgreSQL (Prisma-managed)
 **Reference**: `docs/architecture/QUEUE_BASED_PERSISTENCE.md`
 
 **Architecture**:
-```
-LiteLLM SDK
-    ↓ async publish
-Message Queue (Redis Streams / RabbitMQ)
-    ↓ consume
-Persistence Service (separate process)
-    ↓ batch writes
-PostgreSQL / ClickHouse
+```mermaid
+graph TD
+    SDK[LiteLLM SDK] -->|Async Publish| Queue[Message Queue<br>Redis Streams / RabbitMQ]
+    Queue -->|Consume| Service[Persistence Service<br>Separate Process]
+    Service -->|Batch Writes| DB[(PostgreSQL / ClickHouse)]
+    
+    style Queue fill:#fff3e0
+    style Service fill:#e1f5fe
 ```
 
 **Pros**:
@@ -586,16 +615,16 @@ For full implementation details, see: `docs/architecture/PRISMA_CALLBACK_DESIGN.
 
 ### 4.2 Architecture
 
-```
-Client Request
-    ↓ Headers (User-Agent, x-memory-user-id)
-MemoryRouter
-    ↓ Pattern Matching (regex)
-User ID Assignment
-    ↓ Inject x-sm-user-id header
-Supermemory API
-    ↓ Isolated memory per user ID
-AI Provider
+```mermaid
+graph TD
+    Req[Client Request] --> Headers[Headers: User-Agent, x-memory-user-id]
+    Headers --> Router[MemoryRouter]
+    Router --> Pattern[Pattern Matching]
+    Pattern --> UserID[User ID Assignment]
+    UserID --> Inject[Inject x-sm-user-id Header]
+    Inject --> Supermemory[Supermemory API]
+    Supermemory --> Isolated[Isolated Memory per User ID]
+    Isolated --> Provider[AI Provider]
 ```
 
 ---
