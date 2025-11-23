@@ -292,7 +292,7 @@ Test: `curl http://localhost:8764/memory-routing/info -H "User-Agent: MyApp/1.0"
 #### 3. Modify Memory Routing Logic
 1. Use JetBrains MCP to search: `search_in_files_by_text("memory_router")`
 2. Edit `src/proxy/memory_router.py` using JetBrains MCP.
-3. Run tests: `./RUN_TESTS.sh unit`
+3. Run tests: `./scripts/testing/RUN_TESTS.sh unit`
 4. Commit: `jj commit -m "Update memory routing logic"`
 
 #### 4. Test with Different Providers
@@ -314,17 +314,17 @@ curl http://localhost:8764/v1/chat/completions \
 ### Run Tests (Recommended Method)
 ```bash
 # From venv: Run all tests
-./RUN_TESTS.sh
+./scripts/testing/RUN_TESTS.sh
 
 # Specific test suites
-./RUN_TESTS.sh unit           # Unit tests only
-./RUN_TESTS.sh integration    # Integration tests
-./RUN_TESTS.sh e2e            # End-to-end tests
-./RUN_TESTS.sh coverage       # With coverage report
-./RUN_TESTS.sh fast           # Skip slow tests
+./scripts/testing/RUN_TESTS.sh unit           # Unit tests only
+./scripts/testing/RUN_TESTS.sh integration    # Integration tests
+./scripts/testing/RUN_TESTS.sh e2e            # End-to-end tests
+./scripts/testing/RUN_TESTS.sh coverage       # With coverage report
+./scripts/testing/RUN_TESTS.sh fast           # Skip slow tests
 
 # Debug mode
-./RUN_TESTS.sh debug
+./scripts/testing/RUN_TESTS.sh debug
 ```
 
 ### Alternative Methods (Discouraged)

@@ -197,12 +197,12 @@ user_id_mappings:
 
 ```bash
 # Run all tests
-./RUN_TESTS.sh
+./scripts/testing/RUN_TESTS.sh
 
 # Run specific test suites
-./RUN_TESTS.sh unit          # Unit tests only
-./RUN_TESTS.sh integration   # Integration tests
-./RUN_TESTS.sh coverage      # With coverage report
+./scripts/testing/RUN_TESTS.sh unit          # Unit tests only
+./scripts/testing/RUN_TESTS.sh integration   # Integration tests
+./scripts/testing/RUN_TESTS.sh coverage      # With coverage report
 ```
 
 **See [Testing Guide](docs/guides/TESTING.md) for detailed testing strategies.**
@@ -245,7 +245,7 @@ jj log                       # View history
 poetry run python deploy/run_unified_proxy.py --mode sdk
 
 # Run tests
-./RUN_TESTS.sh
+./scripts/testing/RUN_TESTS.sh
 
 # Add client detection pattern
 # Edit config.yaml user_id_mappings, then test:

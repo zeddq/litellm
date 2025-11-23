@@ -3,19 +3,24 @@
 PyCharm AI Chat Interceptor Proxy
 Adds custom headers and injects instance identification into requests.
 """
+import json
 import logging
 
 import httpx
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 from starlette import status
+from telemetry.setup import setup_telemetry
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# Configure logging
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 app = FastAPI(debug=True)
+
+# Configure OpenTelemetry with app instrumentation
+# setup_telemetry(service_name="litellm-interceptor", app=app)
+
 
 import os
 from pathlib import Path
@@ -47,7 +52,7 @@ CUSTOM_HEADERS = {
     "x-source": "pycharm-ai-chat",
 }
 
-http_client = httpx.AsyncClient(timeout=300.0)
+http_client: httpx.AsyncClient = httpx.AsyncClient(timeout=300.0)
 
 logger.info(f"Instance ID: {INSTANCE_ID}")
 logger.info(f"Target URL: {TARGET_LLM_URL}")
@@ -68,8 +73,9 @@ async def health():
 async def proxy_request(request: Request, path: str):
     """Forward requests with custom headers and instance identification."""
     target_url = f"{TARGET_LLM_URL}/{path}"
-
+    
     # Validate Content-Length if present
+    body_bytes: bytes = b''
     content_length = request.headers.get("content-length")
     if content_length and content_length.isdigit():
         expected_length = int(content_length)
@@ -91,36 +97,46 @@ async def proxy_request(request: Request, path: str):
                 },
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
+        logger.info(f"Content-Length validation passed for {path}: {actual_length}")        
 
     # Copy headers and add custom ones
     headers = request.headers.mutablecopy()
     del headers["host"]
     headers.update(CUSTOM_HEADERS)
     
+    
     if not "chat/completions" in path:
         # Standard response
-        async with  as client:
-            response = await client.request(
-                method=request.method,
+        response = await http_client.request(method=request.method,
                 url=target_url,
                 headers=headers,
-                content=await request.body(),
+                content=body_bytes,
             )
+            # response = await client.request(
+            #     method=request.method,
+            #     url=target_url,
+            #     headers=headers,
+            #     content=await request.body(),
+            # )
 
-            return JSONResponse(
-                content=(
-                    response.json()
-                    if response.headers.get("content-type", "").startswith(
-                        "application/json"
-                    )
-                    else {"response": response.text}
-                ),
-                status_code=response.status_code,
-            )
+        return JSONResponse(
+            content=(
+                response.json()
+                if response.headers.get("content-type", "").startswith(
+                    "application/json"
+                )
+                else {"response": response.text}
+            ),
+            status_code=response.status_code,
+        )
+
+
 
     # Get request body
     try:
-        body = await request.json()
+        bb = await request.body()
+        body = json.loads(bb)
+        reqbb = json.dumps(body, ensure_ascii=False, separators=(",", ":"),allow_nan=False).encode("utf-8")
     except Exception as e:
         logger.error(f"Failed to parse request body: {e}")
         raise HTTPException(
@@ -129,24 +145,25 @@ async def proxy_request(request: Request, path: str):
         )
 
     logger.info(f"→ {request.method} {target_url}")
-    logger.info(f"  Headers: {CUSTOM_HEADERS}")
+    logger.info(f"  Headers: {headers!r}")
     logger.info(f"BODY: {str(body)}")
+    logger.info(f"BODY BYTES: {bb.decode()!r}")
+    logger.info(f"REQUEST BODY: {reqbb!r}")
 
     stream = body.get("stream", False)
+    headers["content-length"] = str(len(reqbb)) 
 
     if stream:
         async def gen_chunks():
-            async with httpx.AsyncClient(timeout=300.0) as client:
-                # Check if streaming
-                # Stream response
-                async with client.stream(
-                    method=request.method,
-                    url=target_url,
-                    headers=headers,
-                    json=body,  # Use json parameter for dict
-                ) as response:
-                    async for chunk in response.aiter_bytes():
-                        yield chunk
+            method = request.method
+            async with http_client.stream(
+                method=method,
+                url=target_url,
+                headers=headers,
+                json=body,  # Use json parameter for dict
+            ) as response:
+                async for chunk in response.aiter_bytes():
+                    yield chunk
 
         return StreamingResponse(
             gen_chunks(),
@@ -154,24 +171,23 @@ async def proxy_request(request: Request, path: str):
         )
     else:
         # Standard response
-        async with httpx.AsyncClient(timeout=300.0) as client:
-            response = await client.request(
-                method=request.method,
-                url=target_url,
-                headers=headers,
-                json=body,  # Use json parameter for dict
-            )
+        response = await http_client.request(
+            method=request.method,
+            url=target_url,
+            headers=headers,
+            json=body,  # Use json parameter for dict
+        )
 
-            return JSONResponse(
-                content=(
-                    response.json()
-                    if response.headers.get("content-type", "").startswith(
-                        "application/json"
-                    )
-                    else {"response": response.text}
-                ),
-                status_code=response.status_code,
-            )
+        return JSONResponse(
+            content=(
+                response.json()
+                if response.headers.get("content-type", "").startswith(
+                    "application/json"
+                )
+                else {"response": response.text}
+            ),
+            status_code=response.status_code,
+        )
 
 
 if __name__ == "__main__":

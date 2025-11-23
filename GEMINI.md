@@ -37,7 +37,7 @@ You have access to advanced codebase analysis tools. Use them instead of basic s
 | **Read Code** | `get_file_text_by_path` | `cat`, `less`, `read_file` |
 | **Search Content** | `search_in_files_by_text`, `search_in_files_by_regex` | `grep`, `ripgrep` |
 | **Analyze Structure** | `list_directory_tree` | `tree` |
-| **Run Tests** | `execute_run_configuration` or `run_shell_command("./RUN_TESTS.sh ...")` | `pytest` directly |
+| **Run Tests** | `execute_run_configuration` or `run_shell_command("./scripts/testing/RUN_TESTS.sh ...")` | `pytest` directly |
 
 ### Best Practices
 1.  **Investigate First:** Use `codebase_investigator` for complex requests to understand dependencies and architecture.
@@ -81,12 +81,12 @@ Use the provided `RUN_TESTS.sh` script for all testing needs.
 
 | Scope | Command | Description |
 |-------|---------|-------------|
-| **All** | `./RUN_TESTS.sh` | Run all standard tests (excluding pipeline) |
-| **Unit** | `./RUN_TESTS.sh unit` | Memory Proxy unit tests only |
-| **Integration** | `./RUN_TESTS.sh integration` | Integration tests |
-| **E2E** | `./RUN_TESTS.sh e2e` | End-to-end tests |
-| **Fast** | `./RUN_TESTS.sh fast` | Skip slow tests |
-| **Coverage** | `./RUN_TESTS.sh coverage` | Generate HTML coverage report |
+| **All** | `./scripts/testing/RUN_TESTS.sh` | Run all standard tests (excluding pipeline) |
+| **Unit** | `./scripts/testing/RUN_TESTS.sh unit` | Memory Proxy unit tests only |
+| **Integration** | `./scripts/testing/RUN_TESTS.sh integration` | Integration tests |
+| **E2E** | `./scripts/testing/RUN_TESTS.sh e2e` | End-to-end tests |
+| **Fast** | `./scripts/testing/RUN_TESTS.sh fast` | Skip slow tests |
+| **Coverage** | `./scripts/testing/RUN_TESTS.sh coverage` | Generate HTML coverage report |
 
 **Test Locations:**
 *   `tests/src/test_memory_proxy.py`: Main test suite.

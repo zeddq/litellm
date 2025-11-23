@@ -22,10 +22,6 @@ exporters:
     tls:
       insecure: true
 
-  # Export to console for debugging (updated from deprecated 'logging')
-  debug:
-    verbosity: detailed
-
   # Optional: Export to Prometheus
   prometheus:
     endpoint: "0.0.0.0:8889"
@@ -35,9 +31,9 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlp/jaeger, debug]
+      exporters: [otlp/jaeger]
 
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [prometheus, debug]
+      exporters: [prometheus]

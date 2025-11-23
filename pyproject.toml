@@ -20,6 +20,8 @@ dependencies = [
     "opentelemetry-distro (>=0.59b0,<0.60)",
     "opentelemetry-exporter-otlp (>=1.38.0,<2.0.0)",
     "opentelemetry-sdk (>=1.38.0,<2.0.0)",
+    "opentelemetry-instrumentation-logging (>=0.45b0)",
+    "opentelemetry-instrumentation-fastapi (>=0.45b0)",
     "prisma (>=0.15.0,<0.16.0)",
     "pyyaml~=6.0.3",
     "supermemory (>=3.4.0,<4.0.0)",
@@ -56,7 +58,8 @@ test = [
 [tool.poetry]
 packages = [
     {include = "proxy", from = "src"},
-    {include = "interceptor", from = "src"}
+    {include = "interceptor", from = "src"},
+    {include = "telemetry", from = "src"}
 ]
 
 [tool.poetry.scripts]

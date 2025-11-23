@@ -44,14 +44,13 @@ import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, AsyncIterator, Dict, List, Optional
-from pydantic import BaseModel
 
 import litellm
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse, JSONResponse
-from litellm.integrations.custom_logger import CustomLogger
 from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
 from litellm.types.utils import ModelResponseStream
+from pydantic import BaseModel
 
 from integrations.prisma_proxy import PrismaProxyLogger
 from proxy.config_parser import LiteLLMConfig
@@ -62,10 +61,6 @@ from proxy.session_manager import LiteLLMSessionManager
 from proxy.tool_executor import ToolExecutor, ToolExecutionConfig, should_execute_tools
 
 # Configure logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -75,6 +70,7 @@ class ChatCompletionRequest(BaseModel):
     Pydantic model for chat completion request validation.
     Allows extra fields to pass through to LiteLLM.
     """
+
     model: str
     messages: List[Dict[str, Any]]
     stream: Optional[bool] = False
@@ -606,15 +602,15 @@ class ToolCallBuffer:
         """
         current_count = self.retry_counts.get(tool_call_id, 0)
         self.retry_counts[tool_call_id] = current_count + 1
-        
+
         logger.info(
             f"ToolCallBuffer: Retry count for {tool_call_id}: {self.retry_counts[tool_call_id]}",
             extra={
                 "tool_call_id": tool_call_id,
-                "retry_count": self.retry_counts[tool_call_id]
-            }
+                "retry_count": self.retry_counts[tool_call_id],
+            },
         )
-        
+
         return self.retry_counts[tool_call_id]
 
     def get_retry_count(self, tool_call_id: str) -> int:
@@ -642,12 +638,12 @@ class ToolCallBuffer:
         """
         current_count = self.get_retry_count(tool_call_id)
         should_retry = current_count < max_retries
-        
+
         logger.debug(
             f"ToolCallBuffer: Retry check for {tool_call_id}: "
             f"count={current_count}, max={max_retries}, should_retry={should_retry}"
         )
-        
+
         return should_retry
 
     def record_error(self, tool_call_id: str, error_type: str) -> None:
@@ -660,16 +656,16 @@ class ToolCallBuffer:
         """
         if tool_call_id not in self.error_history:
             self.error_history[tool_call_id] = []
-        
+
         self.error_history[tool_call_id].append(error_type)
-        
+
         logger.info(
             f"ToolCallBuffer: Recorded error for {tool_call_id}: {error_type}",
             extra={
                 "tool_call_id": tool_call_id,
                 "error_type": error_type,
-                "error_count": len(self.error_history[tool_call_id])
-            }
+                "error_count": len(self.error_history[tool_call_id]),
+            },
         )
 
     def get_error_history(self, tool_call_id: str) -> List[str]:
@@ -762,7 +758,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # 5. Configure LiteLLM settings
         logger.info("Step 5/6: Configuring LiteLLM settings...")
         litellm_cfg = config.get_litellm_settings()
-        
+
         litellm.set_verbose = litellm_cfg.get("set_verbose", True)
         litellm.drop_params = litellm_cfg.get("drop_params", True)
         logger.info(f"  Verbose logging: {litellm.set_verbose}")
@@ -775,16 +771,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
         # 1. Tool Debug Logger (Always enabled for debugging)
         from proxy.tool_debug_logger import ToolDebugLogger
+
         tool_debug = ToolDebugLogger()
         callbacks.append(tool_debug)
         # Custom loggers don't need to be in callback_names for success_callback list if passed in 'callbacks'
         # but for clarity we manage the global list
-        
+
         # 2. OpenTelemetry
         if litellm_cfg.get("otel", False):
             logger.info("  + Enabling OpenTelemetry callback")
             callback_names.append("otel")
-            
+
         # 3. Prisma/Postgres
         if litellm_cfg.get("database_url"):
             logger.info("  + Enabling Prisma/Postgres callback")
@@ -879,6 +876,9 @@ app = FastAPI(
     debug=True,
 )
 
+# Configure telemetry with app instrumentation
+# setup_telemetry(service_name="litellm-proxy", app=app)
+
 
 @app.middleware("http")
 async def validate_content_length(request: Request, call_next):
@@ -888,7 +888,7 @@ async def validate_content_length(request: Request, call_next):
     content_length = request.headers.get("content-length")
     if content_length and content_length.isdigit():
         expected_length = int(content_length)
-        
+
         # We need to be careful here. Reading the body consumes the stream.
         # But Starlette/FastAPI Request.body() caches the result, so it's safe to read.
         try:
@@ -1327,7 +1327,7 @@ async def chat_completions(
     await verify_api_key(request)
 
     logger.info(f"Request headers: {request.headers.items()}")
-    
+
     # Use validated data
     body = request_data.model_dump()
     logger.info(f"Request body: {body}")
@@ -1407,7 +1407,7 @@ async def chat_completions(
     # Get global config for defaults
     global_tool_config = get_tool_exec_config()
     max_iterations = global_tool_config.max_iterations if global_tool_config else 10
-    
+
     tool_config = ToolExecutionConfig(
         supermemory_api_key=supermemory_key,
         enabled=memory_router.should_use_supermemory(model_name),
@@ -1419,15 +1419,19 @@ async def chat_completions(
             tool_config.timeout_per_tool,
             max_results=5,  # Explicit max_results
         )
-        logger.info(f"[{request_id}] Tool execution enabled (max_iterations={max_iterations})")
-        
+        logger.info(
+            f"[{request_id}] Tool execution enabled (max_iterations={max_iterations})"
+        )
+
         # Inject tool definitions if not already present
         if "tools" not in litellm_params:
             litellm_params["tools"] = tool_executor.get_tool_definitions()
             # Force tool choice to auto if tools are present
             if "tool_choice" not in litellm_params:
                 litellm_params["tool_choice"] = "auto"
-            logger.debug(f"[{request_id}] Injected {len(litellm_params['tools'])} tool definitions")
+            logger.debug(
+                f"[{request_id}] Injected {len(litellm_params['tools'])} tool definitions"
+            )
 
     # Handle streaming vs non-streaming
     if stream:
@@ -1927,29 +1931,31 @@ async def handle_streaming_completion(
                     try:
                         # Logic to hide tool calls from client if we are handling them internally
                         should_yield = True
-                        
+
                         if tool_executor:
                             # Check if we need to modify the chunk to hide tool details
                             choices = chunk_dict.get("choices", [])
                             if choices:
                                 choice = choices[0]
                                 delta = choice.get("delta", {})
-                                
+
                                 # 1. Hide tool_calls in delta
                                 if "tool_calls" in delta:
                                     # We are handling these internally, don't show to client
                                     del delta["tool_calls"]
-                                    
+
                                 # 2. Hide finish_reason if we are going to loop (have tool calls)
                                 # If we saw tool calls, we expect to execute them and continue the stream
                                 if has_tool_calls and choice.get("finish_reason"):
                                     choice["finish_reason"] = None
-                                    
+
                                 # 3. Check if there is anything left to yield
                                 # If delta is empty (no content) and finish_reason is None, skip yielding
-                                if not delta.get("content") and not choice.get("finish_reason"):
+                                if not delta.get("content") and not choice.get(
+                                    "finish_reason"
+                                ):
                                     should_yield = False
-                                    
+
                         if should_yield:
                             sse_data = f"data: {json.dumps(chunk_dict)}\n\n"
                             yield sse_data
@@ -2019,7 +2025,7 @@ async def handle_streaming_completion(
                                 try:
                                     # Send keep-alive to client to prevent timeout during tool execution
                                     yield ": processing tool execution\n\n"
-                                    
+
                                     # Parse arguments
                                     tool_args = tool_buffer.parse_arguments(
                                         tool_call_id
@@ -2065,7 +2071,9 @@ async def handle_streaming_completion(
                                         "results": [],
                                     }
                                     tool_result_content = (
-                                        tool_executor.format_tool_result_for_llm(fallback_result)
+                                        tool_executor.format_tool_result_for_llm(
+                                            fallback_result
+                                        )
                                     )
 
                                 # Append tool result message
@@ -2160,4 +2168,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8764,
         log_level="debug",
+        log_config=None,  # Use existing logging config (with OTel)
     )

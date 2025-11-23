@@ -49,9 +49,9 @@ from litellm.proxy.proxy_server import litellm_proxy_admin_name
 from proxy.memory_router import MemoryRouter
 
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# logging.basicConfig(
+#     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# )
 logger = logging.getLogger(__name__)
 
 # Project root
@@ -203,6 +203,7 @@ class ProxyLauncher:
                 host="0.0.0.0",
                 port=self.proxy_port,
                 log_level="info",
+                log_config=None, # Use existing logging config (with OTel)
             )
             server = uvicorn.Server(config)
 
@@ -249,6 +250,7 @@ class ProxyLauncher:
                 host="0.0.0.0",
                 port=self.sdk_port,
                 log_level="debug",
+                log_config=None, # Use existing logging config (with OTel)
             )
             server = uvicorn.Server(config)
 
