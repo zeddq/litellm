@@ -199,15 +199,26 @@ curl -X DELETE http://localhost:8764/v1/sessions/demo-session
 
 ## Architecture
 
-```
-Client (OpenAI SDK, Anthropic SDK, curl, etc.)
-    ↓
-Memory Proxy (Port 8764) - FastAPI Application
-    • Client Detection via User-Agent patterns
-    • Dynamic x-sm-user-id injection
-    • Embedded LiteLLM SDK (In-Process)
-    ↓
-OpenAI / Anthropic / Gemini APIs
+```mermaid
+graph TD
+    Client[Client SDKs/Curl] --> Proxy[Memory Proxy :8764]
+    
+    subgraph Proxy[Memory Proxy - FastAPI]
+        Detection[Client Detection]
+        Injection[User ID Injection]
+        SDK[Embedded LiteLLM SDK]
+        
+        Detection --> Injection
+        Injection --> SDK
+    end
+    
+    SDK -->|In-Process Call| Providers
+    
+    subgraph Providers[LLM Providers]
+        OpenAI
+        Anthropic
+        Gemini
+    end
 ```
 
 ---

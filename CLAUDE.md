@@ -345,33 +345,34 @@ poetry run pytest tests/src/test_memory_proxy.py -v
 
 ### High-Level Overview (SDK Approach)
 
-```
-┌─────────────────────────────────────────────┐
-│ AI Clients (PyCharm, Claude Code, curl)    │
-└─────────────────┬───────────────────────────┘
-                  │ HTTP requests
-                  ▼
-┌─────────────────────────────────────────────┐
-│ Memory Proxy (Port 8764) - FastAPI         │
-│ • Detects client via User-Agent            │
-│ • Injects x-sm-user-id header              │
-│ • Loads LiteLLM SDK internally             │
-│ • Manages Persistent Sessions (Cookies)    │
-└─────────────────┬───────────────────────────┘
-                  │ Direct SDK Calls
-                  ▼
-┌─────────────────────────────────────────────┐
-│ LiteLLM Python SDK (In-Process)            │
-│ • Provider Routing                         │
-│ • Supermemory Integration                  │
-└─────────────────┬───────────────────────────┘
-                  │ HTTPS
-         ┌────────┴────────┬──────────┐
-         ▼                 ▼          ▼
-   ┌─────────┐      ┌──────────┐  ┌────────┐
-   │ OpenAI  │      │Supermemory│  │ Gemini │
-   │   API   │      │  + Claude │  │  API   │
-   └─────────┘      └──────────┘  └────────┘
+```mermaid
+graph TD
+    Clients[AI Clients] -->|HTTP Requests| Proxy[Memory Proxy :8764]
+    
+    subgraph Proxy[Memory Proxy - FastAPI]
+        Detection[Client Detection]
+        Injection[User ID Injection]
+        SDK[Embedded LiteLLM SDK]
+        Sessions[Persistent Sessions/Cookies]
+        
+        Detection --> Injection
+        Injection --> SDK
+        SDK --> Sessions
+    end
+
+    Sessions -->|Direct SDK Calls| PythonSDK[LiteLLM Python SDK]
+    
+    subgraph PythonSDK[LiteLLM Python SDK]
+        Routing[Provider Routing]
+        Integration[Supermemory Integration]
+    end
+    
+    Routing -->|HTTPS| OpenAI[OpenAI API]
+    Integration -->|HTTPS| Supermemory[Supermemory + Claude]
+    Routing -->|HTTPS| Gemini[Gemini API]
+
+    style Proxy fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style PythonSDK fill:#fff3e0,stroke:#e65100,stroke-width:2px
 ```
 
 ### Benefits of SDK Approach

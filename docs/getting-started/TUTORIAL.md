@@ -153,47 +153,37 @@ Skipped: 0 ⚠️
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Client Application                    │
-│         (OpenAI SDK / Anthropic SDK / HTTP)             │
-└────────────────────┬────────────────────────────────────┘
-                     │
-                     │ HTTP Request (with headers)
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│              Memory-Enabled Proxy Layer                  │
-│  ┌────────────────────────────────────────────────────┐ │
-│  │  Request Processing Pipeline:                      │ │
-│  │  1. Intercept request                              │ │
-│  │  2. Detect client (User-Agent, headers)            │ │
-│  │  3. Extract/generate session ID                    │ │
-│  │  4. Check rate limits                              │ │
-│  │  5. Retrieve conversation memory                   │ │
-│  │  6. Inject context into request                    │ │
-│  │  7. Forward to LiteLLM                             │ │
-│  │  8. Handle response (streaming/non-streaming)      │ │
-│  │  9. Store response in memory                       │ │
-│  │ 10. Return to client                               │ │
-│  └────────────────────────────────────────────────────┘ │
-└────────────────────┬────────────────────────────────────┘
-                     │
-        ┌────────────┴────────────┐
-        │                         │
-        ▼                         ▼
-┌──────────────┐         ┌──────────────┐
-│  LiteLLM     │         │ Memory Store │
-│  Router      │         │              │
-│              │         │ Options:     │
-│ Providers:   │         │ • InMemory   │
-│ • OpenAI     │         │ • Redis      │
-│ • Anthropic  │         │ • PostgreSQL │
-│ • Gemini     │         │              │
-│ • etc.       │         │ Features:    │
-└──────────────┘         │ • Sessions   │
-                         │ • TTL        │
-                         │ • Cleanup    │
-                         └──────────────┘
+```mermaid
+graph TD
+    Client[Client Application] -->|HTTP Request| Proxy[Memory-Enabled Proxy Layer]
+    
+    subgraph Proxy[Proxy Processing Pipeline]
+        Detect[Detect Client]
+        Session[Get Session ID]
+        Rate[Check Rate Limits]
+        Memory[Retrieve Memory]
+        Inject[Inject Context]
+        Forward[Forward to LiteLLM]
+        Store[Store Response]
+        
+        Detect --> Session
+        Session --> Rate
+        Rate --> Memory
+        Memory --> Inject
+        Inject --> Forward
+        Forward --> Store
+    end
+    
+    Forward -->|Provider API| Providers[LiteLLM Router]
+    Store -->|Persist| DB[(Memory Store)]
+    
+    subgraph DB_Options[Storage Options]
+        InMemory
+        Redis
+        PostgreSQL
+    end
+    
+    DB --- DB_Options
 ```
 
 ---

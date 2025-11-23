@@ -8,31 +8,31 @@ Comprehensive architectural documentation for LiteLLM Memory Proxy including des
 
 The project uses a **Self-Contained SDK** approach where the LiteLLM Python library is embedded directly within the Memory Proxy process. This enables persistent HTTP sessions critical for Supermemory integration (Cloudflare cookie handling).
 
-```
-┌─────────────────────────────────────────────────────┐
-│ CLIENT (OpenAI SDK, Anthropic SDK, curl, etc.)     │
-└─────────────────┬───────────────────────────────────┘
-                  │ HTTP/HTTPS
-                  ▼
-┌─────────────────────────────────────────────────────┐
-│ Client Interceptor (Edge Service)                  │
-│ • Binds to unique port (e.g., 8888) per project    │
-│ • Injects x-memory-user-id header                  │
-└─────────────────┬───────────────────────────────────┘
-                  │ HTTP (Ingress)
-                  ▼
-┌─────────────────────────────────────────────────────┐
-│ Memory Proxy (Port 8764) - FastAPI Gateway         │
-│ • Embeds LiteLLM Python SDK                        │
-│ • Manages persistent httpx.Clients per user        │
-│ • Handles Cloudflare cookies automagically         │
-└─────────────────┬───────────────────────────────────┘
-                  │ HTTPS (Egress)
-                  ▼
-   ┌─────────┐      ┌──────────┐   ┌──────────┐
-   │ OpenAI  │      │Supermemory│  │  Gemini  │
-   │   API   │      │   API    │   │   API    │
-   └─────────┘      └──────────┘   └──────────┘
+```mermaid
+graph TD
+    Client[Client] -->|HTTP/HTTPS| Interceptor[Client Interceptor]
+    
+    subgraph Edge[Edge Service]
+        Interceptor
+    end
+    
+    Interceptor -->|HTTP Ingress| Proxy[Memory Proxy :8764]
+    
+    subgraph Core[Memory Proxy - FastAPI Gateway]
+        Proxy
+        SDK[Embedded LiteLLM SDK]
+        Session[Session Manager]
+        
+        Proxy --> Session
+        Session --> SDK
+    end
+    
+    SDK -->|HTTPS Egress| OpenAI[OpenAI API]
+    SDK -->|HTTPS Egress| Supermemory[Supermemory API]
+    SDK -->|HTTPS Egress| Gemini[Gemini API]
+    
+    style Edge fill:#f0f4c3,stroke:#827717,stroke-width:2px
+    style Core fill:#bbdefb,stroke:#0d47a1,stroke-width:2px
 ```
 
 ---
@@ -41,25 +41,29 @@ The project uses a **Self-Contained SDK** approach where the LiteLLM Python libr
 
 ### Memory-Enabled Proxy Layer (SDK-Based)
 
-```
-┌─────────────────────────────────────────────────────────┐
-│              Memory-Enabled Proxy Layer                  │
-│  ┌────────────────────────────────────────────────────┐ │
-│  │  Session Manager (Single Process):                 │ │
-│  │  • Map<UserID, httpx.AsyncClient>                  │ │
-│  │  • Persistent CookieJar per Client                 │ │
-│  └────────────────────────────────────────────────────┘ │
-│                                                         │
-│  ┌────────────────────────────────────────────────────┐ │
-│  │  Request Processing Pipeline:                      │ │
-│  │  1. Intercept request                              │ │
-│  │  2. Extract x-memory-user-id                       │ │
-│  │  3. Get/Create persistent session for UserID       │ │
-│  │  4. Inject session into litellm.aclient_session    │ │
-│  │  5. Call litellm.acompletion()                     │ │
-│  │  6. Return response                                │ │
-│  └────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+classDiagram
+    class MemoryProxy {
+        +intercept_request()
+        +extract_user_id()
+        +inject_session()
+        +call_litellm()
+    }
+    
+    class SessionManager {
+        -Map~UserID, AsyncClient~ clients
+        +get_client(user_id)
+        +create_client()
+    }
+    
+    class LiteLLMSDK {
+        +aclient_session
+        +acompletion()
+    }
+
+    MemoryProxy --> SessionManager : uses
+    MemoryProxy --> LiteLLMSDK : invokes
+    SessionManager -- LiteLLMSDK : provides session
 ```
 
 ---
@@ -188,26 +192,25 @@ litellm/
 
 ### Request Flow with SDK & Persistent Sessions
 
-```
-1. Client (IDE) → Interceptor (Port 8888)
-   • Request: POST /v1/chat/completions
+```mermaid
+sequenceDiagram
+    participant Client as Client (IDE)
+    participant Interceptor as Interceptor :8888
+    participant Proxy as Memory Proxy :8764
+    participant Session as Session Manager
+    participant SDK as LiteLLM SDK
+    participant API as Supermemory API
 
-2. Interceptor → Memory Proxy (Port 8764)
-   • Adds Header: x-memory-user-id: "project-alpha"
-
-3. Memory Proxy (Session Resolution)
-   • Lookup: session_manager.get_client("project-alpha")
-   • Result: Returns existing httpx.AsyncClient with cookies (or creates new)
-
-4. Memory Proxy (SDK Call)
-   • Action: litellm.aclient_session = user_client
-   • Action: litellm.acompletion(...)
-
-5. LiteLLM SDK → Supermemory API
-   • Uses injected client (with cookies!)
-   • Passes Cloudflare challenge silently
-
-6. Response Path
-   • Supermemory → LiteLLM SDK → Memory Proxy → Interceptor → Client
-   • Cookies updated in user_client's jar automatically
+    Client->>Interceptor: POST /v1/chat/completions
+    Interceptor->>Proxy: Forward with x-memory-user-id: "project-alpha"
+    Proxy->>Session: get_client("project-alpha")
+    Session-->>Proxy: Return persistent httpx.AsyncClient (with cookies)
+    Proxy->>SDK: Set aclient_session = user_client
+    Proxy->>SDK: acompletion(...)
+    SDK->>API: Request (with cookies)
+    Note over SDK,API: Passes Cloudflare challenge silently
+    API-->>SDK: Response
+    SDK-->>Proxy: Response
+    Proxy-->>Interceptor: Response
+    Interceptor-->>Client: Response
 ```

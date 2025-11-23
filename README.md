@@ -106,42 +106,35 @@ print(response.choices[0].message.content)
 
 ## Architecture
 
-**Pattern:** Self-Contained SDK Gateway
-
-The system uses an in-process SDK approach to ensure persistent HTTP sessions (critical for Cloudflare compatibility).
-
-```
-┌─────────────────────────────────────┐
-│ AI Clients (PyCharm, CLI, Custom)  │
-└─────────────┬───────────────────────┘
-              │ HTTP requests
-              ▼
-┌─────────────────────────────────────┐
-│ Memory Proxy (Port 8764) - FastAPI │
-│ • Client detection                  │
-│ • User ID injection                 │
-│ • Embedded LiteLLM SDK              │
-└─────────────┬───────────────────────┘
-              │ Direct SDK Calls (In-Process)
-              ▼
-┌─────────────────────────────────────┐
-│ LiteLLM Python SDK                 │
-│ • Persistent Sessions               │
-│ • Cookie Management                 │
-└─────────────┬───────────────────────┘
-              │ HTTPS
-     ┌────────┴────────┬──────────┐
-     ▼                 ▼          ▼
-┌─────────┐      ┌──────────┐  ┌────────┐
-│ OpenAI  │      │Supermemory│  │ Gemini │
-│   API   │      │  + Claude │  │  API   │
-└─────────┘      └──────────┘  └────────┘
+```mermaid
+graph TD
+    Clients[AI Clients] -->|HTTP Requests| Proxy[Memory Proxy :8764]
+    
+    subgraph Proxy[Memory Proxy - FastAPI]
+        Detection[Client Detection]
+        Injection[User ID Injection]
+        SDK[Embedded LiteLLM SDK]
+        
+        Detection --> Injection
+        Injection --> SDK
+    end
+    
+    SDK -->|Direct SDK Calls| PythonSDK[LiteLLM Python SDK]
+    
+    subgraph PythonSDK[LiteLLM Python SDK]
+        Sessions[Persistent Sessions]
+        Cookies[Cookie Management]
+    end
+    
+    Sessions -->|HTTPS| OpenAI[OpenAI API]
+    Sessions -->|HTTPS| Supermemory[Supermemory + Claude]
+    Sessions -->|HTTPS| Gemini[Gemini API]
+    
+    style Proxy fill:#f9f,stroke:#333,stroke-width:2px
+    style PythonSDK fill:#bbf,stroke:#333,stroke-width:2px
 ```
 
 **SDK Approach Benefits**:
-- **Cookie Persistence**: Critical for Supermemory integration.
-- **Performance**: Zero-hop in-process calls (~10ms savings).
-- **Simplicity**: Single process to manage.
 
 ---
 
