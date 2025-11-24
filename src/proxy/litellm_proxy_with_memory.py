@@ -34,7 +34,7 @@ from starlette.datastructures import Headers
 from proxy import schema
 # Handle both package and direct execution imports
 from proxy.memory_router import MemoryRouter
-
+import litellm
 
 # Type definition for Anthropic thinking parameters
 # This replaces the non-existent litellm.types.llms.anthropic.AnthropicThinkingParam
@@ -353,6 +353,9 @@ def get_litellm_auth_token(request: Request) -> str:
     return request.app.state.litellm_auth_token
 
 
+
+
+
 def is_valid_date(date_string: str) -> bool:
     try:
         datetime.strptime(date_string, "%Y%m%d")
@@ -418,6 +421,27 @@ class MyFastMemoryLane(FastAPI):
                     else "unknown"
                 )
                 logger.info(f"Memory Router initialized with {pattern_count} patterns")
+                
+                # Initialize MCP Client if configured
+                if memory_router.config and memory_router.config.mcp_servers:
+                    logger.info("Initializing MCP Client...")
+                    mcp_servers_dict = {}
+                    for name, config in memory_router.config.mcp_servers.items():
+                        if config.transport == "stdio":
+                            mcp_servers_dict[name] = {"args": [config.command] + (config.args or [])}
+                        elif config.transport == "sse":
+                            mcp_servers_dict[name] = {"url": config.url}
+                    
+                    if mcp_servers_dict:
+                        try:
+                            # Load tools from configured MCP servers
+                            mcp_tools = await litellm.experimental_mcp_client.load_mcp_tools(
+                                mcp_servers=mcp_servers_dict
+                            )
+                            app.state.mcp_tools = mcp_tools
+                            logger.info(f"✅ Loaded {len(mcp_tools)} MCP tools from {list(mcp_servers_dict.keys())}")
+                        except Exception as e:
+                            logger.error(f"❌ Failed to load MCP tools: {e}")
             else:
                 logger.warning("Memory Router not provided - memory routing disabled")
 
@@ -425,7 +449,6 @@ class MyFastMemoryLane(FastAPI):
 
             yield  # Application runs here
 
-            # Shutdown: Close all persistent HTTP sessions
             logger.info("Application shutting down...")
             await ProxySessionManager.close_all()
 
@@ -602,6 +625,10 @@ def create_app(
             "data": models,
         }
 
+
+
+
+
     # Catch-all proxy handler - MUST be defined LAST
     # noinspection D
     @app.api_route(
@@ -724,8 +751,18 @@ def create_app(
                         )
                         logger.info(f"{request_id} INJECTED: x-sm-user-id={user_id}")
 
+                    # Inject MCP tools if available
+                    mcp_tools = getattr(request.app.state, "mcp_tools", [])
+                    if mcp_tools:
+                        current_tools = request_data.get("tools", [])
+                        # Avoid duplicates if possible, or just append
+                        request_data["tools"] = current_tools + mcp_tools
+                        request_data["tool_choice"] = request_data.get("tool_choice", "auto")
+                        logger.info(f"{request_id} INJECTED: {len(mcp_tools)} MCP tools")
+                        body = json.dumps(request_data).encode()
+
                 except Exception as e:
-                    logger.error(f"{request_id} Error in memory routing: {e}")
+                    logger.error(f"{request_id} Error in memory/MCP routing: {e}")
                     # Don't fail the request, just log and continue
         # Forward request to LiteLLM with retry logic (outside the chat completions block)
         try:
@@ -769,6 +806,52 @@ def create_app(
                     media_type=content_type,
                 )
             logger.info(f"{request_id} Handling as non-streaming response")
+            
+            # MCP Tool Execution Logic (Agentic Loop)
+            # If the response contains MCP tool calls, execute them and loop back to LLM
+            try:
+                resp_json = json.loads(response_body)
+                choices = resp_json.get("choices", [])
+                if choices and choices[0].get("message", {}).get("tool_calls"):
+                    tool_calls = choices[0]["message"]["tool_calls"]
+                    mcp_tools_list = getattr(request.app.state, "mcp_tools", [])
+                    mcp_tool_names = {t["function"]["name"] for t in mcp_tools_list}
+                    
+                    executed_mcp_tools = []
+                    for tc in tool_calls:
+                        if tc["function"]["name"] in mcp_tool_names:
+                            logger.info(f"{request_id} 🛠️ Executing MCP tool: {tc['function']['name']}")
+                            tool_result = await litellm.experimental_mcp_client.call_openai_tool(tc)
+                            executed_mcp_tools.append({
+                                "tool_call_id": tc["id"],
+                                "role": "tool", 
+                                "name": tc["function"]["name"],
+                                "content": json.dumps(tool_result)
+                            })
+                    
+                    if executed_mcp_tools and request_data:
+                        logger.info(f"{request_id} 🔄 MCP tools executed, sending results back to LLM...")
+                        # Construct new conversation history
+                        new_messages = request_data.get("messages", []) + [choices[0]["message"]] + executed_mcp_tools
+                        request_data["messages"] = new_messages
+                        new_body = json.dumps(request_data).encode()
+                        
+                        # Recursive call (single depth for now)
+                        status_code, response_headers, response_body = await proxy_request_with_retry(
+                            method=method,
+                            path=full_path,
+                            headers=headers,
+                            body=new_body,
+                            litellm_base_url=litellm_base_url,
+                            request_id=f"{request_id}-retry",
+                            max_retries=3
+                        )
+                        logger.info(f"{request_id} ✅ Received final response after MCP execution")
+
+            except Exception as e:
+                logger.error(f"{request_id} ⚠️ Error in MCP tool execution loop: {e}")
+                # Fallback to returning original response
+
             return Response(
                 content=response_body,
                 status_code=status_code,

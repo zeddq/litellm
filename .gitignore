@@ -176,6 +176,7 @@ Backup of *.doc*
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
+.idea/**/SweepConfig.xml
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries

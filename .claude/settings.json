@@ -11,5 +11,9 @@
         "BashOutput"
       ]
     }
+  },
+  "env": {
+    "ANTHROPIC_API_BASE": "https://api.supermemory.ai/v3/api.anthropic.com",
+    "ANTHROPIC_CUSTOM_HEADERS": "x-supermemory-api-key: sm_QcByjXoSBWceAnA8PB5sde_EddoiUyplQTGJjTksHjPkwrxnVVHYQUlEXGLQCbAnQDWyHNxtVMlKbQiszUznRfk\nX-sm-User-ID: supermemory\nX-Request-Source: claude-code"
   }
 }

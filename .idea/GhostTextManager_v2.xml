@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GhostTextManager">
+    <option name="inputs">
+      <map>
+        <entry key="Create a SWEEP.md file from the existing rules files such as CLAUDE.md, cursor rules, .cursorrules. Combine these into a comprehensive SWEEP.md file in the project root directory. Include instructions on different terminal commands.">
+          <value>
+            <GhostTextMetaData>
+              <option name="count" value="2.0" />
+              <option name="timestamps">
+                <list>
+                  <option value="1764135533935" />
+                  <option value="1764135220805" />
+                </list>
+              </option>
+            </GhostTextMetaData>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

@@ -10,7 +10,6 @@ import httpx
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 from starlette import status
-from telemetry.setup import setup_telemetry
 
 # Configure logging
 logger = logging.getLogger(__name__)

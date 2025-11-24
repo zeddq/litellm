@@ -744,6 +744,7 @@ class InjectionStrategy(str, Enum):
     SYSTEM = "system"
     USER_PREFIX = "user_prefix"
     USER_SUFFIX = "user_suffix"
+    DUAL = "dual"
 
 
 class ContextRetrievalConfig(BaseModel):
@@ -786,7 +787,7 @@ class ContextRetrievalConfig(BaseModel):
         description="Strategy for extracting query from messages",
     )
     injection_strategy: InjectionStrategy = Field(
-        default=InjectionStrategy.SYSTEM,
+        default=InjectionStrategy.DUAL,
         description="Strategy for injecting context into messages",
     )
     container_tag: str = Field(

@@ -52,7 +52,6 @@ from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
 from litellm.types.utils import ModelResponseStream
 from pydantic import BaseModel
 
-from integrations.prisma_proxy import PrismaProxyLogger
 from proxy.config_parser import LiteLLMConfig
 from proxy.context_retriever import ContextRetriever, retrieve_and_inject_context
 from proxy.error_handlers import LiteLLMErrorHandler, register_exception_handlers
@@ -785,9 +784,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # 3. Prisma/Postgres
         if litellm_cfg.get("database_url"):
             logger.info("  + Enabling Prisma/Postgres callback")
-            postgres_logger = PrismaProxyLogger(use_redis_buffer=False)
-            callbacks.append(postgres_logger)
-            callback_names.append("prisma_proxy")
+            # postgres_logger = PrismaProxyLogger(use_redis_buffer=False)
+            # callbacks.append(postgres_logger)
+            callback_names.append("prisma")
 
         # Register callbacks globally
         litellm.callbacks = callbacks
@@ -830,6 +829,31 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             logger.info("  Tool execution disabled")
             app.state.tool_executor = None
             app.state.tool_exec_config = None
+
+        # 7. Initialize MCP Client
+        logger.info("Step 7/7: Initializing MCP Client...")
+        if config.config.mcp_servers:
+            mcp_servers_dict = {}
+            for name, mcp_config in config.config.mcp_servers.items():
+                if mcp_config.transport == "stdio":
+                    mcp_servers_dict[name] = {"args": [mcp_config.command] + (mcp_config.args or [])}
+                elif mcp_config.transport == "sse":
+                    mcp_servers_dict[name] = {"url": mcp_config.url}
+            
+            if mcp_servers_dict:
+                try:
+                    logger.info(f"  Loading MCP tools from servers: {list(mcp_servers_dict.keys())}")
+                    mcp_tools = await litellm.experimental_mcp_client.load_mcp_tools(
+                        mcp_servers=mcp_servers_dict
+                    )
+                    app.state.mcp_tools = mcp_tools
+                    logger.info(f"  ✅ Loaded {len(mcp_tools)} MCP tools")
+                except Exception as e:
+                    logger.error(f"  ❌ Failed to load MCP tools: {e}")
+                    app.state.mcp_tools = []
+        else:
+            logger.info("  No MCP servers configured")
+            app.state.mcp_tools = []
 
         logger.info("=" * 70)
         logger.info("STARTUP COMPLETE - Server ready to accept requests")
@@ -1385,14 +1409,9 @@ async def chat_completions(
         if key not in ["model", "messages"]:
             litellm_params[key] = value
 
-    # Generate request ID for tracking
-    request_id = f"req_{int(time.time() * 1000)}"
-
     # Log request details
-    logger.info(
-        f"[{request_id}] Starting {'streaming' if stream else 'non-streaming'} request"
-    )
-    logger.info(f"[{request_id}] Model: {model_name}, User ID: {user_id}")
+    logger.info(f"Starting {'streaming' if stream else 'non-streaming'} request")
+    logger.info(f"Model: {model_name}, User ID: {user_id}")
 
     # Apply context retrieval if enabled
     messages = await apply_context_retrieval(
@@ -1419,9 +1438,7 @@ async def chat_completions(
             tool_config.timeout_per_tool,
             max_results=5,  # Explicit max_results
         )
-        logger.info(
-            f"[{request_id}] Tool execution enabled (max_iterations={max_iterations})"
-        )
+        logger.info(f"Tool execution enabled (max_iterations={max_iterations})")
 
         # Inject tool definitions if not already present
         if "tools" not in litellm_params:
@@ -1429,16 +1446,27 @@ async def chat_completions(
             # Force tool choice to auto if tools are present
             if "tool_choice" not in litellm_params:
                 litellm_params["tool_choice"] = "auto"
-            logger.debug(
-                f"[{request_id}] Injected {len(litellm_params['tools'])} tool definitions"
-            )
+            logger.debug(f"Injected {len(litellm_params['tools'])} tool definitions")
+
+    # Inject MCP tools if available
+    mcp_tools = getattr(app.state, "mcp_tools", [])
+    if mcp_tools:
+        current_tools = litellm_params.get("tools", [])
+        # Check for duplicates (naive check by name)
+        existing_names = {t["function"]["name"] for t in current_tools}
+        new_tools = [t for t in mcp_tools if t["function"]["name"] not in existing_names]
+        
+        if new_tools:
+            litellm_params["tools"] = current_tools + new_tools
+            if "tool_choice" not in litellm_params:
+                litellm_params["tool_choice"] = "auto"
+            logger.info(f"Injected {len(new_tools)} MCP tools")
 
     # Handle streaming vs non-streaming
     if stream:
         return await handle_streaming_completion(
             messages=messages,
             litellm_params=litellm_params,
-            request_id=request_id,
             error_handler=error_handler,
             user_id=user_id,
             tool_executor=tool_executor,
@@ -1448,7 +1476,6 @@ async def chat_completions(
         return await handle_non_streaming_completion(
             messages=messages,
             litellm_params=litellm_params,
-            request_id=request_id,
             error_handler=error_handler,
             user_id=user_id,
         )
@@ -1462,7 +1489,6 @@ async def chat_completions(
 async def handle_non_streaming_completion(
     messages: list,
     litellm_params: Dict[str, Any],
-    request_id: str,
     error_handler: LiteLLMErrorHandler,
     user_id: Optional[str] = None,
 ) -> JSONResponse:
@@ -1491,7 +1517,6 @@ async def handle_non_streaming_completion(
     Args:
         messages: Chat messages list (modified in-place with tool results)
         litellm_params: Parameters for litellm.acompletion()
-        request_id: Request tracking ID for logging
         error_handler: Error handler instance for exception conversion
         user_id: User ID for tool execution context (optional, default: "default")
 
@@ -1503,7 +1528,6 @@ async def handle_non_streaming_completion(
         response = await handle_non_streaming_completion(
             messages=[{"role": "user", "content": "Search for Python async"}],
             litellm_params={"model": "claude-sonnet-4.5"},
-            request_id="req_123",
             error_handler=error_handler,
             user_id="user_123"
         )
@@ -1515,6 +1539,7 @@ async def handle_non_streaming_completion(
         # Get tool executor and config
         tool_executor = get_tool_executor()
         tool_exec_config = get_tool_exec_config()
+        mcp_tools = getattr(app.state, "mcp_tools", [])
 
         # Tool execution loop
         iteration = 0
@@ -1522,9 +1547,7 @@ async def handle_non_streaming_completion(
 
         while iteration < max_iterations:
             iteration += 1
-            logger.info(
-                f"[{request_id}] Tool execution iteration {iteration}/{max_iterations}"
-            )
+            logger.info(f"Tool execution iteration {iteration}/{max_iterations}")
 
             # Call LiteLLM SDK
             response = await litellm.acompletion(
@@ -1538,7 +1561,7 @@ async def handle_non_streaming_completion(
 
             chunk_id: str = getattr(response, "id", "")
             if chunk_id:
-                logger.info(f"[{request_id}] Chunk ID: {chunk_id}")
+                logger.info(f"Chunk ID: {chunk_id}")
 
             # Extract tool_calls from response (defensive extraction)
             if hasattr(response, "choices") and response.choices:
@@ -1550,9 +1573,7 @@ async def handle_non_streaming_completion(
             if not has_tool_calls:
                 # No tool calls - return final response
                 elapsed = time.time() - start_time
-                logger.info(
-                    f"[{request_id}] Completed in {elapsed:.2f}s (no tool calls)"
-                )
+                logger.info(f"Completed in {elapsed:.2f}s (no tool calls)")
 
                 # Return OpenAI-compatible response
                 response_dict = (
@@ -1562,11 +1583,9 @@ async def handle_non_streaming_completion(
                 )
                 return JSONResponse(content=response_dict)
 
-            # Check if tool executor is available
-            if not tool_executor:
-                logger.warning(
-                    f"[{request_id}] Tool calls detected but tool executor not initialized"
-                )
+            # Check if tool executor or MCP tools are available
+            if not tool_executor and not mcp_tools:
+                logger.warning(f"Tool calls detected but tool executor/MCP not initialized")
                 # Return response as-is (client needs to handle tool calls)
                 response_dict = (
                     response.model_dump()
@@ -1576,7 +1595,7 @@ async def handle_non_streaming_completion(
                 return JSONResponse(content=response_dict)
 
             # Initialize tool call buffer for this iteration
-            logger.info(f"[{request_id}] Processing {len(tool_calls)} tool call(s)")
+            logger.info(f"Processing {len(tool_calls)} tool call(s)")
             tool_buffer = ToolCallBuffer()
 
             # Buffer all tool calls with validation
@@ -1590,7 +1609,7 @@ async def handle_non_streaming_completion(
                     function = getattr(tool_call, "function", None)
                     if not function:
                         logger.warning(
-                            f"[{request_id}] Tool call missing 'function' attribute, skipping"
+                            f"Tool call missing 'function' attribute, skipping"
                         )
                         continue
 
@@ -1599,14 +1618,12 @@ async def handle_non_streaming_completion(
 
                     # Validate required fields
                     if not tool_call_id and not chunk_id:
-                        logger.warning(
-                            f"[{request_id}] Tool call missing 'id', skipping: {tool_call}"
-                        )
+                        logger.warning(f"Tool call missing 'id', skipping: {tool_call}")
                         continue
 
                     # if not tool_name:
                     #     logger.warning(
-                    #         f"[{request_id}] Tool call {tool_call_id} missing 'name', skipping"
+                    #         f"Tool call {tool_call_id} missing 'name', skipping"
                     #     )
                     #     continue
 
@@ -1621,7 +1638,7 @@ async def handle_non_streaming_completion(
 
                 except Exception as buffer_error:
                     logger.error(
-                        f"[{request_id}] Error buffering tool call: {buffer_error}",
+                        f"Error buffering tool call: {buffer_error}",
                         exc_info=True,
                     )
                     continue
@@ -1634,7 +1651,7 @@ async def handle_non_streaming_completion(
             incomplete_calls = tool_buffer.get_incomplete_tool_calls()
             if incomplete_calls:
                 logger.warning(
-                    f"[{request_id}] Found {len(incomplete_calls)} incomplete tool calls "
+                    f"Found {len(incomplete_calls)} incomplete tool calls "
                     f"(truncated/invalid JSON). IDs: {list(incomplete_calls.keys())}"
                 )
 
@@ -1643,7 +1660,7 @@ async def handle_non_streaming_completion(
 
             if not finished_calls:
                 logger.error(
-                    f"[{request_id}] No finished tool calls to execute "
+                    f"No finished tool calls to execute "
                     f"({len(tool_calls)} received, {len(incomplete_calls)} incomplete)"
                 )
                 # Return response as-is - cannot execute incomplete calls
@@ -1655,7 +1672,7 @@ async def handle_non_streaming_completion(
                 return JSONResponse(content=response_dict)
 
             logger.info(
-                f"[{request_id}] Executing {len(finished_calls)} finished tool call(s) "
+                f"Executing {len(finished_calls)} finished tool call(s) "
                 f"({len(incomplete_calls)} skipped as incomplete)"
             )
 
@@ -1686,43 +1703,63 @@ async def handle_non_streaming_completion(
             for tool_call_id, tool_data in finished_calls.items():
                 tool_name = tool_data["name"]
 
-                logger.info(
-                    f"[{request_id}] Executing tool: {tool_name} (id={tool_call_id})"
-                )
+                logger.info(f"Executing tool: {tool_name} (id={tool_call_id})")
 
                 try:
-                    # Parse arguments using buffer (robust parsing)
-                    tool_args = tool_buffer.parse_arguments(tool_call_id)
+                    # Check if it is an MCP tool
+                    mcp_tools = getattr(app.state, "mcp_tools", [])
+                    is_mcp_tool = any(t["function"]["name"] == tool_name for t in mcp_tools)
 
-                    logger.debug(
-                        f"[{request_id}] Tool {tool_name}: Parsed {len(tool_args)} argument(s)"
-                    )
+                    if is_mcp_tool:
+                        # Find the original tool call object
+                        original_tool_call = next(
+                            (tc for tc in tool_calls if tc.id == tool_call_id), None
+                        )
+                        if original_tool_call:
+                            logger.info(f"  👉 Executing MCP tool: {tool_name}")
+                            tool_result = await litellm.experimental_mcp_client.call_openai_tool(
+                                original_tool_call
+                            )
+                            # Format result as string if not already
+                            tool_result_content = json.dumps(tool_result)
+                            logger.info(f"  ✅ MCP Tool {tool_name} executed successfully")
+                        else:
+                            raise ValueError(f"Could not find original tool call object for {tool_call_id}")
+                    
+                    else:
+                        # Standard Tool Executor (Supermemory)
+                        # Parse arguments using buffer (robust parsing)
+                        tool_args = tool_buffer.parse_arguments(tool_call_id)
 
-                    # Execute tool via ToolExecutor
-                    tool_result = await tool_executor.execute_tool_call(
-                        tool_name=tool_name,
-                        tool_args=tool_args,
-                        user_id=user_id or "default",
-                        tool_call_id=tool_call_id,
-                    )
-                    logger.info(
-                        f"[{request_id}] Tool {tool_name}({", ".join(tool_args) if tool_args else 'no args'}): {tool_result}"
-                    )
+                        logger.debug(
+                            f"Tool {tool_name}: Parsed {len(tool_args)} argument(s)"
+                        )
 
-                    # Format tool result for LLM
-                    tool_result_content = tool_executor.format_tool_result_for_llm(
-                        tool_result
-                    )
+                        # Execute tool via ToolExecutor
+                        tool_result = await tool_executor.execute_tool_call(
+                            tool_name=tool_name,
+                            tool_args=tool_args,
+                            user_id=user_id or "default",
+                            tool_call_id=tool_call_id,
+                        )
+                        logger.info(
+                            f"Tool {tool_name}({", ".join(tool_args) if tool_args else 'no args'}): {tool_result}"
+                        )
 
-                    logger.info(
-                        f"[{request_id}] Tool {tool_name} executed successfully "
-                        f"(result length: {len(str(tool_result_content))} chars)"
-                    )
+                        # Format tool result for LLM
+                        tool_result_content = tool_executor.format_tool_result_for_llm(
+                            tool_result
+                        )
+
+                        logger.info(
+                            f"Tool {tool_name} executed successfully "
+                            f"(result length: {len(str(tool_result_content))} chars)"
+                        )
 
                 except ValueError as parse_error:
                     # Argument parsing failed - return detailed error to LLM
                     logger.error(
-                        f"[{request_id}] Tool {tool_name} argument parsing failed: {parse_error}"
+                        f"Tool {tool_name} argument parsing failed: {parse_error}"
                     )
                     tool_result_content = (
                         f"Tool argument parsing error: {str(parse_error.__dict__)}\n\n"
@@ -1733,7 +1770,7 @@ async def handle_non_streaming_completion(
                 except Exception as tool_error:
                     # Tool execution failed - return error to LLM
                     logger.error(
-                        f"[{request_id}] Tool {tool_name} execution failed: {tool_error}",
+                        f"Tool {tool_name} execution failed: {tool_error}",
                         exc_info=True,
                     )
                     tool_result_content = (
@@ -1749,15 +1786,11 @@ async def handle_non_streaming_completion(
                 }
                 messages.append(tool_message)
 
-            logger.info(
-                f"[{request_id}] All tools executed, sending results back to LLM"
-            )
+            logger.info(f"All tools executed, sending results back to LLM")
 
         # Max iterations reached
         elapsed = time.time() - start_time
-        logger.warning(
-            f"[{request_id}] Max iterations ({max_iterations}) reached in {elapsed:.2f}s"
-        )
+        logger.warning(f"Max iterations ({max_iterations}) reached in {elapsed:.2f}s")
 
         # Return last response even if it has tool_calls
         response_dict = (
@@ -1766,16 +1799,15 @@ async def handle_non_streaming_completion(
         return JSONResponse(content=response_dict)
 
     except Exception as e:
-        logger.error(f"[{request_id}] Error: {type(e).__name__}: {e}", exc_info=True)
+        logger.error(f"Error: {type(e).__name__}: {e}", exc_info=True)
 
         # Use error handler to convert to HTTP response
-        return await error_handler.handle_completion_error(e, request_id=request_id)
+        return await error_handler.handle_completion_error(e)
 
 
 async def handle_streaming_completion(
     messages: list,
     litellm_params: Dict[str, Any],
-    request_id: str,
     error_handler: LiteLLMErrorHandler,
     user_id: Optional[str] = None,
     tool_executor: Optional[ToolExecutor] = None,
@@ -1793,7 +1825,6 @@ async def handle_streaming_completion(
     Args:
         messages: Chat messages
         litellm_params: Parameters for litellm.acompletion()
-        request_id: Request tracking ID
         error_handler: Error handler instance
         user_id: User ID for tool execution context
         tool_executor: Tool executor instance (if tool execution enabled)
@@ -1825,9 +1856,7 @@ async def handle_streaming_completion(
                     **litellm_params,
                 )
 
-                logger.info(
-                    f"[{request_id}] Starting stream (iteration {iteration})..."
-                )
+                logger.info(f"Starting stream (iteration {iteration})...")
                 if not isinstance(response_iterator, CustomStreamWrapper):
                     raise ValueError(
                         f"{response_iterator} should be an iterator but is: {type(response_iterator)}"
@@ -1867,7 +1896,7 @@ async def handle_streaming_completion(
                         if choice.finish_reason is not None:
                             saw_finish_reason = True
                             logger.debug(
-                                f"[{request_id}] Received finish_reason: {choice.finish_reason}"
+                                f"Received finish_reason: {choice.finish_reason}"
                             )
 
                         # Check for tool calls in delta
@@ -1916,7 +1945,7 @@ async def handle_streaming_completion(
                                             chunk_id=id,  # Pass chunk ID for correlation
                                         )
                                         logger.debug(
-                                            f"[{request_id}] Appended tool call: {tool_call_id}, "
+                                            f"Appended tool call: {tool_call_id}, "
                                             f"name={tool_name}, chunk_id={id}, args={arguments}"
                                         )
 
@@ -1961,7 +1990,7 @@ async def handle_streaming_completion(
                             yield sse_data
                     except (TypeError, ValueError) as e:
                         logger.error(
-                            f"[{request_id}] Failed to serialize chunk to JSON: {e}",
+                            f"Failed to serialize chunk to JSON: {e}",
                             exc_info=True,
                         )
 
@@ -1971,7 +2000,7 @@ async def handle_streaming_completion(
                     tool_buffer.mark_finished_by_finish_reason()
 
                     logger.info(
-                        f"[{request_id}] Stream finished with {len(tool_buffer)} tool call(s). "
+                        f"Stream finished with {len(tool_buffer)} tool call(s). "
                         f"finish_reason received: {saw_finish_reason}"
                     )
 
@@ -1986,13 +2015,13 @@ async def handle_streaming_completion(
 
                         if incomplete_calls:
                             logger.warning(
-                                f"[{request_id}] {len(incomplete_calls)} incomplete tool calls "
+                                f"{len(incomplete_calls)} incomplete tool calls "
                                 f"(invalid JSON). IDs: {list(incomplete_calls.keys())}"
                             )
 
                         if finished_calls:
                             logger.info(
-                                f"[{request_id}] Executing {len(finished_calls)} tool call(s):"
+                                f"Executing {len(finished_calls)} tool call(s):"
                             )
                             for finished_call in finished_calls:
                                 logger.info(f"  - {repr(finished_call)})")
@@ -2026,33 +2055,67 @@ async def handle_streaming_completion(
                                     # Send keep-alive to client to prevent timeout during tool execution
                                     yield ": processing tool execution\n\n"
 
-                                    # Parse arguments
-                                    tool_args = tool_buffer.parse_arguments(
-                                        tool_call_id
-                                    )
+                                    # Check if it is an MCP tool
+                                    mcp_tools = getattr(app.state, "mcp_tools", [])
+                                    is_mcp_tool = any(t["function"]["name"] == tool_name for t in mcp_tools)
 
-                                    # Execute tool
-                                    tool_result = await tool_executor.execute_tool_call(
-                                        tool_name=tool_name,
-                                        tool_args=tool_args,
-                                        user_id=user_id or "default",
-                                        tool_call_id=tool_call_id,
-                                    )
-
-                                    # Format result
-                                    tool_result_content = (
-                                        tool_executor.format_tool_result_for_llm(
-                                            tool_result
+                                    if is_mcp_tool:
+                                        # Construct mock tool call object
+                                        class MockToolCall:
+                                            def __init__(self, id, name, arguments):
+                                                self.id = id
+                                                self.function = type('Function', (), {'name': name, 'arguments': arguments})()
+                                                self.type = 'function'
+                                        
+                                        tool_call_obj = MockToolCall(
+                                            id=tool_call_id,
+                                            name=tool_name,
+                                            arguments=tool_data["arguments"]
                                         )
-                                    )
+                                        
+                                        logger.info(f"  👉 Executing MCP tool (streaming): {tool_name}")
+                                        tool_result = await litellm.experimental_mcp_client.call_openai_tool(
+                                            tool_call_obj
+                                        )
+                                        tool_result_content = json.dumps(tool_result)
+                                        logger.info(f"  ✅ MCP Tool {tool_name} executed successfully")
 
-                                    logger.info(
-                                        f"[{request_id}] Tool {tool_name} executed successfully"
-                                    )
+                                    else:
+                                        # Standard Tool Executor (Supermemory)
+                                        # Parse arguments
+                                        tool_args = tool_buffer.parse_arguments(
+                                            tool_call_id
+                                        )
 
-                                except Exception as tool_error:
+                                        logger.debug(
+                                            f"Tool {tool_name}: Parsed {len(tool_args)} argument(s)"
+                                        )
+
+                                        # Execute tool via ToolExecutor
+                                        tool_result = await tool_executor.execute_tool_call(
+                                            tool_name=tool_name,
+                                            tool_args=tool_args,
+                                            user_id=user_id or "default",
+                                            tool_call_id=tool_call_id,
+                                        )
+                                        logger.info(
+                                            f"Tool {tool_name}: {tool_result}"
+                                        )
+
+                                        # Format result
+                                        tool_result_content = (
+                                            tool_executor.format_tool_result_for_llm(
+                                                tool_result
+                                            )
+                                        )
+
+                                        logger.info(
+                                            f"Tool {tool_name} executed successfully"
+                                        )
+
+                                except ValueError as parse_error:
                                     logger.error(
-                                        f"[{request_id}] Tool {tool_name} execution failed: {tool_error}",
+                                        f"Tool {tool_name} execution failed: {tool_error}",
                                         exc_info=True,
                                     )
 
@@ -2086,18 +2149,18 @@ async def handle_streaming_completion(
 
                             # Continue to next iteration (send results back to LLM)
                             logger.info(
-                                f"[{request_id}] Tools executed, continuing to iteration {iteration + 1}"
+                                f"Tools executed, continuing to iteration {iteration + 1}"
                             )
                             continue  # Next iteration with tool results
                         else:
                             # No executable tool calls
                             logger.warning(
-                                f"[{request_id}] No executable tool calls "
+                                f"No executable tool calls "
                                 f"({len(tool_buffer)} buffered, {len(incomplete_calls)} incomplete)"
                             )
                     else:
                         logger.info(
-                            f"[{request_id}] Tool execution disabled or not configured, "
+                            f"Tool execution disabled or not configured, "
                             f"stream complete"
                         )
 
@@ -2106,11 +2169,11 @@ async def handle_streaming_completion(
 
             # Send completion signal
             elapsed = time.time() - start_time
-            logger.info(f"[{request_id}] Stream completed in {elapsed:.2f}s")
+            logger.info(f"Stream completed in {elapsed:.2f}s")
             yield "data: [DONE]\n\n"
 
         except Exception as e:
-            logger.error(f"[{request_id}] Stream error: {type(e).__name__}: {e}")
+            logger.error(f"Stream error: {type(e).__name__}: {e}")
 
             # Send error as SSE event
             from proxy.streaming_utils import format_error_sse

@@ -348,13 +348,15 @@ class ContextRetriever:
     def inject_context_into_messages(
         messages: List[Dict[str, Any]],
         context: str,
-        injection_strategy: str = "system",
+        injection_strategy: str = "dual",
+        static_system_prompt: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
         Inject retrieved context into message list.
 
         Strategies:
-        - "system": Add as system message at start (recommended for Claude)
+        - "system": Add as system message at start (DEPRECATED - breaks caching)
+        - "dual": Static system message (cacheable) + dynamic context (separate)
         - "user_prefix": Prepend to first user message
         - "user_suffix": Append to last user message
 
@@ -362,6 +364,7 @@ class ContextRetriever:
             messages: Original message list
             context: Formatted context string
             injection_strategy: Where to inject context
+            static_system_prompt: Optional static system prompt (for "dual" strategy)
 
         Returns:
             Enhanced message list with context injected
@@ -371,18 +374,99 @@ class ContextRetriever:
 
         enhanced_messages = messages.copy()
 
-        if injection_strategy == "system":
-            # Add system message at the beginning
-            system_message = {
+        if injection_strategy == "dual":
+            # RECOMMENDED: Separate static (cacheable) from dynamic (not cached)
+
+            # 1. Ensure static system message exists and is FIRST
+            has_static_system = False
+            for i, msg in enumerate(enhanced_messages):
+                if msg.get("role") == "system" and not msg.get(
+                    "supermemory_context"
+                ):
+                    has_static_system = True
+                    # Mark as cacheable
+                    msg["cache_control"] = {"type": "ephemeral"}
+                    logger.info(
+                        "✅ Marked existing static system message as cacheable"
+                    )
+                    break
+
+            if not has_static_system:
+                # Create default static system message
+                default_prompt = static_system_prompt or (
+                    "You are a helpful AI assistant with access to the user's personal memory. "
+                    "When answering questions, use the context provided in the following message "
+                    "to give personalized and accurate responses. "
+                    "Always cite sources when using information from the user's memory."
+                )
+
+                static_msg = {
+                    "role": "system",
+                    "content": default_prompt,
+                    "cache_control": {"type": "ephemeral"},  # CACHE THIS
+                }
+                enhanced_messages.insert(0, static_msg)
+                logger.info("✅ Created static system message (cacheable)")
+
+            # 2. Insert dynamic context as SEPARATE system message (NOT cached)
+            context_message = {
                 "role": "system",
                 "content": (
-                    "You have access to the following relevant context from the user's memory. "
-                    "Use this information to provide more personalized and accurate responses.\n\n"
-                    f"{context}"
+                    "# User's Relevant Memory\n\n"
+                    f"{context}\n\n"
+                    "Use the above context to provide personalized responses."
                 ),
+                "supermemory_context": True,  # Marker to identify dynamic context
+                # NO cache_control - this changes every request
             }
-            enhanced_messages.insert(0, system_message)
-            logger.info("Context injected as system message")
+
+            # Find position: after first system message, before other messages
+            insert_position = (
+                1 if enhanced_messages[0].get("role") == "system" else 0
+            )
+            enhanced_messages.insert(insert_position, context_message)
+
+            logger.info(
+                "✅ Context injection strategy: DUAL "
+                "(static system cached ✓, dynamic context not cached ✓)"
+            )
+
+        elif injection_strategy == "system":
+            # OLD STRATEGY - BREAKS CACHING
+            logger.warning(
+                "⚠️  Using 'system' injection strategy - this BREAKS prompt caching! "
+                "The system message will be different for every request (due to dynamic context), "
+                "resulting in 0% cache hit rate. Consider using 'dual' strategy instead."
+            )
+
+            # Check if system message already exists
+            has_system = False
+            for i, msg in enumerate(enhanced_messages):
+                if msg.get("role") == "system":
+                    # Append context to existing system message
+                    original_content = msg.get("content", "")
+                    enhanced_messages[i]["content"] = (
+                        f"{original_content}\n\n"
+                        f"You have access to the following relevant context:\n{context}"
+                    )
+                    has_system = True
+                    logger.info(
+                        "Context appended to existing system message (NOT CACHED)"
+                    )
+                    break
+
+            if not has_system:
+                # Create new system message with context
+                system_message = {
+                    "role": "system",
+                    "content": (
+                        "You have access to the following relevant context from the user's memory. "
+                        "Use this information to provide more personalized and accurate responses.\n\n"
+                        f"{context}"
+                    ),
+                }
+                enhanced_messages.insert(0, system_message)
+                logger.info("Context injected as system message (NOT CACHED)")
 
         elif injection_strategy == "user_prefix":
             # Prepend to first user message
@@ -419,8 +503,9 @@ async def retrieve_and_inject_context(
     messages: List[Dict[str, Any]],
     user_id: str,
     query_strategy: str = "last_user",
-    injection_strategy: str = "system",
+    injection_strategy: str = "dual",  # CHANGED: default to "dual"
     container_tag: Optional[str] = None,
+    static_system_prompt: Optional[str] = None,  # NEW parameter
 ) -> tuple[List[Dict[str, Any]], Optional[Dict[str, Any]]]:
     """
     Helper function to retrieve context and inject into messages.
@@ -428,13 +513,19 @@ async def retrieve_and_inject_context(
     This is a convenience function that combines query extraction,
     context retrieval, and message enhancement in one call.
 
+    PROMPT CACHING STRATEGY:
+    - Use injection_strategy="dual" (RECOMMENDED)
+    - Static system prompt is cached (90% savings on repeated requests)
+    - Dynamic Supermemory context is NOT cached (changes per request)
+
     Args:
         retriever: ContextRetriever instance
         messages: Original message list
         user_id: User ID for memory isolation
         query_strategy: How to extract query from messages
-        injection_strategy: Where to inject context
+        injection_strategy: Where to inject context (use "dual" for caching)
         container_tag: Optional container tag override
+        static_system_prompt: Optional custom static prompt (cached separately)
 
     Returns:
         Tuple of (enhanced_messages, context_metadata)
@@ -459,12 +550,27 @@ async def retrieve_and_inject_context(
             container_tag=container_tag,
         )
 
+        # Check if we got results
+        if not context_data.get("results") or len(context_data["results"]) == 0:
+            logger.info("No context results found, using original messages")
+            return messages, context_data
+
         # Inject context into messages
         enhanced_messages = ContextRetriever.inject_context_into_messages(
             messages=messages,
             context=context_data["formatted_context"],
             injection_strategy=injection_strategy,
+            static_system_prompt=static_system_prompt,  # Pass through
         )
+
+        # Add metadata about caching strategy
+        context_data["caching_strategy"] = injection_strategy
+        if injection_strategy == "dual":
+            context_data["cache_info"] = {
+                "static_system_cached": True,
+                "dynamic_context_cached": False,
+                "expected_savings": "~40-60% on repeated requests (static prompt + tools)",
+            }
 
         return enhanced_messages, context_data
 

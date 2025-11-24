@@ -5,6 +5,7 @@ Port Manager CLI
 Command-line tool for managing PyCharm/IntelliJ project port assignments.
 """
 import argparse
+import os
 import sys
 from pathlib import Path
 from typing import Optional
@@ -16,6 +17,7 @@ def list_mappings(registry: PortRegistry):
     mappings = registry.list_mappings()
     info = registry.get_info()
 
+    print(f"\nOTEL_SERVICE_NAME: {os.getenv("OTEL_SERVICE_NAME")}")
     print("\n" + "=" * 80)
     print("Port Registry Information")
     print("=" * 80)
